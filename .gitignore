@@ -1,0 +1,13 @@
+target
+.classpath
+.project
+.settings
+
+# HSQLDB 実行時ファイル（ロック・ログは再生成される）
+db/hsqldb/*.lck
+db/hsqldb/*.log
+
+target/
+.m2/
+.idea/
+*.iml

@@ -1,0 +1,11 @@
+services:
+  jpetstore:
+    build:
+      context: .
+      dockerfile: run/Dockerfile
+    image: jpetstore-legacy:local
+    container_name: jpetstore
+    ports:
+      - "8080:8080"
+      - "9002:9002"
+    restart: unless-stopped

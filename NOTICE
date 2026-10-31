@@ -1,0 +1,26 @@
+JPetStore (legacy target for AI modernization / java-migration)
+================================================================
+
+このディレクトリは "Spring JPetStore" サンプルアプリケーションを収録している。
+  - Web層:    Apache Struts 1.2
+  - サービス層: Spring Framework
+  - データ層:  iBATIS SQL Maps + HSQLDB
+本プロジェクトではこれを「レガシー刷新の題材」かつ「意図的に脆弱な研究対象」として用いる。
+
+原著 (Apache License 2.0, LICENSE 参照):
+  - JPetStore by Clinton Begin (iBATIS)  — 元 ibatis.com / 現 MyBatis 系譜
+  - Spring JPetStore への翻案 by Juergen Hoeller (Spring Framework samples)
+
+本リポジトリ (java-migration) での変更:
+  - pom.xml : 依存座標を、オフラインの SpringSource Enterprise Bundle Repository
+    (com.springsource.* OSGi バンドル) から Maven Central の等価座標へ張り替え。
+    死んだ http:// リポジトリを削除。**アプリのソースコードは無変更**。
+  - web.xml : **Struts 1.2 層を有効化**（サンプルが同梱する切替機構。`*.do` の servlet-mapping を
+    `petstore`(Spring MVC)→`action`(Struts) に差し替え）。サンプル既定は Spring MVC だが、
+    本題材のテーゼ（Struts1 レガシー刷新）に合わせて Struts を稼働 Web 層とした。両層とも同梱物。
+  - run/    : HSQLDB 1.8 サーバ + Tomcat 9 (JRE 8) を1コンテナで動かす
+    Dockerfile + entrypoint.sh を追加。
+  - (予定)  : Find-and-Fix 研究のための意図的な脆弱性注入。
+
+警告: 本アプリは意図的に安全でない/古い構成であり、
+本番環境やインターネット公開環境に配置してはならない。
