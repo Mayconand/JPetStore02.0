@@ -14,7 +14,7 @@ FROM tomcat:9-jre8
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Deploy the WAR generated in the build stage.
-COPY --from=build /app/target/org.springframework.samples.jpetstore-1.0.0-SNAPSHOT.war /usr/local/tomcat/webapps/jpetstore.war
+COPY --from=build /app/target/JpetStore-1.0.0-SNAPSHOT.war /usr/local/tomcat/webapps/jpetstore.war
 
 # HSQLDB のプリロード済みデータベース一式（jpetstore.script 等）
 COPY db/hsqldb/ /hsqldb-db/

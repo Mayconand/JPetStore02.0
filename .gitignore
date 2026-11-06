@@ -1,13 +1,31 @@
-target
+# Java e Maven
+**/target/
+.m2/
+*.class
+
+# Frontend
+**/node_modules/
+**/dist/
+**/build/
+**/.next/
+**/coverage/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
 .classpath
 .project
-.settings
+.settings/
 
-# HSQLDB 実行時ファイル（ロック・ログは再生成される）
-db/hsqldb/*.lck
-db/hsqldb/*.log
+# Configurações locais e segredos
+**/.env
+**/.env.*
+!**/.env.example
 
-target/
-.m2/
-.idea/
-*.iml
+# Logs e arquivos temporários
+*.log
+*.tmp
+
+# Arquivos de execução do HSQLDB legado
+sistemaLegado/db/hsqldb/*.lck
