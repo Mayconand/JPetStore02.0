@@ -1,0 +1,209 @@
+.animalCategories {
+    width: 100%;
+    background-color: #80A92B;
+    padding: 60px 5%;
+    overflow: hidden;
+}
+
+.categoryContent {
+    width: 100%;
+    max-width: 1200px;
+    aspect-ratio: 1000 / 600;
+    margin: auto;
+    position: relative;
+}
+
+.categoryLines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.categoryLines line {
+    stroke: white;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+.centralAnimal {
+    z-index: 2;
+}
+
+.animalCategory {
+    z-index: 3;
+}
+
+.centralAnimal {
+    position: absolute;
+    width: 40%;
+    aspect-ratio: 1;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid white;
+    outline: 2px solid white;
+    outline-offset: 8px;
+    border-radius: 50%;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.centralAnimal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.animalCategory {
+    position: absolute;
+    width: 17%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #383838;
+    z-index: 3;
+    transition: transform 0.2s ease;
+}
+
+.animalCategory:hover {
+    transform: scale(1.07);
+}
+
+.animalCategory img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 5px solid white;
+    border-radius: 50%;
+}
+
+.animalCategory span {
+    background-color: white;
+    padding: 8px 25px;
+    border-radius: 30px;
+    margin-top: -12px;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.peixes {
+    top: 35%;
+    left: 0;
+}
+
+.passaros {
+    top: 35%;
+    right: 0;
+}
+
+.caes {
+    bottom: 5%;
+    left: 12%;
+}
+
+.gatos {
+    bottom: 5%;
+    right: 12%;
+}
+
+.repteis {
+    bottom: -5%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.repteis:hover {
+    transform: translateX(-50%) scale(1.07);
+}
+
+.paw {
+    position: absolute;
+    color: #A6CA55;
+    font-size: 50px;
+    opacity: 0.8;
+    z-index: 0;
+}
+
+.paw1 {
+    top: 8%;
+    left: -15%;
+}
+
+.paw2 {
+    top: 10%;
+    right: -8%;
+}
+
+.paw3 {
+    bottom: 12%;
+    left: -5%;
+}
+
+.paw4 {
+    bottom: 10%;
+    right: 5%;
+}
+
+.mobileLines {
+    display: none;
+}
+
+@media (max-width: 750px) {
+
+    .desktopLines {
+        display: none;
+    }
+
+    .mobileLines {
+        display: block;
+    }
+
+    .animalCategories span{
+        font-size: 13px;
+        padding: 2px 15px;
+    }
+
+    .categoryContent {
+        aspect-ratio: 1 / 1;
+    }
+
+    .centralAnimal {
+        width: 50%;
+        top: 10%;
+    }
+
+    .animalCategory {
+        width: 20%;
+    }
+
+    .peixes {
+        top: 30%;
+        left: -5%;
+    }
+
+    .passaros {
+        top: 30%;
+        right: -5%;
+    }
+
+    .caes {
+        bottom: 5%;
+        left: 10%;
+    }
+
+    .gatos {
+        bottom: 5%;
+        right: 10%;
+    }
+
+    .repteis {
+        bottom: 2%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}

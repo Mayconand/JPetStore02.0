@@ -1,0 +1,298 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+.cadastroContainer {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    background-color: #FBF3EC;
+}
+
+.cadastroImage {
+    width: 35%;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.cadastroImage > img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    object-position: center 20%;
+}
+
+.cadastroMessage {
+    position: absolute;
+    width: 79%;
+    max-width: 350px;
+    left: 0;
+    bottom: 9%;
+    padding: 27px 23px;
+    background: rgba(220, 207, 185, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0 8px 8px 0;
+    color: white;
+}
+
+.cadastroMessage h2 {
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.cadastro {
+    width: 65%;
+    min-height: 100vh;
+    padding: 100px 4.2% 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.cadastroLogo {
+    position: absolute;
+    top: 20px;
+    left: 7%;
+    width: 150px;
+    height: auto;
+}
+
+.cadastroForm {
+    width: 100%;
+    max-width: 860px;
+    margin: auto;
+}
+
+.cadastroForm h1 {
+    font-size: 30px;
+    color: #383838;
+    margin-bottom: 5px;
+}
+
+.cadastroDescription {
+    font-size: 13px;
+    font-weight: 400;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 30px;
+}
+
+.formSectionTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #383838;
+    margin-bottom: 12px;
+    margin-top: 8px;
+}
+
+.formGrid {
+    display: grid;
+    gap: 13px 16px;
+    margin-bottom: 5px;
+}
+
+.gridTwo {
+    grid-template-columns: 1fr 1fr;
+}
+
+.gridThree {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.spanTwo {
+    grid-column: span 2;
+}
+
+
+.cadastroForm input:not([type="checkbox"]) {
+    width: 100%;
+    height: 32px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    padding: 0 16px;
+    font-size: 12px;
+    color: #383838;
+    outline: none;
+}
+
+.cadastroForm input::placeholder {
+    color: #666;
+}
+
+.cadastroForm input:not([type="checkbox"]):focus {
+    outline: 1px solid #9DC352;
+}
+
+
+.addressHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.checkboxLabel input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #9DC352;
+    cursor: pointer;
+}
+
+
+.preferencesTitle {
+    margin-top: 12px;
+}
+
+.preferencesGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    align-items: end;
+    gap: 15px;
+    margin-bottom: 14px;
+}
+
+.preferenceField {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.preferenceField label {
+    font-size: 12px;
+    color: #383838;
+}
+
+.preferenceField select {
+    width: 100%;
+    height: 32px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    padding: 0 10px;
+    outline: none;
+    color: #555;
+    cursor: pointer;
+}
+
+.preferenceField select:focus {
+    outline: 1px solid #9DC352;
+}
+
+.preferenceCheck {
+    height: 32px;
+}
+
+
+.cadastroForm button {
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 5px;
+    background-color: #9DC352;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cadastroForm button:hover {
+    background-color: #80A92B;
+}
+
+
+@media (max-width: 1050px) {
+
+    .cadastro {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+
+    .preferencesGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .preferenceCheck {
+        height: auto;
+    }
+
+}
+
+@media (max-width: 750px) {
+
+    .cadastroContainer {
+        flex-direction: column;
+    }
+
+    .cadastroImage {
+        display: none;
+    }
+
+    .cadastro {
+        width: 100%;
+        min-height: 100vh;
+        padding: 100px 7% 40px;
+    }
+
+    .cadastroLogo {
+        left: 7%;
+    }
+
+    .cadastroForm {
+        max-width: 550px;
+    }
+
+}
+
+@media (max-width: 480px) {
+
+    .cadastro {
+        padding-left: 5%;
+        padding-right: 5%;
+    }
+
+    .cadastroForm h1 {
+        font-size: 25px;
+    }
+
+    .cadastroDescription {
+        font-size: 12px;
+    }
+
+    .gridTwo,
+    .gridThree {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .spanTwo {
+        grid-column: span 1;
+    }
+
+    .preferencesGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+}

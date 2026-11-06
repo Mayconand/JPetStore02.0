@@ -1,0 +1,140 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Chango&family=Chenla&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #FBF3EC;
+    min-width: 320px;
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    width: 100%;
+    padding: 1.5rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    width: clamp(130px, 15vw, 260px);
+    height: auto;
+    object-fit: contain;
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 5vw, 80px);
+}
+
+header nav a {
+    text-decoration: none;
+    color: #383838;
+    font-family: 'Inter', sans-serif;
+}
+
+header nav a:hover {
+    font-weight: bold;
+}
+
+.btnCadastro {
+    text-decoration: none;
+    color: #FFFFFF;
+    background-color: #6F981E;
+    padding: 10px 25px;
+    border-radius: 5px;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.btnCadastro:hover {
+    background-color: #587B17;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.presentation {
+    width: 100%;
+    max-width: 1600px;
+    margin: auto;
+    padding: 2rem 5%;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 3rem;
+}
+
+.presentationText {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.presentationText h1 {
+    color: #4D4D4D;
+    font-family: 'Chango', cursive;
+    font-size: clamp(2rem, 3.2vw, 3.5rem);
+    line-height: 1.15;
+    margin-bottom: 12px;
+}
+
+.presentationText h1 span {
+    color: #9DC352;
+}
+
+.presentationText p {
+    color: #555;
+    font-family: 'Chenla', sans-serif;
+    font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+    margin-bottom: 20px;
+}
+
+.presentationImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.imagemhome {
+    width: 100%;
+    max-width: 650px;
+    max-height: 65vh;
+    object-fit: contain;
+}
+
+.scallop-divider {
+    width: 100%;
+    height: 60px;
+    background-color: #80A92B;
+
+    -webkit-mask:
+        radial-gradient(
+            circle at 50% 0,
+            transparent 37px,
+            #000 38px
+        ) 0 0 / 75px 60px repeat-x;
+}
+
+footer {
+    padding: 1rem 5%;
+}
+
+footer p {
+    color: #555;
+}
