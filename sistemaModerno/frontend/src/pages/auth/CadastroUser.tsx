@@ -2,8 +2,61 @@
 import "./CadastroUser.css";
 import logo from "../../assets/imagens/logoJPetStore.png";
 import imagemLogin from "../../assets/imagens/imagemLogin.png";
+import { useState } from "react";
+import { buscarCEP } from "../../services/cep";
 
 function CadastroUser() {
+    type Endereco = {
+        city: string;
+        state: string;
+        country: string;
+        zipCode: string;
+        complement: string;
+    };
+
+    const [endereco1, setEndereco1] = useState<Endereco>({
+        city: "",
+        state: "",
+        country: "Brasil",
+        zipCode: "",
+        complement: ""
+    });
+
+    const [endereco2, setEndereco2] = useState<Endereco>({
+        city: "",
+        state: "",
+        country: "Brasil",
+        zipCode: "",
+        complement: ""
+    });
+
+    // Consulta o CEP e preenche o endereço correspondente
+    const preencherCEP = async (cep: string, endereco: 1 | 2) => {
+        if (!cep.trim()) return;
+
+        try {
+            const dados = await buscarCEP(cep);
+
+            const atualizar = endereco === 1 ? setEndereco1 : setEndereco2;
+
+            atualizar((anterior) => ({
+                ...anterior,
+                city: dados.localidade,
+                state: dados.uf,
+                country: "Brasil"
+            }));
+
+        } catch (erro) {
+            alert(erro instanceof Error ? erro.message : "Erro ao consultar CEP.");
+        }
+    };
+
+
+
+
+
+
+
     return (
         <div className="cadastroContainer">
 
@@ -92,7 +145,11 @@ function CadastroUser() {
                                 type="text"
                                 name="city"
                                 placeholder="Cidade"
-                                aria-label="Cidade"
+                                value={endereco1.city}
+                                onChange={(e) => setEndereco1({
+                                    ...endereco1,
+                                    city: e.target.value
+                                })}
                                 required
                             />
 
@@ -100,7 +157,11 @@ function CadastroUser() {
                                 type="text"
                                 name="state"
                                 placeholder="Estado"
-                                aria-label="Estado"
+                                value={endereco1.state}
+                                onChange={(e) => setEndereco1({
+                                    ...endereco1,
+                                    state: e.target.value
+                                })}
                                 required
                             />
 
@@ -108,7 +169,11 @@ function CadastroUser() {
                                 type="text"
                                 name="country"
                                 placeholder="País"
-                                aria-label="País"
+                                value={endereco1.country}
+                                onChange={(e) => setEndereco1({
+                                    ...endereco1,
+                                    country: e.target.value
+                                })}
                                 required
                             />
 
@@ -116,7 +181,14 @@ function CadastroUser() {
                                 type="text"
                                 name="zipCode"
                                 placeholder="CEP"
-                                aria-label="CEP"
+                                value={endereco1.zipCode}
+                                onChange={(e) => setEndereco1({
+                                    ...endereco1,
+                                    zipCode: e.target.value
+                                })}
+                                onBlur={() => preencherCEP(endereco1.zipCode, 1)}
+                                maxLength={9}
+                                inputMode="numeric"
                                 required
                             />
 
@@ -147,30 +219,52 @@ function CadastroUser() {
                         <div className="formGrid gridThree">
                             <input
                                 type="text"
-                                name="country2"
-                                placeholder="País"
-                                aria-label="Segundo endereço: país"
+                                name="city2"
+                                placeholder="Cidade"
+                                value={endereco2.city}
+                                onChange={(e) => setEndereco2({
+                                    ...endereco2,
+                                    city: e.target.value
+                                })}
+                                required
                             />
 
                             <input
                                 type="text"
                                 name="state2"
                                 placeholder="Estado"
-                                aria-label="Segundo endereço: estado"
+                                value={endereco2.state}
+                                onChange={(e) => setEndereco2({
+                                    ...endereco2,
+                                    state: e.target.value
+                                })}
+                                required
                             />
 
                             <input
                                 type="text"
-                                name="city2"
-                                placeholder="Cidade"
-                                aria-label="Segundo endereço: cidade"
+                                name="country2"
+                                placeholder="País"
+                                value={endereco2.country}
+                                onChange={(e) => setEndereco2({
+                                    ...endereco2,
+                                    country: e.target.value
+                                })}
+                                required
                             />
 
                             <input
                                 type="text"
                                 name="zipCode2"
                                 placeholder="CEP"
-                                aria-label="Segundo endereço: CEP"
+                                value={endereco2.zipCode}
+                                onChange={(e) => setEndereco2({
+                                    ...endereco2,
+                                    zipCode: e.target.value
+                                })}
+                                onBlur={() => preencherCEP(endereco2.zipCode, 2)}
+                                maxLength={9}
+                                inputMode="numeric"
                             />
 
                             <input

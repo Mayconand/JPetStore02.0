@@ -13,7 +13,7 @@ function Home() {
 
                 <nav>
                     <Link to="/login">Entrar</Link>
-                    <Link to="/register" className="btnCadastro">
+                    <Link to="/cadastroUser" className="btnCadastro">
                         Cadastre-se
                     </Link>
                 </nav>
@@ -32,7 +32,7 @@ function Home() {
                             o amor que só um pet pode oferecer.
                         </p>
 
-                        <a href="/" className="btnCadastro">
+                        <a href="/cadastroUser" className="btnCadastro">
                             Cadastre-se
                         </a>
                     </div>

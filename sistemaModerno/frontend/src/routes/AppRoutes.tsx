@@ -4,7 +4,7 @@ import Home from "../pages/store/Home";
 import Login from "../pages/auth/Login";
 import CadastroUser from "../pages/auth/CadastroUser";
 
-function AppRoutes() {
+function AppRoutes() { 
     return (
         <Routes>
             <Route path="/" element={<Home />} />

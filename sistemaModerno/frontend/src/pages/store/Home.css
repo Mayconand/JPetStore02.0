@@ -72,8 +72,7 @@ main {
     width: 100%;
     max-width: 1600px;
     margin: auto;
-    padding: 2rem 5%;
-
+    padding: 0rem 5% 5rem 5%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
@@ -96,6 +95,7 @@ main {
 
 .presentationText h1 span {
     color: #9DC352;
+    font-family: 'Chango', cursive;
 }
 
 .presentationText p {
@@ -113,7 +113,7 @@ main {
 
 .imagemhome {
     width: 100%;
-    max-width: 650px;
+    max-width: 450px;
     max-height: 65vh;
     object-fit: contain;
 }
