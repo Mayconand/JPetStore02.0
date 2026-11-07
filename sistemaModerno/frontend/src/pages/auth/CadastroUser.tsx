@@ -1,6 +1,6 @@
 
 import "./CadastroUser.css";
-import logo from "../../assets/imagens/logoJPetStore.png";
+import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import imagemLogin from "../../assets/imagens/imagemLogin.png";
 import { useState } from "react";
 import { buscarCEP } from "../../services/cep";

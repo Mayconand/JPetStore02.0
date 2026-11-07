@@ -1,5 +1,5 @@
 import "./Home.css";
-import logo from "../../assets/imagens/logoJPetStore.png";
+import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import imagemhome from "../../assets/imagens/imagemhome.png";
 import AnimalCategories from "../../components/store/AnimalCategories";
 import { Link } from "react-router-dom";
