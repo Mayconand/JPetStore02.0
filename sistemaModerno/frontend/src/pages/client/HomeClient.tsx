@@ -15,10 +15,6 @@ import iconemenufavorito from "../../assets/imagens/iconemenufavorito.png";
 
 import { Link } from "react-router-dom";
 
-// ==========================================
-// OPÇÕES DE RAÇAS E ESPÉCIES
-// ==========================================
-
 const opcoesAnimais = {
     Cachorro: {
         label: "Raça",
@@ -80,9 +76,6 @@ const opcoesAnimais = {
     }
 };
 
-// ==========================================
-// DADOS DOS ANIMAIS
-// ==========================================
 
 const pets = [
     {
@@ -153,10 +146,6 @@ const pets = [
     }
 ];
 
-// ==========================================
-// TIPAGENS TYPESCRIPT
-// ==========================================
-
 type TipoAnimal = keyof typeof opcoesAnimais;
 
 type Pet = typeof pets[number];
@@ -168,9 +157,6 @@ interface Favorito {
     categoria: string;
 }
 
-// ==========================================
-// COMPONENTE PRINCIPAL
-// ==========================================
 
 function HomeClient() {
 
@@ -187,9 +173,7 @@ function HomeClient() {
 
     const [favoritos, setFavoritos] = useState<Favorito[]>([]);
 
-    // ======================================
-    // ABRIR E FECHAR MODAL DE LAUDOS
-    // ======================================
+    
 
     function abrirLaudo(pet: Pet): void {
         setPetSelecionado(pet);
@@ -201,9 +185,6 @@ function HomeClient() {
         setPetSelecionado(null);
     }
 
-    // ======================================
-    // ABRIR E FECHAR MENU DE FAVORITOS
-    // ======================================
 
     function abrirMenu(): void {
         setMenuAberto(true);
@@ -213,9 +194,6 @@ function HomeClient() {
         setMenuAberto(false);
     }
 
-    // ======================================
-    // ALTERAR TIPO DO ANIMAL
-    // ======================================
 
     function alterarTipoAnimal(
         event: ChangeEvent<HTMLSelectElement>
@@ -223,13 +201,8 @@ function HomeClient() {
 
         setTipoAnimal(event.target.value as TipoAnimal | "");
 
-        // Limpa a raça/espécie selecionada anteriormente
         setRacaEspecie("");
     }
-
-    // ======================================
-    // SALVAR FAVORITO
-    // ======================================
 
     function salvarFavorito(
         event: FormEvent<HTMLFormElement>
@@ -241,7 +214,6 @@ function HomeClient() {
             return;
         }
 
-        // Verifica se o animal já está cadastrado
         const jaExiste = favoritos.some(
             (favorito) =>
                 favorito.tipo === tipoAnimal &&
@@ -265,14 +237,10 @@ function HomeClient() {
             novoFavorito
         ]);
 
-        // Limpa os campos depois de salvar
         setTipoAnimal("");
         setRacaEspecie("");
     }
 
-    // ======================================
-    // REMOVER FAVORITO
-    // ======================================
 
     function removerFavorito(id: number): void {
 
@@ -283,9 +251,6 @@ function HomeClient() {
         );
     }
 
-    // ======================================
-    // FECHAR MODAL AO CLICAR NO FUNDO
-    // ======================================
 
     function impedirFechamento(
         event: MouseEvent<HTMLDivElement>
@@ -293,15 +258,10 @@ function HomeClient() {
         event.stopPropagation();
     }
 
-    // ======================================
-    // RETORNO JSX
-    // ======================================
 
     return (
 
         <div className="container">
-
-            {/* HEADER */}
 
             <header className="headerClient">
 
@@ -393,11 +353,8 @@ function HomeClient() {
 
             </header>
 
-            {/* MAIN */}
 
             <main>
-
-                {/* APRESENTAÇÃO */}
 
                 <section className="presentation">
 
@@ -427,7 +384,6 @@ function HomeClient() {
 
                 </section>
 
-                {/* LISTAGEM DE ANIMAIS */}
 
                 <section className="filterConteiner">
 
@@ -552,12 +508,6 @@ function HomeClient() {
 
             </main>
 
-            <footer />
-
-            {/* =====================================
-                MODAL DE LAUDOS
-            ===================================== */}
-
             {modalLaudo && petSelecionado && (
 
                 <div
@@ -601,10 +551,6 @@ function HomeClient() {
 
             )}
 
-            {/* =====================================
-                BOTÃO FLUTUANTE DE FAVORITOS
-            ===================================== */}
-
             <button
                 type="button"
                 className="btnMenuFavoritos"
@@ -619,9 +565,6 @@ function HomeClient() {
 
             </button>
 
-            {/* =====================================
-                FUNDO DO MENU LATERAL
-            ===================================== */}
 
             {menuAberto && (
 
@@ -632,16 +575,12 @@ function HomeClient() {
 
             )}
 
-            {/* =====================================
-                MENU LATERAL DE FAVORITOS
-            ===================================== */}
 
             <aside
                 className={`menuFavoritos ${menuAberto ? "menuAberto" : ""}`}
                 aria-hidden={!menuAberto}
             >
 
-                {/* CABEÇALHO */}
 
                 <div className="menuFavoritosHeader">
 
@@ -667,7 +606,6 @@ function HomeClient() {
 
                 <div className="menuFavoritosConteudo">
 
-                    {/* LISTA DE FAVORITOS */}
 
                     <div
                         className={`listaFavoritos ${
@@ -720,14 +658,12 @@ function HomeClient() {
 
                     </div>
 
-                    {/* FORMULÁRIO DE FAVORITOS */}
 
                     <form
                         className="formFavoritos"
                         onSubmit={salvarFavorito}
                     >
 
-                        {/* SELECT DO TIPO */}
 
                         <div className="campoFavorito">
 
@@ -770,8 +706,6 @@ function HomeClient() {
 
                         </div>
 
-                        {/* SELECT DINÂMICO DE RAÇA OU ESPÉCIE */}
-
                         {tipoAnimal && (
 
                             <div className="campoFavorito">
@@ -812,7 +746,6 @@ function HomeClient() {
 
                         )}
 
-                        {/* BOTÃO SALVAR */}
 
                         <button
                             type="submit"
@@ -828,7 +761,52 @@ function HomeClient() {
 
             </aside>
 
+            <footer>
+                    <div className="footerInfo">
+                        <img
+                            src={logo}
+                            alt="Logo JPetStore"
+                            className="logo"
+                        />
+                        <p>Encontre seu companheiro ideal e descubra o amor que só um pet pode oferecer.</p>
+                        <Link to="/cadastroUser" className="btnCadastro">
+                            Cadastre-se
+                        </Link>
+                    </div>
+
+                    <div className="footerLinks">
+                        <h4><Link to="">Inicio</Link></h4>
+                        <div>
+                            <h4><Link to="">Cachorros</Link></h4>
+                            <ul>
+                                <li><Link to="">Porte Grande</Link></li>
+                                <li><Link to="">Porte Medio</Link></li>
+                                <li><Link to="">Porte Pequeno</Link></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4><Link to="">Gatos</Link></h4>
+                            <ul>
+                                <li><Link to="">Porte Grande</Link></li>
+                                <li><Link to="">Porte Medio</Link></li>
+                                <li><Link to="">Porte Pequeno</Link></li>
+                            </ul>
+                        </div>
+
+                        <h4><Link to="">Repteis</Link></h4>
+
+                        <h4><Link to="">Passaros</Link></h4>
+
+                        <h4><Link to="">Peixes</Link></h4>
+
+                    </div>
+
+            </footer>
+
         </div>
+
+        
 
     );
 }

@@ -822,6 +822,62 @@ footer {
     color: #FFFFFF;
 }
 
+.btnCadastro{
+    background-color: #76ACEA;
+}
+
+footer {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    background-color: #ebf5d7;
+    padding: 3vh 0;
+    justify-content: space-between;
+}
+
+footer .footerInfo{
+    margin-left: 10vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+footer .footerInfo img{
+    height: auto;
+}
+
+footer .footerInfo p{
+    margin-top: 2vh;
+    font-size: large;
+    width: 68%;
+    margin-bottom: 2vh;
+}
+
+footer .footerLinks{
+    width: 45%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-right: 10vh;
+}
+
+footer .footerLinks h4{
+    color: #555;
+    margin-bottom: 1vh;
+    cursor: pointer;
+}
+footer .footerLinks h4 a{
+    text-decoration: none;
+    color: #555;
+    font-size: 17px;
+}
+
+footer .footerLinks a{
+    text-decoration: none;
+    color: #555;
+    font-size: 14px;
+}
 
 @media (max-width: 600px) {
 
