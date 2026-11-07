@@ -12,6 +12,11 @@ import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import slidehomeclient from "../../assets/imagens/slidehomeclient.png";
 import pata from "../../assets/imagens/pata.png";
 import iconemenufavorito from "../../assets/imagens/iconemenufavorito.png";
+import slideCachorro from "../../assets/imagens/animais/slideCachorroHomeClient.png";
+import slideGato from "../../assets/imagens/animais/slideGatoHomeClient.png";
+import slideReptil from "../../assets/imagens/animais/slideReptilHomeClient.png";
+import slidePassaro from "../../assets/imagens/animais/slidePassaroHomeClient.png";
+import slidePeixe from "../../assets/imagens/animais/slidePeixeHomeClient.png";
 
 import { Link } from "react-router-dom";
 
@@ -356,7 +361,7 @@ function HomeClient() {
 
             <main>
 
-                <section className="presentation">
+                <section className="presentationHomeClient">
 
                     <div className="presentationTitle">
 
@@ -376,11 +381,39 @@ function HomeClient() {
 
                     </div>
 
-                    <img
-                        src={slidehomeclient}
-                        alt="Imagem de vários animais de estimação"
-                        className="slidehomeclient"
-                    />
+                    <div className="presentationImage">
+
+                        <Link to="">
+                            <img
+                                src={slideCachorro}
+                                alt="Apresentação"
+                            />
+                        </Link>
+                        <Link to="">
+                            <img
+                                src={slideGato}
+                                alt="Apresentação"
+                            />
+                        </Link>
+                        <Link to="">
+                            <img
+                                src={slideReptil}
+                                alt="Apresentação"
+                            />
+                        </Link>
+                        <Link to="">
+                            <img
+                                src={slidePassaro}  
+                                alt="Apresentação"
+                            />
+                        </Link>
+                        <Link to="">
+                            <img
+                                src={slidePeixe}
+                                alt="Apresentação"
+                            />
+                        </Link>
+                    </div>
 
                 </section>
 
