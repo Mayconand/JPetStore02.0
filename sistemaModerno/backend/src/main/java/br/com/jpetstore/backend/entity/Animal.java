@@ -23,9 +23,6 @@ public abstract class Animal {
 
     private String nome;
 
-    /* VER COM YASMIM
-    private String raca;
-    */
 
     private LocalDate dataNascimento;
 

@@ -14,11 +14,8 @@ import lombok.Setter;
 @Setter
 public class Cachorro extends Animal {
 
-    /*
-    private String raça;
 
-    VER COM YASMIM
-     */
+    private String raca;
 
     @Enumerated(EnumType.STRING)
     private PorteEnum porte;
