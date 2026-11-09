@@ -12,11 +12,11 @@ import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import slidehomeclient from "../../assets/imagens/slidehomeclient.png";
 import pata from "../../assets/imagens/pata.png";
 import iconemenufavorito from "../../assets/imagens/iconemenufavorito.png";
-import slideCachorro from "../../assets/imagens/animais/slideCachorroHomeClient.png";
-import slideGato from "../../assets/imagens/animais/slideGatoHomeClient.png";
-import slideReptil from "../../assets/imagens/animais/slideReptilHomeClient.png";
-import slidePassaro from "../../assets/imagens/animais/slidePassaroHomeClient.png";
-import slidePeixe from "../../assets/imagens/animais/slidePeixeHomeClient.png";
+import slideCachorro from "../../assets/imagens/animais/slidesClientHome/slideCachorroHomeClient.png";
+import slideGato from "../../assets/imagens/animais/slidesClientHome/slideGatoHomeClient.png";
+import slideReptil from "../../assets/imagens/animais/slidesClientHome/slideReptilHomeClient.png";
+import slidePassaro from "../../assets/imagens/animais/slidesClientHome/slidePassaroHomeClient.png";
+import slidePeixe from "../../assets/imagens/animais/slidesClientHome/slidePeixeHomeClient.png";
 
 import { Link } from "react-router-dom";
 
@@ -165,14 +165,11 @@ interface Favorito {
 
 function HomeClient() {
 
-    // Modal de laudos
     const [modalLaudo, setModalLaudo] = useState<boolean>(false);
     const [petSelecionado, setPetSelecionado] = useState<Pet | null>(null);
 
-    // Menu lateral
     const [menuAberto, setMenuAberto] = useState<boolean>(false);
 
-    // Favoritos
     const [tipoAnimal, setTipoAnimal] = useState<TipoAnimal | "">("");
     const [racaEspecie, setRacaEspecie] = useState<string>("");
 
@@ -383,31 +380,31 @@ function HomeClient() {
 
                     <div className="presentationImage">
 
-                        <Link to="">
+                        <Link to="/Products?tipo=Cachorro">
                             <img
                                 src={slideCachorro}
                                 alt="Apresentação"
                             />
                         </Link>
-                        <Link to="">
+                        <Link to="/Products?tipo=Gato">
                             <img
                                 src={slideGato}
                                 alt="Apresentação"
                             />
                         </Link>
-                        <Link to="">
+                        <Link to="/Products?tipo=Reptil">
                             <img
                                 src={slideReptil}
                                 alt="Apresentação"
                             />
                         </Link>
-                        <Link to="">
+                        <Link to="/Products?tipo=Passaro">
                             <img
                                 src={slidePassaro}  
                                 alt="Apresentação"
                             />
                         </Link>
-                        <Link to="">
+                        <Link to="/Products?tipo=Peixe">
                             <img
                                 src={slidePeixe}
                                 alt="Apresentação"

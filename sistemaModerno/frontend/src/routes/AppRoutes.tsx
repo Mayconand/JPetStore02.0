@@ -4,6 +4,7 @@ import Home from "../pages/store/Home";
 import Login from "../pages/auth/Login";
 import CadastroUser from "../pages/auth/CadastroUser";
 import HomeClient from "../pages/client/HomeClient";
+import Products from "../pages/client/Products";
 
 function AppRoutes() { 
     return (
@@ -11,7 +12,8 @@ function AppRoutes() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/CadastroUser" element={<CadastroUser />} />
-            <Route path="/homeClient" element={<HomeClient />} />
+            <Route path="/HomeClient" element={<HomeClient />} />
+            <Route path="/Products" element={<Products />} />
         </Routes>
     );
 }

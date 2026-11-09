@@ -1,0 +1,48 @@
+
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.productsClient{
+    width: 90%;
+    margin-top: 20px;
+}
+
+.filtrosCampos{
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+}
+
+.campoFiltro {
+    margin-right: 20px;
+    width: 100%;
+    max-width: 250px;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.campoFiltro select {
+    width: 100%;
+    height: 35px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #594235;
+    color: #594235;
+    box-sizing: border-box;
+}
+
+.petsGrid{
+    margin-top: 20px;
+    display: grid;
+}
+
+.tituloProdutos{
+    max-width: 400px;
+}
+
+.tituloProdutos img{
+    width: 100%;
+}
