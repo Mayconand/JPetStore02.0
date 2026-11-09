@@ -3,6 +3,7 @@ package br.com.jpetstore.backend.entity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Inheritance(strategy = InheritanceType.JOINED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Animal {
 
     @Id
@@ -31,6 +33,12 @@ public abstract class Animal {
     @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
     private List<ImagemAnimal> imagens = new ArrayList<>();
+
+    protected Animal(String nome, LocalDate dataNascimento, String descricao) {
+        this.nome = nome;
+        this.dataNascimento = dataNascimento;
+        this.descricao = descricao;
+    }
 
     public void adicionarImagem(ImagemAnimal imagemAnimal) {
         imagemAnimal.setAnimal(this);

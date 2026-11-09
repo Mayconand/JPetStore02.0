@@ -3,6 +3,7 @@ package br.com.jpetstore.backend.entity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.UUID;
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ImagemAnimal {
 
     @Id
@@ -23,4 +25,8 @@ public class ImagemAnimal {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "animal_id", nullable = false)
     private Animal animal;
+
+    public ImagemAnimal(String imagemUrl) {
+        this.imagemUrl = imagemUrl;
+    }
 }
