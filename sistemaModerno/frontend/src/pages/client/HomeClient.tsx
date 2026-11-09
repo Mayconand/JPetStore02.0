@@ -9,7 +9,6 @@ import type {
 import "./HomeClient.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
-import slidehomeclient from "../../assets/imagens/slidehomeclient.png";
 import pata from "../../assets/imagens/pata.png";
 import iconemenufavorito from "../../assets/imagens/iconemenufavorito.png";
 import slideCachorro from "../../assets/imagens/animais/slidesClientHome/slideCachorroHomeClient.png";
@@ -80,7 +79,6 @@ const opcoesAnimais = {
         ]
     }
 };
-
 
 const pets = [
     {
