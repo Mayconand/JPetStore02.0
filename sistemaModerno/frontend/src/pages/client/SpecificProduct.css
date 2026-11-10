@@ -155,15 +155,15 @@
 
 .docsSection {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-between;
-    width: 85%;
+    width: 90%;
     margin-top: 28px;
     gap: 35px;
 }
 
 .galleryContainer {
-    width: 50%;
+    width: 100%;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -201,7 +201,7 @@
 .galleryDisplay {
     flex: 1;
     min-width: 0;
-    height: 188px;
+    height: 450px;
     background-color: white;
     border-radius: 3px;
     overflow: hidden;

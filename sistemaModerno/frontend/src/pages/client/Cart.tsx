@@ -157,9 +157,9 @@ function Cart() {
 
                                 <div className="cartProduct" key={produto.id}>
 
-                                    <div className="productInfo">
+                                    <div className="productInfoCart">
 
-                                        <div className="productImage">
+                                        <div className="productImageCart">
                                             {produto.imagem && (
                                                 <img
                                                     src={produto.imagem}
