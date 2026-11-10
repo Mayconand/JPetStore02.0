@@ -1,8 +1,35 @@
 import "./Login.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import imagemLogin from "../../assets/imagens/imagemLogin.png";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../../services/auth";
+import { mensagemDeErro } from "../../services/api";
 
 function Login() {
+    const navigate = useNavigate();
+    const [erro, setErro] = useState("");
+    const [enviando, setEnviando] = useState(false);
+
+    // RF02 — Realizar Login
+    async function entrar(event: FormEvent<HTMLFormElement>): Promise<void> {
+        event.preventDefault();
+        const dados = new FormData(event.currentTarget);
+
+        setErro("");
+        setEnviando(true);
+        try {
+            // A página do administrador ainda não existe; por enquanto todos vão para a área do cliente.
+            await login(String(dados.get("email")), String(dados.get("password")));
+            navigate("/HomeClient");
+        } catch (e) {
+            setErro(mensagemDeErro(e));
+        } finally {
+            setEnviando(false);
+        }
+    }
+
     return (
         <div className="loginContainer">
 
@@ -23,19 +50,25 @@ function Login() {
                         seu novo companheiro de estimação
                     </p>
 
-                    <form>
+                    <form onSubmit={entrar}>
 
                         <label>Email</label>
-                        <input type="email" name="email" required />
+                        <input type="email" name="email" autoComplete="email" required />
 
                         <label>Senha</label>
-                        <input type="password" name="password" required />
+                        <input type="password" name="password" autoComplete="current-password" required />
 
                         <a href="/" className="forgotPassword">
                             Esqueceu a senha?
                         </a>
 
-                        <button type="submit">Entrar</button>
+                        {erro && (
+                            <p className="formErro" role="alert">{erro}</p>
+                        )}
+
+                        <button type="submit" disabled={enviando}>
+                            {enviando ? "Entrando..." : "Entrar"}
+                        </button>
 
                         <p className="registerText">
                             Não possui conta? <a href="/CadastroUser">Cadastre-se</a>

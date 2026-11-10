@@ -29,3 +29,11 @@
 
 # Arquivos de execução do HSQLDB legado
 sistemaLegado/db/hsqldb/*.lck
+
+# Arquivos locais de agentes (não vão para o GitHub)
+**/GLOSSARY.md
+**/GLOSSARY-MAP.md
+**/CLAUDE.md
+**/AGENTS.md
+.scratch/
+docs/agents/

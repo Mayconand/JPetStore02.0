@@ -1,6 +1,7 @@
 package br.com.jpetstore.backend.entity;
 
 import br.com.jpetstore.backend.enums.GrupoEnum;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,26 +11,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "reptil")
+@DiscriminatorValue("REPTIL")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Reptil extends Animal {
 
     @Enumerated(EnumType.STRING)
     private GrupoEnum grupo;
 
-    private String especie;
-
     private String mutacao;
 
-    public Reptil (String nome, LocalDate dataNascimento, String descricao,GrupoEnum grupo, String especie, String mutacao) {
-        super(nome, dataNascimento, descricao);
+    public Reptil(String nome, LocalDate dataNascimento, String descricao, Raca raca, BigDecimal preco, GrupoEnum grupo, String mutacao) {
+        super(nome, dataNascimento, descricao, raca, preco);
         this.grupo = grupo;
-        this.especie = especie;
         this.mutacao = mutacao;
     }
 }

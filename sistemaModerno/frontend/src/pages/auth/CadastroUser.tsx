@@ -3,7 +3,13 @@ import "./CadastroUser.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import imagemLogin from "../../assets/imagens/imagemLogin.png";
 import { useState } from "react";
+import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { buscarCEP } from "../../services/cep";
+import { cadastrar } from "../../services/usuarios";
+import type { EnderecoEntrada, Idioma } from "../../services/usuarios";
+import { login } from "../../services/auth";
+import { mensagemDeErro } from "../../services/api";
 
 function CadastroUser() {
     type Endereco = {
@@ -12,7 +18,15 @@ function CadastroUser() {
         country: string;
         zipCode: string;
         complement: string;
+        // Preenchidos pela consulta de CEP (ainda não há campos na tela para eles).
+        street?: string;
+        district?: string;
     };
+
+    const navigate = useNavigate();
+    const [semSegundoEndereco, setSemSegundoEndereco] = useState(false);
+    const [erro, setErro] = useState("");
+    const [enviando, setEnviando] = useState(false);
 
     const [endereco1, setEndereco1] = useState<Endereco>({
         city: "",
@@ -30,6 +44,61 @@ function CadastroUser() {
         complement: ""
     });
 
+    function paraEnderecoApi(endereco: Endereco, complemento: FormDataEntryValue | null): EnderecoEntrada {
+        return {
+            rua: endereco.street,
+            bairro: endereco.district,
+            complemento: String(complemento ?? "").trim() || undefined,
+            cidade: endereco.city.trim(),
+            estado: endereco.state.trim(),
+            cep: endereco.zipCode.trim(),
+            pais: endereco.country.trim() || "Brasil"
+        };
+    }
+
+    // RF03 — Realizar Cadastro (o endereço 1 vira o endereço principal)
+    async function salvar(event: FormEvent<HTMLFormElement>): Promise<void> {
+        event.preventDefault();
+        const dados = new FormData(event.currentTarget);
+        const senha = String(dados.get("password"));
+
+        if (senha !== String(dados.get("confirmPassword"))) {
+            setErro("As senhas não conferem.");
+            return;
+        }
+
+        const enderecos = [paraEnderecoApi(endereco1, dados.get("complement"))];
+        if (!semSegundoEndereco && endereco2.zipCode.trim()) {
+            enderecos.push(paraEnderecoApi(endereco2, dados.get("complement2")));
+        }
+
+        const email = String(dados.get("email")).trim();
+        setErro("");
+        setEnviando(true);
+        try {
+            await cadastrar({
+                nome: String(dados.get("name")).trim(),
+                sobrenome: String(dados.get("lastName")).trim(),
+                email,
+                telefone: String(dados.get("phone")).trim(),
+                senha,
+                idiomaPreferencial: (String(dados.get("language")) || undefined) as Idioma | undefined,
+                preferencias: {
+                    categoriaFavorita: String(dados.get("category")) || null,
+                    ativarMinhaLista: dados.get("activateList") === "on",
+                    ativarMeuBanner: dados.get("activateBanner") === "on"
+                },
+                enderecos
+            });
+            await login(email, senha);
+            navigate("/HomeClient");
+        } catch (e) {
+            setErro(mensagemDeErro(e));
+        } finally {
+            setEnviando(false);
+        }
+    }
+
     // Consulta o CEP e preenche o endereço correspondente
     const preencherCEP = async (cep: string, endereco: 1 | 2) => {
         if (!cep.trim()) return;
@@ -43,7 +112,9 @@ function CadastroUser() {
                 ...anterior,
                 city: dados.localidade,
                 state: dados.uf,
-                country: "Brasil"
+                country: "Brasil",
+                street: dados.logradouro || undefined,
+                district: dados.bairro || undefined
             }));
 
         } catch (erro) {
@@ -94,7 +165,7 @@ function CadastroUser() {
                         seu novo companheiro de quatro patas.
                     </h3>
 
-                    <form>
+                    <form onSubmit={salvar}>
 
                         {/* Informações pessoais */}
                         <p className="formSectionTitle">
@@ -131,6 +202,26 @@ function CadastroUser() {
                                 name="phone"
                                 placeholder="Telefone"
                                 aria-label="Telefone"
+                                required
+                            />
+
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Senha (mínimo 8 caracteres)"
+                                aria-label="Senha"
+                                autoComplete="new-password"
+                                minLength={8}
+                                required
+                            />
+
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                placeholder="Confirmar senha"
+                                aria-label="Confirmar senha"
+                                autoComplete="new-password"
+                                minLength={8}
                                 required
                             />
                         </div>
@@ -211,6 +302,8 @@ function CadastroUser() {
                                 <input
                                     type="checkbox"
                                     name="noSecondAddress"
+                                    checked={semSegundoEndereco}
+                                    onChange={(e) => setSemSegundoEndereco(e.target.checked)}
                                 />
                                 Não possui
                             </label>
@@ -226,7 +319,8 @@ function CadastroUser() {
                                     ...endereco2,
                                     city: e.target.value
                                 })}
-                                required
+                                required={!semSegundoEndereco}
+                                disabled={semSegundoEndereco}
                             />
 
                             <input
@@ -238,7 +332,8 @@ function CadastroUser() {
                                     ...endereco2,
                                     state: e.target.value
                                 })}
-                                required
+                                required={!semSegundoEndereco}
+                                disabled={semSegundoEndereco}
                             />
 
                             <input
@@ -250,7 +345,8 @@ function CadastroUser() {
                                     ...endereco2,
                                     country: e.target.value
                                 })}
-                                required
+                                required={!semSegundoEndereco}
+                                disabled={semSegundoEndereco}
                             />
 
                             <input
@@ -263,6 +359,8 @@ function CadastroUser() {
                                     zipCode: e.target.value
                                 })}
                                 onBlur={() => preencherCEP(endereco2.zipCode, 2)}
+                                required={!semSegundoEndereco}
+                                disabled={semSegundoEndereco}
                                 maxLength={9}
                                 inputMode="numeric"
                             />
@@ -272,6 +370,7 @@ function CadastroUser() {
                                 name="complement2"
                                 placeholder="Complemento"
                                 aria-label="Segundo endereço: complemento"
+                                disabled={semSegundoEndereco}
                                 className="spanTwo"
                             />
                         </div>
@@ -327,8 +426,12 @@ function CadastroUser() {
 
                         </div>
 
-                        <button type="submit">
-                            Salvar
+                        {erro && (
+                            <p className="formErro" role="alert">{erro}</p>
+                        )}
+
+                        <button type="submit" disabled={enviando}>
+                            {enviando ? "Salvando..." : "Salvar"}
                         </button>
 
                     </form>

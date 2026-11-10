@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
+@Table(name = "imagem_animal")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
