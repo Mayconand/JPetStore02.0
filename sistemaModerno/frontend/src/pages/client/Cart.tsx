@@ -38,26 +38,6 @@ function Cart() {
         setProdutos(produtos.filter(produto => produto.id !== id));
     };
 
-
-    const alterarQuantidade = (id: number, operacao: "adicionar" | "diminuir") => {
-        setProdutos(produtos.map(produto => {
-            if (produto.id === id) {
-                const novaQuantidade =
-                    operacao === "adicionar"
-                        ? produto.quantidade + 1
-                        : Math.max(1, produto.quantidade - 1);
-
-                return {
-                    ...produto,
-                    quantidade: novaQuantidade
-                };
-            }
-
-            return produto;
-        }));
-    };
-
-
     const formatarPreco = (valor: number): string => {
         return valor.toLocaleString("pt-BR", {
             style: "currency",
@@ -195,26 +175,9 @@ function Cart() {
                                     
                                     <div className="productQuantity">
 
-                                        <button
-                                            type="button"
-                                            className="quantityButton"
-                                            onClick={() => alterarQuantidade(produto.id, "diminuir")}
-                                            disabled={produto.quantidade <= 1}
-                                            aria-label="Diminuir quantidade"
-                                        >
-                                            -
-                                        </button>
 
                                         <span>{produto.quantidade}</span>
 
-                                        <button
-                                            type="button"
-                                            className="quantityButton"
-                                            onClick={() => alterarQuantidade(produto.id, "adicionar")}
-                                            aria-label="Aumentar quantidade"
-                                        >
-                                            +
-                                        </button>
 
                                     </div>
 
