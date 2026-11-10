@@ -18,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Base dos testes que chamam diretamente as funções de banco (schema jpetstore)
- * para os RFs que ainda não têm endpoint. Usa o mesmo Postgres temporário com as
+ * para os RFs que ainda não têm endpoint. Usa o banco local de testes (BancoDeTesteConfig) com as
  * migrations do Supabase. Cada teste cria seus próprios dados.
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestcontainersConfig.class)
+@Import(BancoDeTesteConfig.class)
 abstract class FuncoesBancoTestBase {
 
     @Autowired

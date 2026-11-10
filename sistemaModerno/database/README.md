@@ -104,11 +104,11 @@ nunca edite uma migration que já foi aplicada no banco compartilhado.
 
 ## Testando localmente
 
-Os testes do backend sobem um Postgres temporário em Docker
-(Testcontainers) e aplicam estas mesmas migrations; o banco da equipe na nuvem
-não é tocado. Para inspecionar à mão:
+Os testes do backend usam um PostgreSQL local (banco `jpetstore_test`, ver
+`backend/README.md`) e aplicam estas mesmas migrations a cada execução; o banco
+da equipe na nuvem não é tocado. Para aplicar à mão num banco local:
 
 ```bash
-docker run --rm -p 5433:5432 -e POSTGRES_PASSWORD=dev \
-  -v "$PWD/supabase/migrations:/docker-entrypoint-initdb.d:ro" postgres:17-alpine
+createdb -U postgres jpetstore_dev
+for f in supabase/migrations/*.sql; do psql -U postgres -d jpetstore_dev -v ON_ERROR_STOP=1 -f "$f"; done
 ```

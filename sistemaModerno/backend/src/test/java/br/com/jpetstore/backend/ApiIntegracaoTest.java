@@ -26,13 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Testes ponta a ponta da API (backend + funções de banco) contra um Postgres
- * temporário com as migrations do Supabase. Cobre os requisitos do quadro
+ * local de testes (BancoDeTesteConfig) com as migrations do Supabase. Cobre os requisitos do quadro
  * "Yasmin - BackEnd": RF02–RF10, RNF05, criar e cancelar pedido.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestcontainersConfig.class)
+@Import(BancoDeTesteConfig.class)
 class ApiIntegracaoTest {
 
     static final String ADMIN_EMAIL = "admin@jpetstore.com";

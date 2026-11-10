@@ -8,7 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 /** Sobe o contexto completo e valida (ddl-auto=validate) as entidades contra as migrations. */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestcontainersConfig.class)
+@Import(BancoDeTesteConfig.class)
 class BackendApplicationTests {
 
 	@Test

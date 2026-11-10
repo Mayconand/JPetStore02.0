@@ -18,8 +18,15 @@ API do JPetStore moderno em **Java 21 + Spring Boot 4**, com banco no
 ./mvnw test
 ```
 
-Os testes de integração precisam de **Docker**: sobem um Postgres temporário
-(Testcontainers) com as mesmas migrations do Supabase.
+Os testes de integração usam um **PostgreSQL local** (sem Docker), configurado
+por `TEST_DB_URL`, `TEST_DB_USER` e `TEST_DB_PASSWORD` no `backend/.env` (ver
+`.env.example`). O padrão é `jdbc:postgresql://localhost:5432/jpetstore_test`.
+
+- O banco é criado automaticamente se não existir.
+- A cada execução, o schema `jpetstore` é apagado e recriado com as mesmas
+  migrations do Supabase; por isso o nome do banco **precisa terminar em
+  `_test`** (os testes se recusam a rodar em outro banco ou no Supabase).
+- Requisito: PostgreSQL 17 instalado (mesma versão principal do Supabase).
 
 ## Organização (por módulo)
 
