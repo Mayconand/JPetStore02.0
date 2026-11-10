@@ -130,11 +130,15 @@
     padding: 12px 22px 14px;
 }
 
-.cartTableHeader {
+.cartTableHeader,
+.cartProduct {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 110px 120px 35px;
+    grid-template-columns: minmax(0, 1fr) 100px 120px 35px;
     align-items: center;
     gap: 10px;
+}
+
+.cartTableHeader {
     padding: 6px 12px;
     border-bottom: 1px solid #bdbdbd;
     color: #555;
@@ -143,10 +147,6 @@
 }
 
 .cartProduct {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 110px 120px 35px;
-    align-items: center;
-    gap: 10px;
     min-height: 52px;
     padding: 7px 12px;
     border-bottom: 1px solid #d5d5d5;
@@ -159,11 +159,17 @@
     border-bottom: none;
 }
 
+.cartTableHeader span:nth-child(2),
+.cartTableHeader span:nth-child(3) {
+    text-align: center;
+}
+
+
 
 .productInfoCart {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 13px;
     min-width: 0;
 }
 
@@ -180,7 +186,6 @@
     border-radius: 5px;
     background-color: #d9d9d9;
     overflow: hidden;
-    margin-right: 5px;
 }
 
 .productImageCart img {
@@ -189,10 +194,26 @@
     object-fit: cover;
 }
 
-.productQuantity,
 .productPrice {
     text-align: center;
     white-space: nowrap;
+    justify-self: center;
+}
+
+.productQuantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    min-width: 0;
+}
+
+.productQuantity span {
+    min-width: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .removeProduct {
@@ -201,6 +222,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    justify-self: center;
     border: none;
     background: transparent;
     color: #111;
@@ -347,6 +369,46 @@
     cursor: not-allowed;
 }
 
+.productQuantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.productQuantity span {
+    min-width: 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.quantityButton {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d5d5d5;
+    border-radius: 5px;
+    background-color: white;
+    color: #555;
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.quantityButton:hover:not(:disabled) {
+    background-color: #9ac34e;
+    border-color: #9ac34e;
+    color: white;
+}
+
+.quantityButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 
 @media (max-width: 900px) {
 
@@ -415,27 +477,45 @@
         padding: 10px 12px;
     }
 
-    .cartTableHeader {
-        grid-template-columns: minmax(0, 1fr) 45px 85px 25px;
+    .cartTableHeader,
+    .cartProduct {
+        grid-template-columns: minmax(0, 1fr) 75px 85px 25px;
         gap: 5px;
-        padding: 7px 5px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .cartTableHeader {
         font-size: 11px;
     }
 
+
     .cartProduct {
-        grid-template-columns: minmax(0, 1fr) 45px 85px 25px;
-        gap: 5px;
-        padding: 9px 5px;
         font-size: 11px;
     }
 
     .productInfoCart {
-        gap: 8px;
+        gap: 7px;
     }
 
-    .productImage {
+    .productImageCart {
         width: 30px;
         height: 30px;
+    }
+
+
+    .productImageCart {
+        width: 30px;
+        height: 30px;
+    }
+
+    .productQuantity span {
+        font-size: 11px;
+        min-width: 12px;
+    }
+
+    .productPrice {
+        font-size: 10px;
     }
 
     .removeProduct {
@@ -471,6 +551,20 @@
         min-width: 130px;
     }
 
+    .productQuantity {
+        gap: 3px;
+    }
+
+    .quantityButton {
+        width: 20px;
+        height: 22px;
+        font-size: 14px;
+    }
+
+    .productQuantity span {
+        font-size: 11px;
+        min-width: 12px;
+    }
 }
 
 
@@ -485,20 +579,24 @@
         justify-content: center;
     }
 
-    .cartTableHeader {
-        grid-template-columns: minmax(0, 1fr) 35px 75px 22px;
-    }
-
+    .cartTableHeader,
     .cartProduct {
-        grid-template-columns: minmax(0, 1fr) 35px 75px 22px;
+        grid-template-columns: minmax(0, 1fr) 68px 75px 22px;
+        gap: 3px;
     }
 
     .productInfoCart {
         gap: 5px;
     }
 
+    .productImageCart {
+        width: 25px;
+        height: 25px;
+    }
+
     .productPrice {
         font-size: 9px;
     }
+
 
 }
