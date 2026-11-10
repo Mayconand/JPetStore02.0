@@ -38,7 +38,8 @@ import java.util.List;
 public class SegurancaConfig {
 
     @Bean
-    SecurityFilterChain filtroDeSeguranca(HttpSecurity http, JwtAuthenticationConverter conversorJwt) throws Exception {
+    SecurityFilterChain filtroDeSeguranca(HttpSecurity http, JwtAuthenticationConverter conversorJwt,
+                                          RespostasDeSeguranca respostas) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> { })
@@ -49,7 +50,13 @@ public class SegurancaConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(o -> o.jwt(jwt -> jwt.jwtAuthenticationConverter(conversorJwt)));
+                .oauth2ResourceServer(o -> o
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(conversorJwt))
+                        .authenticationEntryPoint(respostas.naoAutenticado())
+                        .accessDeniedHandler(respostas.acessoNegado()))
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(respostas.naoAutenticado())
+                        .accessDeniedHandler(respostas.acessoNegado()));
         return http.build();
     }
 

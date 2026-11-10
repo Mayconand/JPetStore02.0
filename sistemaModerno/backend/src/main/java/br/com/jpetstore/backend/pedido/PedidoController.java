@@ -35,14 +35,14 @@ public class PedidoController {
         return service.obter(UsuarioAutenticado.id(jwt), id);
     }
 
-    /** Criar pedido a partir do carrinho. */
+    /** Criar Pedido a partir do Carrinho (base do RF12 — Finalizar Compra). */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PedidoResponse criar(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CriarPedidoRequest request) {
         return service.criar(UsuarioAutenticado.id(jwt), request);
     }
 
-    /** Cancelar pedido. */
+    /** Cancelar Pedido (spec: só o dono, antes do envio; complementa RF06). */
     @PostMapping("/{id}/cancelar")
     public PedidoResponse cancelar(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         return service.cancelar(UsuarioAutenticado.id(jwt), id);

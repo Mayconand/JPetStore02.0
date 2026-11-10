@@ -2,7 +2,7 @@ package br.com.jpetstore.backend.animal;
 
 import br.com.jpetstore.backend.animal.dto.AnimalResumo;
 import br.com.jpetstore.backend.animal.dto.BuscaAnimaisFiltro;
-import br.com.jpetstore.backend.animal.dto.Pagina;
+import br.com.jpetstore.backend.comum.Pagina;
 import org.springframework.stereotype.Service;
 
 @Service

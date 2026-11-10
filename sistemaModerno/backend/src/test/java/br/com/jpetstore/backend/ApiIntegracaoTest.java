@@ -174,7 +174,9 @@ class ApiIntegracaoTest {
 
             enviar(post("/api/auth/logout"), cliente.token(), null).andExpect(status().isNoContent());
 
-            enviar(get("/api/usuarios/me"), cliente.token(), null).andExpect(status().isUnauthorized());
+            JsonNode erro = corpo(enviar(get("/api/usuarios/me"), cliente.token(), null)
+                    .andExpect(status().isUnauthorized()));
+            assertThat(erro.get("codigo").asString()).isEqualTo("NAO_AUTENTICADO");
         }
     }
 
@@ -355,7 +357,7 @@ class ApiIntegracaoTest {
         }
 
         @Test
-        void enderecoDoPedidoNaoMudaQuandoOEnderecoEEditado() throws Exception {
+        void enderecoDoPedidoNaoMudaQuandoOEnderecoERemovido() throws Exception {
             Cliente cliente = novoCliente();
             UUID animal = novoAnimal("Bolt", "300.00");
             enviar(post("/api/carrinho/itens"), cliente.token(), Map.of("animalId", animal)).andExpect(status().isOk());
@@ -421,13 +423,30 @@ class ApiIntegracaoTest {
     class ControleDeAcessoAdministrativo {
 
         @Test
-        void anonimoRecebe401() throws Exception {
-            enviar(get("/api/admin/acesso"), null, null).andExpect(status().isUnauthorized());
+        void anonimoRecebe401NoFormatoPadraoDeErro() throws Exception {
+            JsonNode erro = corpo(enviar(get("/api/admin/acesso"), null, null).andExpect(status().isUnauthorized()));
+            assertThat(erro.get("codigo").asString()).isEqualTo("NAO_AUTENTICADO");
+            assertThat(erro.get("mensagem").asString()).isNotBlank();
         }
 
         @Test
-        void clienteRecebe403() throws Exception {
-            enviar(get("/api/admin/acesso"), novoCliente().token(), null).andExpect(status().isForbidden());
+        void clienteRecebe403NoFormatoPadraoDeErro() throws Exception {
+            JsonNode erro = corpo(enviar(get("/api/admin/acesso"), novoCliente().token(), null)
+                    .andExpect(status().isForbidden()));
+            assertThat(erro.get("codigo").asString()).isEqualTo("ACESSO_NEGADO");
+        }
+
+        @Test
+        void tokenComPapelAdminDeUsuarioQueNaoEMaisAdminRecebe403() throws Exception {
+            // O Papel é conferido no banco: um token antigo com ADMIN não vale se o Papel mudou.
+            String email = emailNovo();
+            JsonNode perfil = cadastrar(email, List.of());
+            UUID id = UUID.fromString(perfil.get("id").asString());
+            jdbc.update("update jpetstore.usuario set papel = 'ADMIN' where id = ?", id);
+            String tokenAdmin = login(email, "SenhaForte1");
+            jdbc.update("update jpetstore.usuario set papel = 'CLIENTE' where id = ?", id);
+
+            enviar(get("/api/admin/acesso"), tokenAdmin, null).andExpect(status().isForbidden());
         }
 
         @Test

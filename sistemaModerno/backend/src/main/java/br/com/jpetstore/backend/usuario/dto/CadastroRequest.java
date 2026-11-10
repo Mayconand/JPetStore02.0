@@ -1,10 +1,10 @@
 package br.com.jpetstore.backend.usuario.dto;
 
+import br.com.jpetstore.backend.comum.DadosEndereco;
+import br.com.jpetstore.backend.enums.IdiomaEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 import java.util.List;
 import java.util.Map;
@@ -15,8 +15,8 @@ public record CadastroRequest(
         @NotBlank String sobrenome,
         @NotBlank @Email String email,
         String telefone,
-        @NotBlank @Size(min = 8, message = "A senha deve ter pelo menos 8 caracteres") String senha,
-        @Pattern(regexp = "pt-BR|en|es", message = "Idioma deve ser pt-BR, en ou es") String idiomaPreferencial,
+        @Senha String senha,
+        IdiomaEnum idiomaPreferencial,
         Map<String, Object> preferencias,
-        List<@Valid EnderecoRequest> enderecos) {
+        List<@Valid DadosEndereco> enderecos) {
 }

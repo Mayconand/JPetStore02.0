@@ -17,13 +17,13 @@ import slideReptil from "../../assets/imagens/animais/slidesClientHome/slideRept
 import slidePassaro from "../../assets/imagens/animais/slidesClientHome/slidePassaroHomeClient.png";
 import slidePeixe from "../../assets/imagens/animais/slidesClientHome/slidePeixeHomeClient.png";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
 import { buscarAnimais, paraCardPet } from "../../services/animais";
 import type { CardPet } from "../../services/animais";
-import { adicionarAoCarrinho } from "../../services/carrinho";
-import { mensagemDeErro, naoAutenticado } from "../../services/api";
+import { mensagemDeErro } from "../../services/api";
+import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
 
 const opcoesAnimais = {
     Cachorro: {
@@ -112,7 +112,6 @@ function HomeClient() {
 
     const [favoritos, setFavoritos] = useState<Favorito[]>([]);
 
-    const navigate = useNavigate();
     const [pets, setPets] = useState<Pet[]>([]);
     const [carregando, setCarregando] = useState<boolean>(true);
     const [erroBusca, setErroBusca] = useState<string>("");
@@ -126,18 +125,7 @@ function HomeClient() {
     }, []);
 
     // RF09 — Adicionar ao carrinho (exige login)
-    async function adicionarCarrinho(pet: Pet): Promise<void> {
-        try {
-            await adicionarAoCarrinho(pet.id);
-            alert(`${pet.nome} foi adicionado ao carrinho!`);
-        } catch (erro) {
-            if (naoAutenticado(erro)) {
-                navigate("/login");
-                return;
-            }
-            alert(mensagemDeErro(erro));
-        }
-    }
+    const adicionarCarrinho = useAdicionarAoCarrinho();
 
     
 
@@ -416,7 +404,7 @@ function HomeClient() {
                                             className="petLaudos"
                                             onClick={() => abrirLaudo(pet)}
                                         >
-                                            {pet.status}
+                                            Laudos
                                         </button>
 
                                         <button

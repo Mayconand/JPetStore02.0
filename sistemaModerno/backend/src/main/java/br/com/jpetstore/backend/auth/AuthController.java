@@ -15,22 +15,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthService service;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
+    public AuthController(AuthService service) {
+        this.service = service;
     }
 
     /** RF02 — Realizar Login. */
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+        return service.login(request);
     }
 
     /** RF10 — Realizar Logout. */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt jwt) {
-        authService.logout(jwt);
+        service.logout(jwt);
         return ResponseEntity.noContent().build();
     }
 }

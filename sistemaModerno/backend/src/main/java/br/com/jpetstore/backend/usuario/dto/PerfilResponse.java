@@ -1,5 +1,6 @@
 package br.com.jpetstore.backend.usuario.dto;
 
+import br.com.jpetstore.backend.enums.IdiomaEnum;
 import br.com.jpetstore.backend.enums.PapelEnum;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public record PerfilResponse(
         String email,
         String telefone,
         PapelEnum papel,
-        String idiomaPreferencial,
+        IdiomaEnum idiomaPreferencial,
         Map<String, Object> preferencias,
         List<EnderecoResponse> enderecos) {
 }

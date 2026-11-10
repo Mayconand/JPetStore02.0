@@ -152,15 +152,22 @@ class FuncoesCatalogoAdministracaoTest extends FuncoesBancoTestBase {
 
         @Test
         void desabilitarHabilitarEPersonalizarRodape() {
-            executar("jpetstore.fn_desabilitar_rodape()");
-            assertThat(jsonDe("jpetstore.fn_obter_rodape()").get("visivel").asBoolean()).isFalse();
+            // O rodapé é uma configuração única e compartilhada: restaura o estado original no fim.
+            JsonNode original = jsonDe("jpetstore.fn_obter_rodape()");
+            try {
+                executar("jpetstore.fn_desabilitar_rodape()");
+                assertThat(jsonDe("jpetstore.fn_obter_rodape()").get("visivel").asBoolean()).isFalse();
 
-            executar("jpetstore.fn_personalizar_rodape(?)", "<p>Novo rodapé</p>");
-            executar("jpetstore.fn_habilitar_rodape()");
+                executar("jpetstore.fn_personalizar_rodape(?)", "<p>Novo rodapé</p>");
+                executar("jpetstore.fn_habilitar_rodape()");
 
-            JsonNode rodape = jsonDe("jpetstore.fn_obter_rodape()");
-            assertThat(rodape.get("visivel").asBoolean()).isTrue();
-            assertThat(rodape.get("conteudoHtml").asString()).isEqualTo("<p>Novo rodapé</p>");
+                JsonNode rodape = jsonDe("jpetstore.fn_obter_rodape()");
+                assertThat(rodape.get("visivel").asBoolean()).isTrue();
+                assertThat(rodape.get("conteudoHtml").asString()).isEqualTo("<p>Novo rodapé</p>");
+            } finally {
+                executar("jpetstore.fn_personalizar_rodape(?)", original.get("conteudoHtml").asString(null));
+                executar(original.get("visivel").asBoolean() ? "jpetstore.fn_habilitar_rodape()" : "jpetstore.fn_desabilitar_rodape()");
+            }
         }
     }
 
@@ -251,7 +258,7 @@ class FuncoesCatalogoAdministracaoTest extends FuncoesBancoTestBase {
                     "select quantidade_pedidos, valor_total_gasto from jpetstore.fn_listar_clientes() where id = ?", comPedidos);
             List<UUID> ids = jdbc.queryForList("select id from jpetstore.fn_listar_clientes()", UUID.class);
 
-            assertThat(((Number) linha.get("quantidade_pedidos")).longValue()).isEqualTo(2);
+            assertThat(((Number) linha.get("quantidade_pedidos")).longValue()).isEqualTo(1);
             assertThat((BigDecimal) linha.get("valor_total_gasto")).isEqualByComparingTo("300.00");
             assertThat(ids).doesNotContain(semPedidos);
         }

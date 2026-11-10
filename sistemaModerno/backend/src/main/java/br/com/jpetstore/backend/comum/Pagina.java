@@ -1,4 +1,4 @@
-package br.com.jpetstore.backend.animal.dto;
+package br.com.jpetstore.backend.comum;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package br.com.jpetstore.backend.auth;
 
-import br.com.jpetstore.backend.entity.Usuario;
+import br.com.jpetstore.backend.usuario.Credenciais;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -24,17 +24,17 @@ public class TokenService {
         this.validade = validade;
     }
 
-    public TokenEmitido emitir(Usuario usuario) {
+    public TokenEmitido emitir(Credenciais usuario) {
         Instant agora = Instant.now();
         Instant expiraEm = agora.plus(validade);
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .id(UUID.randomUUID().toString())
                 .issuer("jpetstore")
-                .subject(usuario.getId().toString())
+                .subject(usuario.id().toString())
                 .issuedAt(agora)
                 .expiresAt(expiraEm)
-                .claim("nome", usuario.getNome())
-                .claim("papel", usuario.getPapel().name())
+                .claim("nome", usuario.nome())
+                .claim("papel", usuario.papel().name())
                 .build();
         String token = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims))
                 .getTokenValue();

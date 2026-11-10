@@ -7,7 +7,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { buscarCEP } from "../../services/cep";
 import { cadastrar } from "../../services/usuarios";
-import type { EnderecoEntrada, Idioma } from "../../services/usuarios";
+import type { DadosEndereco, Idioma } from "../../services/usuarios";
 import { login } from "../../services/auth";
 import { mensagemDeErro } from "../../services/api";
 
@@ -44,7 +44,7 @@ function CadastroUser() {
         complement: ""
     });
 
-    function paraEnderecoApi(endereco: Endereco, complemento: FormDataEntryValue | null): EnderecoEntrada {
+    function paraEnderecoApi(endereco: Endereco, complemento: FormDataEntryValue | null): DadosEndereco {
         return {
             rua: endereco.street,
             bairro: endereco.district,

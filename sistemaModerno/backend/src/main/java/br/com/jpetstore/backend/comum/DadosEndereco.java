@@ -1,10 +1,13 @@
-package br.com.jpetstore.backend.usuario.dto;
+package br.com.jpetstore.backend.comum;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-/** Endereço único: usado para entrega e cobrança. */
-public record EnderecoRequest(
+/**
+ * Os dados de um Endereço (o mesmo serve para entrega e cobrança). Usado ao
+ * cadastrar Endereços, ao exibi-los no Perfil e como cópia gravada no Pedido.
+ */
+public record DadosEndereco(
         String rua,
         String numero,
         String complemento,

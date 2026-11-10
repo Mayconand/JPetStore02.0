@@ -72,7 +72,6 @@ export interface CardPet {
     imagem: string;
     tags: string[];
     preco: number;
-    status: string;
 }
 
 export function paraCardPet(animal: AnimalResumo): CardPet {
@@ -88,7 +87,6 @@ export function paraCardPet(animal: AnimalResumo): CardPet {
         castrado: animal.castrado ? "Sim" : "Não",
         imagem: animal.imagemUrl ?? IMAGEM_PADRAO[animal.especie],
         tags: animal.tags,
-        preco: animal.preco,
-        status: "Laudos"
+        preco: animal.preco
     };
 }

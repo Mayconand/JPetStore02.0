@@ -20,6 +20,11 @@ Os dados e scripts originais do legado continuam em `sistemaLegado/db`.
 - **Cada Animal é um indivíduo único.** O carrinho não tem quantidade. Ao criar um
   pedido, o animal fica `disponivel = false` e sai de todos os carrinhos; se o
   pedido for cancelado, ele volta a ficar disponível.
+- **Concorrência:** `fn_criar_pedido` trava os Animais e confere de novo depois
+  da trava; quem perde a disputa recebe `ANIMAL_INDISPONIVEL` (nunca um pedido
+  parcial). `fn_adicionar_item_carrinho` espera uma venda em andamento terminar.
+  Um Animal reservado por pedido em andamento não pode ser liberado pela edição
+  do administrador (`ANIMAL_RESERVADO`).
 - **Raça é tabela** (`raca`) ligada à espécie; uma FK composta garante que a raça
   do animal é da mesma espécie dele.
 - **Endereço único** para entrega e cobrança. Cada usuário pode ter vários, com
@@ -37,7 +42,7 @@ equivalente, e a mensagem é um código estável:
 | SQLSTATE | Significado | Exemplos |
 |---|---|---|
 | `JP404` | não encontrado | `ANIMAL_NAO_ENCONTRADO`, `PEDIDO_NAO_ENCONTRADO` |
-| `JP409` | conflito | `EMAIL_JA_CADASTRADO`, `ANIMAL_INDISPONIVEL` |
+| `JP409` | conflito | `EMAIL_JA_CADASTRADO`, `ANIMAL_INDISPONIVEL`, `ANIMAL_RESERVADO` |
 | `JP422` | regra de negócio | `CARRINHO_VAZIO`, `ENDERECO_INCOMPLETO`, `PEDIDO_NAO_CANCELAVEL` |
 
 O backend converte isso automaticamente na resposta HTTP
@@ -48,7 +53,7 @@ O backend converte isso automaticamente na resposta HTTP
 | RF | Função(ões) |
 |---|---|
 | RF01 Visualizar Espécies | `fn_listar_especies` |
-| RF02 Login | `fn_buscar_usuario_login` (senha conferida no backend com BCrypt) |
+| RF02 Login | `fn_buscar_usuario_login`, `fn_buscar_usuario_por_id` (senha conferida no backend com BCrypt) |
 | RF03 Cadastro | `fn_cadastrar_usuario` |
 | RF04 / RF05 Perfil | `fn_obter_perfil`, `fn_alterar_perfil`, `fn_alterar_senha` |
 | RF06 Pedidos | `fn_listar_pedidos_usuario`, `fn_obter_pedido` |
@@ -66,7 +71,7 @@ O backend converte isso automaticamente na resposta HTTP
 | RF22 Ajuda | `fn_listar_ajuda` |
 | RF23 / RF27 / RF28 Animais (admin) | `fn_cadastrar_animal`, `fn_editar_animal`, `fn_excluir_animal` |
 | RF24 Raça | `fn_cadastrar_raca` |
-| RF25 Clientes | `fn_listar_clientes` |
+| RF25 Clientes | `fn_listar_clientes` (quantidade e valor sem pedidos cancelados) |
 | RF26 Laudos | `fn_listar_laudos`, `fn_cadastrar_laudo` |
 | RF29 Cupom | `fn_inserir_cupom`, `fn_aplicar_cupom_carrinho`, `fn_remover_cupom_carrinho` |
 | RF30 Filtrar pedidos | `fn_filtrar_pedidos` |

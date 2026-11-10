@@ -1,5 +1,7 @@
 package br.com.jpetstore.backend.admin;
 
+import br.com.jpetstore.backend.admin.dto.AcessoAdmin;
+import br.com.jpetstore.backend.comum.UsuarioAutenticado;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminController {
 
+    private final AdminService service;
+
+    public AdminController(AdminService service) {
+        this.service = service;
+    }
+
     /** Permite ao frontend confirmar se o usuário logado pode acessar a área administrativa. */
     @GetMapping("/acesso")
     public AcessoAdmin acesso(@AuthenticationPrincipal Jwt jwt) {
-        return new AcessoAdmin(true, jwt.getSubject(), jwt.getClaimAsString("nome"));
-    }
-
-    public record AcessoAdmin(boolean autorizado, String usuarioId, String nome) {
+        return service.verificarAcesso(UsuarioAutenticado.id(jwt));
     }
 }

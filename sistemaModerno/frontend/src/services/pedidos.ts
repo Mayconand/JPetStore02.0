@@ -1,4 +1,5 @@
 import { api } from "./api";
+import type { DadosEndereco } from "./usuarios";
 
 export type StatusPedido = "AGUARDANDO_PAGAMENTO" | "PAGO" | "ENVIADO" | "ENTREGUE" | "CANCELADO";
 export type ModalidadeEntrega = "RETIRADA" | "ENTREGA";
@@ -18,10 +19,7 @@ export interface Pedido {
     status: StatusPedido;
     modalidade: ModalidadeEntrega;
     /** Cópia do endereço no momento da compra (null em RETIRADA). */
-    enderecoEntrega: {
-        rua: string; numero: string; complemento: string | null; bairro: string | null;
-        cidade: string; estado: string; cep: string; pais: string;
-    } | null;
+    enderecoEntrega: DadosEndereco | null;
     cupom: string | null;
     valorItens: number;
     valorDesconto: number;

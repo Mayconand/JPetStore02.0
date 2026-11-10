@@ -38,8 +38,9 @@ br.com.jpetstore.backend
 ```
 
 Cada módulo tem `Controller` → `Service` → `Repository`. Os repositories chamam
-as funções de banco (`FuncoesBanco`); o Hibernate só **valida** o schema
-(`ddl-auto=validate`), nunca o altera.
+as funções de banco (`FuncoesBanco`), inclusive para login e troca de senha; as
+entidades JPA existem para documentar o modelo e o Hibernate só **valida** o
+schema (`ddl-auto=validate`), nunca o altera.
 
 ## Autenticação
 
@@ -48,7 +49,9 @@ as funções de banco (`FuncoesBanco`); o Hibernate só **valida** o schema
 - `POST /api/auth/logout` revoga o token atual (ele deixa de ser aceito na hora).
 - O token traz `sub` (id do usuário), `nome` e `papel` (`CLIENTE`/`ADMIN`).
 - **RNF05:** tudo em `/api/admin/**` exige `ADMIN` (401 sem login, 403 para
-  cliente). Novas rotas administrativas devem usar esse prefixo.
+  cliente). Além do token, o Papel é conferido no banco: quem perdeu o Papel
+  ADMIN perde o acesso na hora. Novas rotas administrativas devem usar esse
+  prefixo.
 
 ## Endpoints
 
@@ -72,4 +75,7 @@ as funções de banco (`FuncoesBanco`); o Hibernate só **valida** o schema
 | GET | `/api/admin/acesso` | RNF05 Controle de Acesso | ADMIN |
 
 Erros seguem o formato `{ "codigo": "CARRINHO_VAZIO", "mensagem": "..." }`
-(validação: 400 com `campos`).
+(validação: 400 com `campos`). A segurança usa o mesmo formato:
+`NAO_AUTENTICADO` (401) e `ACESSO_NEGADO` (403).
+
+Idiomas aceitos: `pt-BR`, `en` e `es`. Senhas novas têm no mínimo 8 caracteres.

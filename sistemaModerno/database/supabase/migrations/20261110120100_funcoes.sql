@@ -241,6 +241,18 @@ as $$
     where lower(u.email) = lower(btrim(p_email));
 $$;
 
+-- Mesmos dados, pelo id do Usuário autenticado (troca de senha, conferência do Papel).
+create or replace function jpetstore.fn_buscar_usuario_por_id(p_usuario_id uuid)
+returns table (id uuid, nome text, email text, senha_hash text, papel jpetstore.papel_usuario)
+language sql
+stable
+set search_path = jpetstore, pg_temp
+as $$
+    select u.id, u.nome, u.email, u.senha_hash, u.papel
+    from usuario u
+    where u.id = p_usuario_id;
+$$;
+
 -- =============================================================================
 -- RF03 — Realizar Cadastro
 -- p_enderecos: array JSON; o primeiro vira o endereço principal.
@@ -656,7 +668,9 @@ declare
     v_animal animal;
     v_carrinho_id uuid;
 begin
-    select * into v_animal from animal a where a.id = p_animal_id;
+    -- FOR SHARE: se o Animal está sendo vendido agora, espera a venda terminar
+    -- e enxerga o resultado (evita um Animal vendido parado num Carrinho).
+    select * into v_animal from animal a where a.id = p_animal_id for share;
     if v_animal.id is null then
         raise exception using errcode = 'JP404', message = 'ANIMAL_NAO_ENCONTRADO';
     end if;
@@ -857,8 +871,9 @@ as $$
 declare
     v_carrinho carrinho;
     v_endereco endereco;
-    v_qtd integer;
-    v_indisponiveis integer;
+    v_animais uuid[];
+    v_disponiveis integer;
+    v_itens_restantes integer;
     v_valor_itens numeric(10, 2);
     v_cupom_id uuid;
     v_percentual numeric(5, 2);
@@ -871,23 +886,25 @@ begin
 
     select * into v_carrinho from carrinho c where c.usuario_id = p_usuario_id for update;
 
-    select count(*) into v_qtd from item_carrinho i where i.carrinho_id = v_carrinho.id;
-    if v_carrinho.id is null or v_qtd = 0 then
+    -- Os Animais que o Cliente quer comprar, fixados ANTES de esperar pelas travas.
+    select array_agg(i.animal_id order by i.animal_id) into v_animais
+      from item_carrinho i where i.carrinho_id = v_carrinho.id;
+    if v_animais is null then
         raise exception using errcode = 'JP422', message = 'CARRINHO_VAZIO';
     end if;
 
-    -- Trava os animais para evitar que dois clientes comprem o mesmo animal ao mesmo tempo.
-    perform 1 from animal a
-     where a.id in (select i.animal_id from item_carrinho i where i.carrinho_id = v_carrinho.id)
-     order by a.id
-     for update;
+    -- Trava os Animais (em ordem fixa, evitando deadlock). Se outro Pedido estiver
+    -- levando algum deles, espera esse Pedido terminar.
+    perform 1 from animal a where a.id = any (v_animais) order by a.id for update;
 
-    select count(*) into v_indisponiveis
-      from item_carrinho i join animal a on a.id = i.animal_id
-     where i.carrinho_id = v_carrinho.id and not a.disponivel;
-    if v_indisponiveis > 0 then
+    -- Depois da espera, confere de novo: todos ainda disponíveis e ainda no Carrinho?
+    -- (Uma venda concorrente marca o Animal como indisponível e o tira dos Carrinhos.)
+    select count(*) into v_disponiveis from animal a where a.id = any (v_animais) and a.disponivel;
+    select count(*) into v_itens_restantes
+      from item_carrinho i where i.carrinho_id = v_carrinho.id and i.animal_id = any (v_animais);
+    if v_disponiveis <> cardinality(v_animais) or v_itens_restantes <> cardinality(v_animais) then
         raise exception using errcode = 'JP409', message = 'ANIMAL_INDISPONIVEL',
-            detail = 'Remova do carrinho os animais que não estão mais disponíveis.';
+            detail = 'Algum animal do carrinho não está mais disponível. Confira o carrinho e tente de novo.';
     end if;
 
     if p_modalidade = 'ENTREGA' then
@@ -1303,6 +1320,15 @@ begin
         raise exception using errcode = 'JP422', message = 'DADOS_INVALIDOS', detail = 'Preço inválido.';
     end if;
 
+    -- Um Animal reservado por um Pedido em andamento não pode voltar a ficar
+    -- disponível pela edição (permitiria vendê-lo duas vezes).
+    if coalesce((p_dados ->> 'disponivel')::boolean, false) and not v_animal.disponivel
+       and exists (select 1 from item_pedido i join pedido p on p.id = i.pedido_id
+                    where i.animal_id = p_animal_id and p.status <> 'CANCELADO') then
+        raise exception using errcode = 'JP409', message = 'ANIMAL_RESERVADO',
+            detail = 'O animal pertence a um pedido em andamento; cancele o pedido para liberá-lo.';
+    end if;
+
     update animal a set
         raca_id         = case when p_dados ? 'racaId' then (p_dados ->> 'racaId')::uuid else a.raca_id end,
         nome            = coalesce(fn_texto(p_dados, 'nome'), a.nome),
@@ -1381,7 +1407,8 @@ as $$
 $$;
 
 -- =============================================================================
--- RF25 — Ver Clientes (que realizaram pedidos)
+-- RF25 — Ver Clientes (que realizaram pedidos).
+-- Quantidade e valor gasto desconsideram Pedidos cancelados.
 -- =============================================================================
 create or replace function jpetstore.fn_listar_clientes()
 returns table (
@@ -1392,7 +1419,7 @@ stable
 set search_path = jpetstore, pg_temp
 as $$
     select u.id, u.nome, u.sobrenome, u.email, u.telefone,
-           count(p.id),
+           count(p.id) filter (where p.status <> 'CANCELADO'),
            coalesce(sum(p.valor_total) filter (where p.status <> 'CANCELADO'), 0),
            max(p.data_criacao)
     from usuario u

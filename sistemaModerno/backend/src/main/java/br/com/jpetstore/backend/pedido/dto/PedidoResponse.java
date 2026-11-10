@@ -1,5 +1,6 @@
 package br.com.jpetstore.backend.pedido.dto;
 
+import br.com.jpetstore.backend.comum.DadosEndereco;
 import br.com.jpetstore.backend.enums.ModalidadeEntregaEnum;
 import br.com.jpetstore.backend.enums.StatusPedidoEnum;
 
@@ -14,18 +15,13 @@ public record PedidoResponse(
         OffsetDateTime dataCriacao,
         StatusPedidoEnum status,
         ModalidadeEntregaEnum modalidade,
-        EnderecoEntrega enderecoEntrega,
+        DadosEndereco enderecoEntrega,
         String cupom,
         BigDecimal valorItens,
         BigDecimal valorDesconto,
         BigDecimal valorTotal,
         OffsetDateTime canceladoEm,
         List<Item> itens) {
-
-    public record EnderecoEntrega(
-            String rua, String numero, String complemento, String bairro,
-            String cidade, String estado, String cep, String pais) {
-    }
 
     public record Item(UUID animalId, String nome, BigDecimal precoUnitario, String imagemUrl) {
     }

@@ -1,7 +1,6 @@
 package br.com.jpetstore.backend.usuario;
 
 import br.com.jpetstore.backend.comum.ApiException;
-import br.com.jpetstore.backend.entity.Usuario;
 import br.com.jpetstore.backend.usuario.dto.AlterarPerfilRequest;
 import br.com.jpetstore.backend.usuario.dto.AlterarSenhaRequest;
 import br.com.jpetstore.backend.usuario.dto.CadastroRequest;
@@ -16,12 +15,10 @@ import java.util.UUID;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
-    private final UsuarioJpaRepository usuarios;
     private final PasswordEncoder senhas;
 
-    public UsuarioService(UsuarioRepository repository, UsuarioJpaRepository usuarios, PasswordEncoder senhas) {
+    public UsuarioService(UsuarioRepository repository, PasswordEncoder senhas) {
         this.repository = repository;
-        this.usuarios = usuarios;
         this.senhas = senhas;
     }
 
@@ -43,9 +40,9 @@ public class UsuarioService {
 
     /** RF05 — Alterar senha (exige a senha atual). */
     public void alterarSenha(UUID usuarioId, AlterarSenhaRequest dados) {
-        Usuario usuario = usuarios.findById(usuarioId)
+        Credenciais credenciais = repository.buscarCredenciaisPorId(usuarioId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "USUARIO_NAO_ENCONTRADO", "Usuário não encontrado."));
-        if (!senhas.matches(dados.senhaAtual(), usuario.getSenhaHash())) {
+        if (!senhas.matches(dados.senhaAtual(), credenciais.senhaHash())) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "SENHA_ATUAL_INCORRETA", "A senha atual está incorreta.");
         }
         repository.alterarSenha(usuarioId, senhas.encode(dados.novaSenha()));

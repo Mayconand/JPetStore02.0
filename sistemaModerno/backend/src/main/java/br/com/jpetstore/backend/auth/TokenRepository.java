@@ -1,13 +1,13 @@
 package br.com.jpetstore.backend.auth;
 
 import br.com.jpetstore.backend.comum.FuncoesBanco;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/** Lista de tokens revogados pelo logout (RF10). */
 @Repository
 public class TokenRepository {
 
@@ -25,9 +25,8 @@ public class TokenRepository {
         return Boolean.TRUE.equals(banco.valor("jpetstore.fn_token_revogado(?)", Boolean.class, jti));
     }
 
-    /** Remove da lista de revogados os tokens que já expiraram (a cada hora). */
-    @Scheduled(fixedDelay = 3_600_000, initialDelay = 60_000)
-    public void limparExpirados() {
-        banco.valor("jpetstore.fn_limpar_tokens_expirados()", Integer.class);
+    /** Remove da lista os tokens que já expiraram; devolve quantos foram removidos. */
+    public int limparExpirados() {
+        return banco.valor("jpetstore.fn_limpar_tokens_expirados()", Integer.class);
     }
 }

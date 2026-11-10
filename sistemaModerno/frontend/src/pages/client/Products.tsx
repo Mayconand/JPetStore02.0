@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type {
     ChangeEvent,
@@ -18,11 +18,14 @@ import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
 import { buscarAnimais, paraCardPet } from "../../services/animais";
 import type { CardPet } from "../../services/animais";
-import { adicionarAoCarrinho } from "../../services/carrinho";
-import { mensagemDeErro, naoAutenticado } from "../../services/api";
+import { mensagemDeErro } from "../../services/api";
+import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
 
 
 type Pet = CardPet;
+
+/** Animais por página na lista. */
+const TAMANHO_PAGINA = 12;
 
 /** Faixas do filtro de preço da tela -> parâmetros da API. */
 const FAIXAS_PRECO: Record<string, { precoMin?: number; precoMax?: number }> = {
@@ -153,13 +156,21 @@ function Products() {
     const [idade, setIdade] = useState("");
     const [preco, setPreco] = useState("");
 
-    const navigate = useNavigate();
 
-    // RF07 — Buscar Animais com os filtros da tela.
-    // O resultado guarda a "chave" dos filtros: enquanto ela não bate com os
-    // filtros atuais, a busca ainda está carregando.
-    const chaveBusca = JSON.stringify([termo, tipoAnimal, racaEspecie, preco]);
-    const [resultado, setResultado] = useState<{ chave: string; pets: Pet[]; erro: string } | null>(null);
+    // RF07 — Buscar Animais com os filtros da tela, paginado.
+    // A página volta para a primeira sempre que um filtro muda.
+    const chaveFiltros = JSON.stringify([termo, tipoAnimal, racaEspecie, preco]);
+    const [paginacao, setPaginacao] = useState({ filtros: chaveFiltros, pagina: 0 });
+    const pagina = paginacao.filtros === chaveFiltros ? paginacao.pagina : 0;
+
+    function irParaPagina(numero: number): void {
+        setPaginacao({ filtros: chaveFiltros, pagina: numero });
+    }
+
+    // O resultado guarda a "chave" da busca: enquanto ela não bate com os
+    // filtros e a página atuais, a busca ainda está carregando.
+    const chaveBusca = JSON.stringify([chaveFiltros, pagina]);
+    const [resultado, setResultado] = useState<{ chave: string; pets: Pet[]; totalPaginas: number; erro: string } | null>(null);
 
     useEffect(() => {
         let ativo = true;
@@ -168,35 +179,32 @@ function Products() {
             especie: tipoAnimal ?? undefined,
             raca: racaEspecie || undefined,
             ...FAIXAS_PRECO[preco],
-            size: 50
+            page: pagina,
+            size: TAMANHO_PAGINA
         })
-            .then((pagina) => {
-                if (ativo) setResultado({ chave: chaveBusca, pets: pagina.conteudo.map(paraCardPet), erro: "" });
+            .then((resposta) => {
+                if (ativo) setResultado({
+                    chave: chaveBusca,
+                    pets: resposta.conteudo.map(paraCardPet),
+                    totalPaginas: resposta.totalPaginas,
+                    erro: ""
+                });
             })
             .catch((erro) => {
-                if (ativo) setResultado({ chave: chaveBusca, pets: [], erro: mensagemDeErro(erro) });
+                if (ativo) setResultado({ chave: chaveBusca, pets: [], totalPaginas: 0, erro: mensagemDeErro(erro) });
             });
         return () => { ativo = false; };
-    }, [chaveBusca, termo, tipoAnimal, racaEspecie, preco]);
+    }, [chaveBusca, termo, tipoAnimal, racaEspecie, preco, pagina]);
 
     const carregando = resultado?.chave !== chaveBusca;
     const erroBusca = carregando ? "" : resultado.erro;
     const pets = carregando ? [] : resultado.pets;
+    const totalPaginas = resultado?.totalPaginas ?? 0;
+    // "Idade" é calculada a partir do nascimento e filtra apenas a página carregada.
     const petsFiltrados = idade ? pets.filter((pet) => faixaEtaria(pet.dataNascimento) === idade) : pets;
 
     // RF09 — Adicionar ao carrinho (exige login)
-    async function adicionarCarrinho(pet: Pet): Promise<void> {
-        try {
-            await adicionarAoCarrinho(pet.id);
-            alert(`${pet.nome} foi adicionado ao carrinho!`);
-        } catch (erro) {
-            if (naoAutenticado(erro)) {
-                navigate("/login");
-                return;
-            }
-            alert(mensagemDeErro(erro));
-        }
-    }
+    const adicionarCarrinho = useAdicionarAoCarrinho();
     
 
     return (
@@ -396,7 +404,7 @@ function Products() {
                                                 className="petLaudos"
                                                 onClick={() => abrirLaudo(pet)}
                                             >
-                                                {pet.status}
+                                                Laudos
                                             </button>
 
                                             <button
@@ -432,6 +440,27 @@ function Products() {
 
                         </div>
 
+                    {totalPaginas > 1 && (
+                        <nav className="paginacao" aria-label="Paginação dos resultados">
+                            <button
+                                type="button"
+                                onClick={() => irParaPagina(pagina - 1)}
+                                disabled={carregando || pagina === 0}
+                            >
+                                Anterior
+                            </button>
+
+                            <span>Página {pagina + 1} de {totalPaginas}</span>
+
+                            <button
+                                type="button"
+                                onClick={() => irParaPagina(pagina + 1)}
+                                disabled={carregando || pagina + 1 >= totalPaginas}
+                            >
+                                Próxima
+                            </button>
+                        </nav>
+                    )}
 
             </main>
 

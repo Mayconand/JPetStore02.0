@@ -1,8 +1,8 @@
 import { api } from "./api";
 import type { Papel } from "./api";
 
-/** Endereço único: serve para entrega e cobrança. */
-export interface EnderecoEntrada {
+/** Dados de um Endereço (o mesmo serve para entrega e cobrança). */
+export interface DadosEndereco {
     rua?: string;
     numero?: string;
     complemento?: string;
@@ -13,7 +13,7 @@ export interface EnderecoEntrada {
     pais?: string;
 }
 
-export interface Endereco extends EnderecoEntrada {
+export interface Endereco extends DadosEndereco {
     id: string;
     principal: boolean;
 }
@@ -29,7 +29,7 @@ export interface CadastroEntrada {
     idiomaPreferencial?: Idioma;
     preferencias?: Record<string, unknown>;
     /** O primeiro endereço vira o principal. */
-    enderecos: EnderecoEntrada[];
+    enderecos: DadosEndereco[];
 }
 
 export interface Perfil {

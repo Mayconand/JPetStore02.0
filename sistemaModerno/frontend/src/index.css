@@ -127,3 +127,27 @@ code {
   font: inherit;
   cursor: pointer;
 }
+
+/* Paginação da lista de animais (RF07) */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.paginacao button {
+  padding: 6px 14px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.paginacao button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
