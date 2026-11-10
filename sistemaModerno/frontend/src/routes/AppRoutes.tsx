@@ -6,6 +6,7 @@ import CadastroUser from "../pages/auth/CadastroUser";
 import HomeClient from "../pages/client/HomeClient";
 import Products from "../pages/client/Products";
 import SpecificProduct from "../pages/client/SpecificProduct";
+import Cart from "../pages/client/Cart";
 
 function AppRoutes() { 
     return (
@@ -16,6 +17,7 @@ function AppRoutes() {
             <Route path="/HomeClient" element={<HomeClient />} />
             <Route path="/Products" element={<Products />} />
             <Route path="/SpecificProduct" element={<SpecificProduct />} />
+            <Route path="/Cart" element={<Cart />} />
         </Routes>
     );
 }
