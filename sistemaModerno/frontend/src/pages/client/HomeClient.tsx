@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
     ChangeEvent,
     FormEvent,
@@ -18,6 +18,12 @@ import slidePassaro from "../../assets/imagens/animais/slidesClientHome/slidePas
 import slidePeixe from "../../assets/imagens/animais/slidesClientHome/slidePeixeHomeClient.png";
 
 import { Link } from "react-router-dom";
+import SearchBox from "../../components/client/SearchBox";
+import UserBox from "../../components/client/UserBox";
+import { buscarAnimais, paraCardPet } from "../../services/animais";
+import type { CardPet } from "../../services/animais";
+import { mensagemDeErro } from "../../services/api";
+import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
 
 const opcoesAnimais = {
     Cachorro: {
@@ -80,78 +86,11 @@ const opcoesAnimais = {
     }
 };
 
-const pets = [
-    {
-        id: 1,
-        nome: "Snoopy",
-        raca: "Labrador retriever",
-        nascimento: "31/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400",
-        tags: ["Amigável", "Brincalhão", "Carinhoso"],
-        status: "Laudos"
-    },
-    {
-        id: 2,
-        nome: "Luke",
-        raca: "Pastor Alemão",
-        nascimento: "31/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400",
-        tags: ["Protetor", "Ativo", "Inteligente"],
-        status: "Laudos"
-    },
-    {
-        id: 3,
-        nome: "Chico",
-        raca: "Labrador retriever",
-        nascimento: "30/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://i0.statig.com.br/bancodeimagens/7i/lu/5a/7ilu5ad3a5usexlc3dhb1avho.jpg?w=400",
-        tags: ["Dócil", "Amigável", "Calmo"],
-        status: "Laudos"
-    },
-    {
-        id: 4,
-        nome: "Vanda",
-        raca: "Persa",
-        nascimento: "20/08/2022",
-        sexo: "Fêmea",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400",
-        tags: ["Tranquila", "Carinhosa", "Sociável"],
-        status: "Laudos"
-    },
-    {
-        id: 5,
-        nome: "Luke",
-        raca: "Siamês",
-        nascimento: "12/05/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=400",
-        tags: ["Curioso", "Ativo", "Dócil"],
-        status: "Laudos"
-    },
-    {
-        id: 6,
-        nome: "Chico",
-        raca: "Labrador retriever",
-        nascimento: "30/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400",
-        tags: ["Calmo", "Amigável", "Carinhoso"],
-        status: "Laudos"
-    }
-];
+
 
 type TipoAnimal = keyof typeof opcoesAnimais;
 
-type Pet = typeof pets[number];
+type Pet = CardPet;
 
 interface Favorito {
     id: number;
@@ -172,6 +111,21 @@ function HomeClient() {
     const [racaEspecie, setRacaEspecie] = useState<string>("");
 
     const [favoritos, setFavoritos] = useState<Favorito[]>([]);
+
+    const [pets, setPets] = useState<Pet[]>([]);
+    const [carregando, setCarregando] = useState<boolean>(true);
+    const [erroBusca, setErroBusca] = useState<string>("");
+
+    // RF07 — "Conheça eles": primeiros animais disponíveis
+    useEffect(() => {
+        buscarAnimais({ size: 6 })
+            .then((pagina) => setPets(pagina.conteudo.map(paraCardPet)))
+            .catch((erro) => setErroBusca(mensagemDeErro(erro)))
+            .finally(() => setCarregando(false));
+    }, []);
+
+    // RF09 — Adicionar ao carrinho (exige login)
+    const adicionarCarrinho = useAdicionarAoCarrinho();
 
     
 
@@ -273,40 +227,10 @@ function HomeClient() {
 
                 <nav className="headerNav">
 
-                    <div className="searchBox">
-
-                        <input
-                            type="text"
-                            placeholder="Buscar"
-                            aria-label="Buscar animais"
-                        />
-
-                        <button
-                            type="button"
-                            aria-label="Pesquisar"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <circle
-                                    cx="10.8"
-                                    cy="10.8"
-                                    r="6.8"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                />
-
-                                <path
-                                    d="M16 16L21 21"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                        </button>
-
-                    </div>
+                    <SearchBox />
 
                     <Link
-                        to="/carrinho"
+                        to="/Cart"
                         className="headerIcon"
                         aria-label="Carrinho"
                     >
@@ -324,30 +248,7 @@ function HomeClient() {
                         </svg>
                     </Link>
 
-                    <div className="userBox">
-
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                            />
-
-                            <path
-                                d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-
-                        <span>
-                            <strong>Nome:</strong> Fulano
-                        </span>
-
-                    </div>
+                    <UserBox />
 
                 </nav>
 
@@ -416,6 +317,12 @@ function HomeClient() {
                 <section className="filterConteiner">
 
                     <h2>Conheça eles</h2>
+
+                    {carregando && <p>Carregando animais...</p>}
+                    {erroBusca && <p role="alert">{erroBusca}</p>}
+                    {!carregando && !erroBusca && pets.length === 0 && (
+                        <p>Nenhum animal disponível no momento.</p>
+                    )}
 
                     <div className="petsGrid">
 
@@ -497,12 +404,13 @@ function HomeClient() {
                                             className="petLaudos"
                                             onClick={() => abrirLaudo(pet)}
                                         >
-                                            {pet.status}
+                                            Laudos
                                         </button>
 
                                         <button
                                             type="button"
                                             className="btnAddCart"
+                                            onClick={() => adicionarCarrinho(pet)}
                                         >
 
                                             <svg viewBox="0 0 24 24" fill="none">

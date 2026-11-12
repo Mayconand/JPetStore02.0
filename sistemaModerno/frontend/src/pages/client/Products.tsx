@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
     ChangeEvent,
     FormEvent,
@@ -14,78 +14,40 @@ import tituloReptil from "../../assets/imagens/animais/titulos/tituloPagReptil.p
 import tituloPassaro from "../../assets/imagens/animais/titulos/tituloPagPassaro.png";
 import tituloPeixe from "../../assets/imagens/animais/titulos/tituloPagPeixe.png";
 import { Link } from "react-router-dom";
+import SearchBox from "../../components/client/SearchBox";
+import UserBox from "../../components/client/UserBox";
+import { buscarAnimais, paraCardPet } from "../../services/animais";
+import type { CardPet } from "../../services/animais";
+import { mensagemDeErro } from "../../services/api";
+import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
 
 
-type Pet = typeof pets[number];
+type Pet = CardPet;
 
-const pets = [
-    {
-        id: 1,
-        nome: "Snoopy",
-        raca: "Labrador retriever",
-        nascimento: "31/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400",
-        tags: ["Amigável", "Brincalhão", "Carinhoso"],
-        status: "Laudos"
-    },
-    {
-        id: 2,
-        nome: "Luke",
-        raca: "Pastor Alemão",
-        nascimento: "31/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400",
-        tags: ["Protetor", "Ativo", "Inteligente"],
-        status: "Laudos"
-    },
-    {
-        id: 3,
-        nome: "Chico",
-        raca: "Labrador retriever",
-        nascimento: "30/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://i0.statig.com.br/bancodeimagens/7i/lu/5a/7ilu5ad3a5usexlc3dhb1avho.jpg?w=400",
-        tags: ["Dócil", "Amigável", "Calmo"],
-        status: "Laudos"
-    },
-    {
-        id: 4,
-        nome: "Vanda",
-        raca: "Persa",
-        nascimento: "20/08/2022",
-        sexo: "Fêmea",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400",
-        tags: ["Tranquila", "Carinhosa", "Sociável"],
-        status: "Laudos"
-    },
-    {
-        id: 5,
-        nome: "Luke",
-        raca: "Siamês",
-        nascimento: "12/05/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=400",
-        tags: ["Curioso", "Ativo", "Dócil"],
-        status: "Laudos"
-    },
-    {
-        id: 6,
-        nome: "Chico",
-        raca: "Labrador retriever",
-        nascimento: "30/08/2020",
-        sexo: "Macho",
-        castrado: "Não",
-        imagem: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400",
-        tags: ["Calmo", "Amigável", "Carinhoso"],
-        status: "Laudos"
-    }
-];
+/** Animais por página na lista. */
+const TAMANHO_PAGINA = 12;
+
+/** Faixas do filtro de preço da tela -> parâmetros da API. */
+const FAIXAS_PRECO: Record<string, { precoMin?: number; precoMax?: number }> = {
+    "0-100": { precoMax: 100 },
+    "100-300": { precoMin: 100, precoMax: 300 },
+    "300-500": { precoMin: 300, precoMax: 500 },
+    "500-1000": { precoMin: 500, precoMax: 1000 },
+    "1000+": { precoMin: 1000 }
+};
+
+/** Faixa etária a partir da data de nascimento (filtro "Idade", aplicado na página carregada). */
+function faixaEtaria(dataNascimento: string | null): string {
+    if (!dataNascimento) return "";
+    const anos = (Date.now() - new Date(`${dataNascimento}T00:00:00`).getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (anos < 1) return "Filhote";
+    if (anos < 3) return "Jovem";
+    if (anos < 8) return "Adulto";
+    return "Idoso";
+}
+
+
+
 
 function Products() {
 
@@ -105,6 +67,7 @@ function Products() {
     const [searchParams] = useSearchParams();
 
     const tipoAnimal = searchParams.get("tipo");
+    const termo = searchParams.get("termo") ?? "";
 
     let imagemTitulo;
 
@@ -192,6 +155,56 @@ function Products() {
     const [racaEspecie, setRacaEspecie] = useState("");
     const [idade, setIdade] = useState("");
     const [preco, setPreco] = useState("");
+
+
+    // RF07 — Buscar Animais com os filtros da tela, paginado.
+    // A página volta para a primeira sempre que um filtro muda.
+    const chaveFiltros = JSON.stringify([termo, tipoAnimal, racaEspecie, preco]);
+    const [paginacao, setPaginacao] = useState({ filtros: chaveFiltros, pagina: 0 });
+    const pagina = paginacao.filtros === chaveFiltros ? paginacao.pagina : 0;
+
+    function irParaPagina(numero: number): void {
+        setPaginacao({ filtros: chaveFiltros, pagina: numero });
+    }
+
+    // O resultado guarda a "chave" da busca: enquanto ela não bate com os
+    // filtros e a página atuais, a busca ainda está carregando.
+    const chaveBusca = JSON.stringify([chaveFiltros, pagina]);
+    const [resultado, setResultado] = useState<{ chave: string; pets: Pet[]; totalPaginas: number; erro: string } | null>(null);
+
+    useEffect(() => {
+        let ativo = true;
+        buscarAnimais({
+            termo,
+            especie: tipoAnimal ?? undefined,
+            raca: racaEspecie || undefined,
+            ...FAIXAS_PRECO[preco],
+            page: pagina,
+            size: TAMANHO_PAGINA
+        })
+            .then((resposta) => {
+                if (ativo) setResultado({
+                    chave: chaveBusca,
+                    pets: resposta.conteudo.map(paraCardPet),
+                    totalPaginas: resposta.totalPaginas,
+                    erro: ""
+                });
+            })
+            .catch((erro) => {
+                if (ativo) setResultado({ chave: chaveBusca, pets: [], totalPaginas: 0, erro: mensagemDeErro(erro) });
+            });
+        return () => { ativo = false; };
+    }, [chaveBusca, termo, tipoAnimal, racaEspecie, preco, pagina]);
+
+    const carregando = resultado?.chave !== chaveBusca;
+    const erroBusca = carregando ? "" : resultado.erro;
+    const pets = carregando ? [] : resultado.pets;
+    const totalPaginas = resultado?.totalPaginas ?? 0;
+    // "Idade" é calculada a partir do nascimento e filtra apenas a página carregada.
+    const petsFiltrados = idade ? pets.filter((pet) => faixaEtaria(pet.dataNascimento) === idade) : pets;
+
+    // RF09 — Adicionar ao carrinho (exige login)
+    const adicionarCarrinho = useAdicionarAoCarrinho();
     
 
     return (
@@ -207,40 +220,10 @@ function Products() {
 
                     <nav className="headerNav">
 
-                        <div className="searchBox">
-
-                            <input
-                                type="text"
-                                placeholder="Buscar"
-                                aria-label="Buscar animais"
-                            />
-
-                            <button
-                                type="button"
-                                aria-label="Pesquisar"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <circle
-                                        cx="10.8"
-                                        cy="10.8"
-                                        r="6.8"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    />
-
-                                    <path
-                                        d="M16 16L21 21"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                    />
-                                </svg>
-                            </button>
-
-                        </div>
+                        <SearchBox />
 
                         <Link
-                            to="/carrinho"
+                            to="/Cart"
                             className="headerIcon"
                             aria-label="Carrinho"
                         >
@@ -258,30 +241,7 @@ function Products() {
                             </svg>
                         </Link>
 
-                        <div className="userBox">
-
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <circle
-                                    cx="12"
-                                    cy="8"
-                                    r="4"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                />
-
-                                <path
-                                    d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-
-                            <span>
-                                <strong>Nome:</strong> Fulano
-                            </span>
-
-                        </div>
+                        <UserBox />
 
                     </nav>
 
@@ -357,9 +317,16 @@ function Products() {
 
                     </div>
 
+                    {termo && <p>Resultados para "{termo}"</p>}
+                    {carregando && <p>Carregando animais...</p>}
+                    {erroBusca && <p role="alert">{erroBusca}</p>}
+                    {!carregando && !erroBusca && petsFiltrados.length === 0 && (
+                        <p>Nenhum animal encontrado com esses filtros.</p>
+                    )}
+
                     <div className="petsGrid">
 
-                            {pets.map((pet) => (
+                            {petsFiltrados.map((pet) => (
 
                                 <article className="petCard" key={pet.id}>
 
@@ -437,12 +404,13 @@ function Products() {
                                                 className="petLaudos"
                                                 onClick={() => abrirLaudo(pet)}
                                             >
-                                                {pet.status}
+                                                Laudos
                                             </button>
 
                                             <button
                                                 type="button"
                                                 className="btnAddCart"
+                                                onClick={() => adicionarCarrinho(pet)}
                                             >
 
                                                 <svg viewBox="0 0 24 24" fill="none">
@@ -472,6 +440,27 @@ function Products() {
 
                         </div>
 
+                    {totalPaginas > 1 && (
+                        <nav className="paginacao" aria-label="Paginação dos resultados">
+                            <button
+                                type="button"
+                                onClick={() => irParaPagina(pagina - 1)}
+                                disabled={carregando || pagina === 0}
+                            >
+                                Anterior
+                            </button>
+
+                            <span>Página {pagina + 1} de {totalPaginas}</span>
+
+                            <button
+                                type="button"
+                                onClick={() => irParaPagina(pagina + 1)}
+                                disabled={carregando || pagina + 1 >= totalPaginas}
+                            >
+                                Próxima
+                            </button>
+                        </nav>
+                    )}
 
             </main>
 
