@@ -1,0 +1,21 @@
+
+#conteinerTitulo{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#conteinerTitulo h1{
+    font-size: 290px;
+    color: #594235;
+}
+
+h2{
+    font-size: 32px;
+    color: #434343;
+    margin-top: 14%;
+}
+
+main {
+    align-items: center;
+}

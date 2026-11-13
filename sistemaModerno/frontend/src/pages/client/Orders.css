@@ -1,0 +1,214 @@
+
+
+.detailsPaymentPage {
+    min-height: 100vh;
+    background-color: #faf2ec;
+}
+
+.OrdersMain {
+    width: 780px;
+    max-width: calc(100% - 40px);
+    min-height: calc(100vh - 107px);
+    margin: 40px auto 0;
+    padding: 22px 24px;
+    background-color: #ffffff;
+    border-radius: 24px 24px 0 0;
+    box-sizing: border-box;
+}
+
+.ordersContent {
+    width: 100%;
+}
+
+.ordersTitle {
+    margin: 0;
+    padding: 0 9px 21px;
+    border-bottom: 1px solid #c7c7c7;
+    font-size: 20px;
+    font-weight: 400;
+    color: #555555;
+}
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 14px 9px;
+}
+
+.orderCard {
+    width: 100%;
+    padding: 10px 13px 8px;
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.13);
+    box-sizing: border-box;
+}
+
+.orderHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.orderIdentification {
+    margin: 1% 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.pawIcon {
+    width: 19px;
+    height: 19px;
+    color: #555555;
+}
+
+.orderIdentification h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555555;
+}
+
+.orderOptions {
+    border: none;
+    background: transparent;
+    color: #777777;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.orderInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+.orderAddress,
+.orderDate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 30px;
+    padding: 0 7px;
+    border: 1px solid #e2e2e2;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.09);
+    box-sizing: border-box;
+    color: #666666;
+}
+
+.orderAddress {
+    flex: 1;
+    min-width: 0;
+}
+
+.orderDate {
+    flex-shrink: 0;
+}
+
+.orderAddress svg,
+.orderDate svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.orderAddress span,
+.orderDate span {
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.orderProduct {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 71px;
+    padding: 8px 9px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+}
+
+.orderProductImage {
+    width: 56px;
+    height: 62px;
+    flex-shrink: 0;
+    background-color: #d9d9d9;
+}
+
+.orderProductDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #555555;
+}
+
+.orderProductDetails span,
+.orderProductDetails strong {
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.orderProductDetails strong {
+    font-weight: 500;
+}
+
+.orderTotal {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0 0;
+    color: #666666;
+}
+
+.orderTotal span {
+    font-size: 11px;
+}
+
+.orderTotal strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444444;
+}
+
+
+@media (max-width: 600px) {
+
+    .OrdersMain {
+        max-width: 100%;
+        width: 100%;
+        margin-top: 25px;
+        padding: 20px 14px;
+    }
+
+    .ordersList {
+        padding: 14px 0;
+    }
+
+    .orderInfo {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .orderAddress,
+    .orderDate {
+        width: 100%;
+        height: 30px;
+    }
+
+    .orderAddress span,
+    .orderDate span {
+        font-size: 9px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+}

@@ -9,6 +9,9 @@ import SpecificProduct from "../pages/client/SpecificProduct";
 import Cart from "../pages/client/Cart";
 import AdressPayment from "../pages/client/AdressPayment";
 import DetailsPayment from "../pages/client/DetailsPayment";
+import Orders from "../pages/client/Orders";
+import ErrorPage from "../pages/store/ErrorPage";
+import ProfilePage from "../pages/client/ProfilePage";
 
 function AppRoutes() { 
     return (
@@ -22,6 +25,9 @@ function AppRoutes() {
             <Route path="/Cart" element={<Cart />} />
             <Route path="/AdressPayment" element={<AdressPayment />} />
             <Route path="/DetailsPayment" element={<DetailsPayment />} />
+            <Route path="/Orders" element={<Orders />} />
+            <Route path="/ErrorPage" element={<ErrorPage />} />
+            <Route path="/ProfilePage" element={<ProfilePage />} />
         </Routes>
     );
 }
