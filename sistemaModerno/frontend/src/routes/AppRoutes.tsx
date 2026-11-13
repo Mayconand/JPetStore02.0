@@ -8,6 +8,7 @@ import Products from "../pages/client/Products";
 import SpecificProduct from "../pages/client/SpecificProduct";
 import Cart from "../pages/client/Cart";
 import AdressPayment from "../pages/client/AdressPayment";
+import DetailsPayment from "../pages/client/DetailsPayment";
 
 function AppRoutes() { 
     return (
@@ -20,6 +21,7 @@ function AppRoutes() {
             <Route path="/SpecificProduct" element={<SpecificProduct />} />
             <Route path="/Cart" element={<Cart />} />
             <Route path="/AdressPayment" element={<AdressPayment />} />
+            <Route path="/DetailsPayment" element={<DetailsPayment />} />
         </Routes>
     );
 }

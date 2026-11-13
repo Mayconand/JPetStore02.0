@@ -1,0 +1,358 @@
+
+
+.detailsPaymentPage {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #fbf3ec;
+    padding: 0 4.2%;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #595959;
+}
+
+.detailsPaymentPage .headerClient {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 38px;
+}
+
+.detailsPaymentPage .logo {
+    width: 150px;
+    height: auto;
+    object-fit: contain;
+}
+
+.detailsPaymentPage .logoLink {
+    display: flex;
+    align-items: center;
+}
+
+.detailsPaymentPage .headerNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detailsPaymentPage .searchBox {
+    width: 270px;
+    height: 36px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.detailsPaymentPage .searchBox input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 12px;
+}
+
+.detailsPaymentPage .searchBox button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    width: 20px;
+    padding: 0;
+}
+
+.detailsPaymentPage .searchBox svg {
+    width: 19px;
+    height: 19px;
+}
+
+.detailsPaymentPage .headerIcon,
+.detailsPaymentPage .userBox {
+    height: 36px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+}
+
+.detailsPaymentPage .headerIcon {
+    width: 36px;
+}
+
+.detailsPaymentPage .headerIcon svg {
+    width: 19px;
+    height: 19px;
+}
+
+.detailsPaymentPage .userBox {
+    gap: 7px;
+    padding: 0 12px;
+    min-width: 135px;
+    font-size: 10px;
+}
+
+.detailsPaymentPage .userBox svg {
+    width: 17px;
+    height: 17px;
+}
+
+
+.DetailsMain {
+    width: 100%;
+    display: flex;
+        justify-content: flex-start;
+    align-items: center;
+}
+
+.detailsCard {
+    width: 100%;
+    max-width: 640px;
+    min-height: 720px;
+    background-color: #fff;
+    border-radius: 23px;
+    padding: 16px 23px 30px;
+}
+
+
+
+.detailsHeader {
+    display: grid;
+    grid-template-columns: 1fr 150px 80px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 9px 10px;
+    border-bottom: 1px solid #c8c8c8;
+}
+
+.detailsHeader h2 {
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0;
+}
+
+.orderCode,
+.orderStatus {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.orderCode span,
+.orderStatus span {
+    font-size: 12px;
+}
+
+.orderCode strong {
+    font-size: 16px;
+}
+
+.orderStatus strong {
+    width: fit-content;
+    background-color: #f4d05e;
+    color: #777;
+    padding: 5px 9px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+
+.detailsSection {
+    padding: 15px 9px 13px;
+    border-bottom: 1px solid #ccc;
+}
+
+.detailsSection h3 {
+    font-size: 15px;
+    color: #6ba9f3;
+    font-weight: 600;
+    margin: 0 0 10px;
+}
+
+
+.paymentDetails {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.paymentInfo p,
+.expirationDate {
+    margin: 0 0 3px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.paymentInfo strong,
+.expirationDate strong {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.expirationDate {
+    white-space: nowrap;
+}
+
+
+.addressDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.addressDetails p {
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.addressDetails strong {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.addressRow {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+}
+
+.addressLocation {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 5px;
+}
+
+
+.petsSection {
+    border-bottom: none;
+    padding-bottom: 10px;
+}
+
+.petsTableWrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 5px;
+}
+
+.petsTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff4ee;
+    text-align: center;
+    font-size: 13px;
+}
+
+.petsTable thead {
+    background-color: #f2d4c5;
+}
+
+.petsTable th {
+    padding: 8px 5px;
+    font-weight: 700;
+    color: #555;
+}
+
+.petsTable td {
+    padding: 11px 5px;
+    border-bottom: 1px solid #efdcd2;
+}
+
+.petsTable tfoot td {
+    text-align: right;
+    padding: 11px 15px;
+    border: none;
+}
+
+.petsTable tfoot span {
+    margin-right: 4px;
+}
+
+.petsTable tfoot strong {
+    font-size: 14px;
+}
+
+
+@media (max-width: 768px) {
+
+    .detailsPaymentPage {
+        padding: 15px 4%;
+    }
+
+    .detailsPaymentPage .headerClient {
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .detailsPaymentPage .logo {
+        width: 125px;
+    }
+
+    .detailsPaymentPage .searchBox {
+        width: 180px;
+    }
+
+    .detailsCard {
+        max-width: 100%;
+        min-height: auto;
+        padding: 15px;
+    }
+
+}
+
+@media (max-width: 520px) {
+
+    .detailsPaymentPage .headerClient {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .detailsPaymentPage .headerNav {
+        width: 100%;
+        gap: 7px;
+    }
+
+    .detailsPaymentPage .searchBox {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .detailsHeader {
+        grid-template-columns: 1fr auto;
+        row-gap: 12px;
+    }
+
+    .detailsHeader h2 {
+        grid-column: 1 / -1;
+        font-size: 17px;
+    }
+
+    .orderStatus {
+        align-items: flex-start;
+    }
+
+    .paymentDetails {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .addressRow {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .addressLocation {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .addressDetails p {
+        overflow-wrap: anywhere;
+    }
+
+    .petsTable {
+        min-width: 430px;
+    }
+
+}
