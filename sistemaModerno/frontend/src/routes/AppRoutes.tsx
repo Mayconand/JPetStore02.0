@@ -12,6 +12,7 @@ import DetailsPayment from "../pages/client/DetailsPayment";
 import Orders from "../pages/client/Orders";
 import ErrorPage from "../pages/store/ErrorPage";
 import ProfilePage from "../pages/client/ProfilePage";
+import HelpPage from "../pages/client/HelpPage";
 
 function AppRoutes() { 
     return (
@@ -28,6 +29,7 @@ function AppRoutes() {
             <Route path="/Orders" element={<Orders />} />
             <Route path="/ErrorPage" element={<ErrorPage />} />
             <Route path="/ProfilePage" element={<ProfilePage />} />
+            <Route path="/HelpPage" element={<HelpPage />} />
         </Routes>
     );
 }
