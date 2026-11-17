@@ -1,0 +1,373 @@
+
+
+.profilePage {
+    min-height: 100vh;
+    background-color: #faf2eb;
+    padding-bottom: 50px;
+    box-sizing: border-box;
+}
+
+.profileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 25px 4%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profileHeader .logo {
+    width: 150px;
+    height: auto;
+    object-fit: contain;
+}
+
+.profileHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profileSearch {
+    width: 270px;
+    height: 33px;
+    background-color: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px 0 18px;
+}
+
+.profileSearch input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 13px;
+    background: transparent;
+    color: #555;
+}
+
+.profileSearch svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: #555;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+.profileHeaderIcon {
+    width: 34px;
+    height: 33px;
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    text-decoration: none;
+}
+
+.profileHeaderIcon svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.profileUser {
+    height: 33px;
+    min-width: 138px;
+    padding: 0 12px;
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    font-size: 11px;
+    color: #444;
+}
+
+.profileUser svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: #555;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+}
+
+.profileUser strong {
+    font-weight: 700;
+}
+
+.ProfileMain {
+    width: 100%;
+    max-width: 1400px;
+    margin: 35px auto 0;
+}
+
+.ProfileMain h1 {
+    font-size: 25px;
+    font-weight: 600;
+    color: #555;
+    margin: 0 0 14px;
+    width: 100%;
+    text-align: left;
+}
+
+.profileSection {
+    margin-bottom: 20px;
+}
+
+.profileSection h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #414141;
+    margin: 0 0 14px;
+}
+
+.profileSection .profileSubtitle {
+    font-size: 14px;
+    font-weight: 400;
+    margin: 0 0 6px;
+}
+
+form{
+    width: 100%;
+}
+
+.profileGrid {
+    display: grid;
+    gap: 13px 28px;
+}
+
+.personalGrid {
+    grid-template-columns: 0.8fr 1.25fr;
+}
+
+.addressGrid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.profileGrid input,
+.profileSelectGroup select {
+    width: 100%;
+    height: 40px;
+    padding: 0 26px;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #555;
+    font-family: inherit;
+    font-size: 12px;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s;
+}
+
+.profileGrid input:focus,
+.profileSelectGroup select:focus {
+    box-shadow: 0 0 0 1px #9bc44f;
+}
+
+.profileGrid input::placeholder {
+    color: #666;
+    opacity: 1;
+}
+
+.profileWideInput {
+    grid-column: span 2;
+}
+
+.profileGrid input:disabled {
+    background-color: #eeeae6;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.profileAddressHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.profileAddressHeader .profileSubtitle {
+    margin: 0;
+}
+
+.profileCheckbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.profileCheckbox input {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #555;
+    border-radius: 4px;
+    margin: 0;
+    cursor: pointer;
+    background-color: transparent;
+    flex-shrink: 0;
+}
+
+.profileCheckbox input:checked {
+    background-color: #9bc44f;
+    border-color: #9bc44f;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 8 3 3 7-7' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+    background-size: contain;
+}
+
+.profilePreferences {
+    margin-top: 16px;
+    margin-bottom: 13px;
+}
+
+.profilePreferences h2 {
+    margin-bottom: 9px;
+}
+
+.profilePreferencesContent {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.profileSelectGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 150px;
+}
+
+.profileSelectGroup label {
+    font-size: 12px;
+    color: #444;
+}
+
+.profileSelectGroup select {
+    height: 31px;
+    padding: 0 12px;
+    cursor: pointer;
+}
+
+.preferenceCheckbox {
+    height: 31px;
+}
+
+
+.profileSaveButton {
+    width: 100%;
+    height: 39px;
+    background-color: #9bc44f;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profileSaveButton:hover {
+    background-color: #88b43d;
+}
+
+@media (max-width: 768px) {
+
+    .profileHeader {
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px 5%;
+    }
+
+    .profileHeader .logo {
+        width: 125px;
+    }
+
+    .profileHeaderActions {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .profileSearch {
+        flex: 1;
+        width: auto;
+    }
+
+    .profileUser {
+        min-width: auto;
+    }
+
+    .ProfileMain {
+        width: 90%;
+        margin-top: 20px;
+    }
+
+    .personalGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .addressGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .profileWideInput {
+        grid-column: span 1;
+    }
+
+    .profilePreferencesContent {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .profileUser span {
+        display: none;
+    }
+
+    .profileUser {
+        min-width: 36px;
+        justify-content: center;
+        padding: 0 8px;
+    }
+
+    .personalGrid,
+    .addressGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .profileWideInput {
+        grid-column: span 1;
+    }
+
+    .profilePreferencesContent {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profileSelectGroup {
+        width: 100%;
+    }
+
+    .preferenceCheckbox {
+        height: auto;
+        margin-top: 5px;
+    }
+
+}
