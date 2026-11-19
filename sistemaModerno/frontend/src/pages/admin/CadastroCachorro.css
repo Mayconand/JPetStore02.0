@@ -1,0 +1,412 @@
+.cad-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #fbf2ec;
+  padding: 28px 16px 48px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  color: #4a4a4a;
+}
+
+.cad-wrapper {
+  width: 100%;
+  max-width: 680px;
+}
+
+.cad-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cad-title {
+  font-size: 24px;
+  font-weight: 500;
+  color: #1f1f1f;
+  margin: 0;
+}
+
+.cad-back-link {
+  font-size: 13px;
+  color: #7a6e65;
+  text-decoration: none;
+}
+
+.cad-back-link:hover {
+  text-decoration: underline;
+}
+
+/* Cartão principal */
+.cad-card {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1.5px solid #f2d5c4;
+  border-radius: 6px;
+  padding: 24px 22px 26px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Grid Superior: Upload Principal + Inputs Direita */
+.cad-top-grid {
+  display: grid;
+  grid-template-columns: 152px 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.cad-main-upload {
+  background-color: #ebebeb;
+  border-radius: 6px;
+  min-height: 205px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  cursor: pointer;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.3;
+  overflow: hidden;
+  transition: background-color 0.15s ease;
+}
+
+.cad-main-upload:hover {
+  background-color: #e2e2e2;
+}
+
+.cad-main-upload svg {
+  width: 34px;
+  height: 34px;
+}
+
+.cad-main-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cad-right-fields {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Campos padrão */
+.cad-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+
+.cad-field label {
+  font-size: 12px;
+  color: #4f4f4f;
+  font-weight: 400;
+}
+
+.cad-field input,
+.cad-field textarea {
+  width: 100%;
+  border: 1px solid #8c8c8c;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #333;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.cad-field input {
+  height: 38px;
+}
+
+.cad-field textarea {
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 68px;
+  font-family: inherit;
+}
+
+.cad-field input:focus,
+.cad-field textarea:focus {
+  border-color: #555;
+}
+
+.cad-two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Dropdowns customizados (Raça e Porte) */
+.cad-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.cad-select-btn {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #8c8c8c;
+  border-radius: 6px;
+  background-color: #ffffff;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #777;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.cad-select-btn.has-value {
+  color: #333;
+}
+
+.cad-select-btn svg {
+  width: 16px;
+  height: 16px;
+  color: #444;
+}
+
+.cad-dropdown-menu {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 20;
+  overflow: hidden;
+}
+
+.cad-dropdown-item {
+  width: 100%;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #eeeeee;
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 12.5px;
+  color: #666;
+  cursor: pointer;
+}
+
+.cad-dropdown-item:hover {
+  background-color: #f9f9f9;
+}
+
+.cad-add-breed-btn {
+  width: 100%;
+  background-color: #fdb241;
+  border: none;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #4a3c28;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.cad-add-breed-btn:hover {
+  filter: brightness(0.96);
+}
+
+.cad-new-breed-box {
+  display: flex;
+  padding: 6px;
+  gap: 6px;
+  background-color: #fff7eb;
+}
+
+.cad-new-breed-box input {
+  flex: 1;
+  height: 28px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.cad-new-breed-box button {
+  background-color: #fdb241;
+  border: none;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Linha Nascimento e Laudos */
+.cad-mid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+/* Caixas de upload de arquivo (Laudos e Fotos 1, 2, 3) */
+.cad-file-box {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #8c8c8c;
+  border-radius: 6px;
+  background-color: #ffffff;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #777;
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cad-file-box:hover {
+  background-color: #fafafa;
+}
+
+.cad-file-box svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: #555;
+}
+
+.cad-file-box span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Fotos 3 colunas */
+.cad-fotos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+/* Seção TAGs */
+.cad-tags-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+}
+
+.cad-tags-title {
+  font-size: 12px;
+  color: #4f4f4f;
+}
+
+.cad-tags-subtitle {
+  font-size: 11px;
+  color: #888;
+}
+
+.cad-tag-search {
+  width: 280px;
+  max-width: 100%;
+  height: 36px;
+  border: 1px solid #a8a8a8;
+  border-radius: 999px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.cad-tag-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12.5px;
+  color: #444;
+}
+
+.cad-tag-search svg {
+  width: 17px;
+  height: 17px;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.cad-tag-suggestions,
+.cad-selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cad-tag-chip {
+  height: 28px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cad-tag-chip.active {
+  background-color: #e4e4e4;
+  border: 1px solid #555;
+  color: #444;
+}
+
+.cad-tag-chip.suggestion {
+  background-color: #f7f7f7;
+  border: 1px dashed #999;
+  color: #555;
+}
+
+/* Botão Salvar */
+.cad-submit-btn {
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+  background-color: #97c13c;
+  border: none;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.cad-submit-btn:hover {
+  filter: brightness(0.95);
+}
+
+@media (max-width: 640px) {
+  .cad-top-grid,
+  .cad-two-cols,
+  .cad-mid-row,
+  .cad-fotos-grid {
+    grid-template-columns: 1fr;
+  }
+}

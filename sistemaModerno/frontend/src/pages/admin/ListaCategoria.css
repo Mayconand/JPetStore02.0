@@ -1,0 +1,337 @@
+.lista-cat-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #fbf2ec;
+  padding: 20px 0 48px;
+  box-sizing: border-box;
+  display: block;
+  color: #4a4a4a;
+}
+
+/* Cabeçalho */
+.lista-cat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% + 56px);
+  margin-left: -28px;
+  padding: 0;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.lista-cat-logo {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.lista-cat-user-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lista-cat-bell-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a4a4a;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lista-cat-bell-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+.lista-cat-user-pill {
+  height: 40px;
+  background-color: #ffffff;
+  border-radius: 999px;
+  padding: 0 20px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #4a4a4a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lista-cat-user-pill svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Container principal com o recuo alinhado da DashboardAdm */
+.lista-cat-container {
+  width: 100%;
+  max-width: none;
+  padding: 0 72px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Barra de pesquisa */
+.lista-cat-search-bar {
+  width: 100%;
+  height: 42px;
+  background-color: #ffffff;
+  border-radius: 999px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.lista-cat-search-bar input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13.5px;
+  color: #444;
+}
+
+.lista-cat-search-bar svg {
+  width: 18px;
+  height: 18px;
+  color: #444;
+  flex-shrink: 0;
+}
+
+/* Linha do Card da Categoria + Botões */
+.lista-cat-controls-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.lista-cat-banner-img {
+  height: 124px;
+  width: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Botões Adicionar e Filtrar */
+.lista-cat-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lista-cat-btn-add,
+.lista-cat-btn-filter {
+  width: 180px;
+  height: 54px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.lista-cat-btn-add {
+  background-color: #96bc82;
+  color: #ffffff;
+}
+
+.lista-cat-btn-filter {
+  background-color: #f4e48e;
+  color: #5a5230;
+}
+
+.lista-cat-btn-add:hover,
+.lista-cat-btn-filter:hover {
+  filter: brightness(0.96);
+}
+
+.lista-cat-btn-add svg,
+.lista-cat-btn-filter svg {
+  width: 16px;
+  height: 16px;
+}
+
+.lista-cat-filter-wrapper {
+  position: relative;
+}
+
+.lista-cat-filter-menu {
+  position: absolute;
+  right: 0;
+  top: 58px;
+  width: 180px;
+  background: #ffffff;
+  border: 1px solid #e6dcd5;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  overflow: hidden;
+}
+
+.lista-cat-filter-menu button {
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  border-bottom: 1px solid #f2ece8;
+  background: #ffffff;
+  text-align: left;
+  font-size: 12.5px;
+  color: #555;
+  cursor: pointer;
+}
+
+.lista-cat-filter-menu button:hover,
+.lista-cat-filter-menu button.active {
+  background-color: #fbf2ec;
+  font-weight: 600;
+}
+
+/* Cartão da Tabela */
+.lista-cat-table-card {
+  width: 100%;
+  min-height: 420px;
+  background-color: #fff9f5;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.lista-cat-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.lista-cat-table thead tr {
+  background-color: #f3d7c6;
+  height: 44px;
+}
+
+.lista-cat-table th {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #4f4640;
+  padding: 0 20px;
+}
+
+.lista-cat-table th:first-child,
+.lista-cat-table td:first-child {
+  text-align: left;
+  padding-left: 36px;
+}
+
+.lista-cat-table tbody tr {
+  height: 48px;
+  border-bottom: 1px solid #e9dfd9;
+  font-size: 13.5px;
+  color: #555;
+}
+
+.lista-cat-table tbody tr:hover {
+  background-color: #fdf4ee;
+}
+
+/* Botão azul Ver PDF */
+.lista-cat-pdf-btn {
+  width: 130px;
+  height: 26px;
+  background-color: #72aaf0;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.lista-cat-pdf-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Ícones Editar e Excluir */
+.lista-cat-row-icons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding-right: 36px;
+}
+
+.lista-cat-icon-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.lista-cat-icon-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.lista-cat-icon-btn.edit {
+  background-color: #f5b342;
+}
+
+.lista-cat-icon-btn.delete {
+  background-color: #ef6363;
+}
+
+.lista-cat-empty {
+  padding: 36px;
+  text-align: center !important;
+  color: #888;
+}
+
+@media (max-width: 768px) {
+  .lista-cat-header {
+    padding: 0 20px;
+  }
+
+  .lista-cat-container {
+    padding: 0 20px;
+  }
+
+  .lista-cat-controls-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lista-cat-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .lista-cat-table-card {
+    overflow-x: auto;
+  }
+}

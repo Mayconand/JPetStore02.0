@@ -5,6 +5,7 @@ import viteLogo from './assets/vite.svg'
 import './App.css'
 import AppRoutes from "./routes/AppRoutes";
 
+
 function App() {
     return (
         <AppRoutes />
