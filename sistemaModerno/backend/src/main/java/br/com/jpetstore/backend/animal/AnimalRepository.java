@@ -1,6 +1,8 @@
 package br.com.jpetstore.backend.animal;
 
 import br.com.jpetstore.backend.animal.dto.AnimalResumo;
+import br.com.jpetstore.backend.animal.dto.AnimalResponse;
+import br.com.jpetstore.backend.animal.dto.TagResponse;
 import br.com.jpetstore.backend.animal.dto.BuscaAnimaisFiltro;
 import br.com.jpetstore.backend.comum.FuncoesBanco;
 import br.com.jpetstore.backend.enums.EspecieEnum;
@@ -44,6 +46,15 @@ public class AnimalRepository {
 
     public AnimalRepository(FuncoesBanco banco) {
         this.banco = banco;
+    }
+
+    public AnimalResponse obter(UUID id) {
+        return banco.json("jpetstore.fn_obter_animal(?)", AnimalResponse.class, id);
+    }
+
+    public List<TagResponse> buscarTags(String termo) {
+        return banco.linhas("jpetstore.fn_buscar_tags(?)",
+                (rs, linha) -> new TagResponse(rs.getObject("id", UUID.class), rs.getString("nome")), termo);
     }
 
     /** Resultado de uma página da busca, com o total de animais encontrados. */

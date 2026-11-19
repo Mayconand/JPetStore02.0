@@ -4,6 +4,7 @@ import br.com.jpetstore.backend.comum.UsuarioAutenticado;
 import br.com.jpetstore.backend.pedido.dto.CriarPedidoRequest;
 import br.com.jpetstore.backend.pedido.dto.PedidoResponse;
 import br.com.jpetstore.backend.pedido.dto.PedidoResumo;
+import br.com.jpetstore.backend.pedido.dto.RealizarPagamentoRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,11 +36,18 @@ public class PedidoController {
         return service.obter(UsuarioAutenticado.id(jwt), id);
     }
 
-    /** Criar Pedido a partir do Carrinho (base do RF12 — Finalizar Compra). */
+    /** RF12 — Finaliza o carrinho, criando um pedido que aguarda pagamento. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PedidoResponse criar(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CriarPedidoRequest request) {
         return service.criar(UsuarioAutenticado.id(jwt), request);
+    }
+
+    /** RF14 — Simula a aprovação do pagamento e retorna o pedido atualizado. */
+    @PostMapping("/{id}/pagamento")
+    public PedidoResponse pagar(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                                @Valid @RequestBody RealizarPagamentoRequest dados) {
+        return service.pagar(UsuarioAutenticado.id(jwt), id, dados);
     }
 
     /** Cancelar Pedido (spec: só o dono, antes do envio; complementa RF06). */

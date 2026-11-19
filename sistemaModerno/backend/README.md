@@ -33,10 +33,11 @@ por `TEST_DB_URL`, `TEST_DB_USER` e `TEST_DB_PASSWORD` no `backend/.env` (ver
 ```
 br.com.jpetstore.backend
 ├── auth/       login, logout, emissão e revogação de JWT
-├── usuario/    cadastro, perfil, senha
-├── animal/     busca de animais
+├── usuario/    cadastro, perfil, senha, idioma, cartão e endereço
+├── animal/     busca, detalhes de animais e tags
 ├── carrinho/   visualizar e atualizar carrinho
-├── pedido/     listar, detalhar, criar e cancelar pedidos
+├── pedido/     listar, detalhar, criar, pagar e cancelar pedidos
+├── rodape/     consultar, habilitar, desabilitar e personalizar rodapé
 ├── admin/      área administrativa (/api/admin/**, só ADMIN)
 ├── comum/      chamada às funções de banco e tratamento de erros
 ├── config/     segurança, JWT e CORS
@@ -70,19 +71,65 @@ schema (`ddl-auto=validate`), nunca o altera.
 | GET | `/api/usuarios/me` | RF04 Visualizar Perfil | logado |
 | PUT | `/api/usuarios/me` | RF05 Alterar Perfil | logado |
 | PUT | `/api/usuarios/me/senha` | RF05 Alterar senha | logado |
+| PUT | `/api/usuarios/me/idioma` `{idiomaPreferencial}` | RF11 Selecionar Idioma | logado |
+| POST | `/api/usuarios/me/cartoes` `{numero, nomeTitular, dataValidade, bandeira}` | RF13 Cadastrar Cartão fictício | logado |
+| GET | `/api/usuarios/me/enderecos` | Listar endereços próprios | logado |
+| POST | `/api/usuarios/me/enderecos` | RF15 Cadastrar Endereço de Entrega | logado |
 | GET | `/api/animais?termo=&especie=&racaId=&raca=&precoMin=&precoMax=&page=&size=` | RF07 Buscar Animais | público |
+| GET | `/api/animais/{id}` | RF16 Visualizar Animal | público |
+| GET | `/api/animais/tags?termo=` | RF17 Buscar Tags | público |
 | GET | `/api/carrinho` | RF08 Visualizar Carrinho | logado |
 | POST | `/api/carrinho/itens` `{animalId}` | RF09 Atualizar Carrinho | logado |
 | DELETE | `/api/carrinho/itens/{animalId}` | RF09 Atualizar Carrinho | logado |
 | DELETE | `/api/carrinho` | RF09 Atualizar Carrinho | logado |
 | GET | `/api/pedidos` | RF06 Visualizar Pedidos | logado |
 | GET | `/api/pedidos/{id}` | RF06 Visualizar Pedidos | logado |
-| POST | `/api/pedidos` `{modalidade: RETIRADA\|ENTREGA, enderecoId}` | Criar pedido (base do RF12) | logado |
+| POST | `/api/pedidos` `{modalidade: RETIRADA\|ENTREGA, enderecoId}` | RF12 Finalizar Compra | logado |
+| POST | `/api/pedidos/{id}/pagamento` `{forma, cartaoId}` | RF14 Pagamento simulado | logado (dono) |
 | POST | `/api/pedidos/{id}/cancelar` | Cancelar pedido | logado (dono) |
 | GET | `/api/admin/acesso` | RNF05 Controle de Acesso | ADMIN |
+| GET | `/api/rodape` | Consultar visibilidade e conteúdo do rodapé | público |
+| POST | `/api/admin/rodape/desabilitar` | RF18 Desabilitar footer | ADMIN |
+| POST | `/api/admin/rodape/habilitar` | RF19 Habilitar footer | ADMIN |
+| PUT | `/api/admin/rodape` `{conteudoHtml}` | RF20 Personalizar footer | ADMIN |
 
 Erros seguem o formato `{ "codigo": "CARRINHO_VAZIO", "mensagem": "..." }`
 (validação: 400 com `campos`). A segurança usa o mesmo formato:
 `NAO_AUTENTICADO` (401) e `ACESSO_NEGADO` (403).
 
 Idiomas aceitos: `pt-BR`, `en` e `es`. Senhas novas têm no mínimo 8 caracteres.
+
+## Compra de demonstração (RF11–RF20)
+
+As rotas usam as funções SQL que já existem no projeto. Não é necessário instalar
+outra dependência nem aplicar uma nova migration.
+
+1. Selecione a preferência com `PUT /api/usuarios/me/idioma`, por exemplo
+   `{"idiomaPreferencial":"en"}`. Isso salva a preferência; a tradução das telas
+   é responsabilidade do frontend.
+2. Para entrega, cadastre um endereço em `POST /api/usuarios/me/enderecos` com
+   `rua`, `numero`, `complemento` (opcional), `bairro` (opcional), `cidade`,
+   `estado`, `cep` e `pais` (opcional). A resposta contém o `id`. O primeiro
+   endereço vira principal automaticamente.
+3. Para simular cartão, use `POST /api/usuarios/me/cartoes` com dados fictícios,
+   por exemplo `{"numero":"4111111111111111","nomeTitular":"Cliente Teste",
+   "dataValidade":"12/30","bandeira":"VISA"}`. A resposta contém o `id` do
+   cartão. Apenas os quatro últimos dígitos são guardados; CVV não é utilizado.
+4. Com animais no carrinho, crie o pedido em `POST /api/pedidos`. Use
+   `{"modalidade":"ENTREGA","enderecoId":"<id>"}` ou
+   `{"modalidade":"RETIRADA"}`. O pedido começa como `AGUARDANDO_PAGAMENTO`.
+5. Confirme em `POST /api/pedidos/{id}/pagamento` com
+   `{"forma":"CARTAO_CREDITO","cartaoId":"<id>"}`. Também são aceitos
+   `{"forma":"PIX"}` e `{"forma":"BOLETO"}`, sem cartão. A API retorna o pedido
+   como `PAGO`, usando o total calculado pelo banco. **Tudo é simulado: não há
+   cobrança, emissão de boleto ou integração com banco/gateway.**
+
+Criar o pedido e pagar são etapas separadas: se a simulação for recusada por dados
+inválidos, o pedido continua aguardando pagamento e pode ser pago novamente ou
+cancelado. Pedidos já pagos não aceitam outro pagamento.
+
+O detalhe do animal inclui raça, atributos da espécie, fotos, tags, laudos e
+orientações de cuidados. A busca de tags aceita trechos do nome e ignora acentos.
+O rodapé é uma configuração global: todos podem consultar, mas somente um
+administrador pode alterá-lo. As telas precisam consumir essas rotas para refletir
+as alterações na interface.

@@ -16,6 +16,9 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Testes ponta a ponta da API (backend + funções de banco) contra um Postgres
  * local de testes (BancoDeTesteConfig) com as migrations do Supabase. Cobre os requisitos do quadro
- * "Yasmin - BackEnd": RF02–RF10, RNF05, criar e cancelar pedido.
+ * "Yasmin - BackEnd" e "Maycon - BackEnd": RF02–RF20, RNF05, criar e cancelar pedido.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,7 +53,7 @@ class ApiIntegracaoTest {
     // ------------------------------------------------------------------ helpers
 
     JsonNode corpo(ResultActions resultado) throws Exception {
-        String texto = resultado.andReturn().getResponse().getContentAsString();
+        String texto = resultado.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return texto.isBlank() ? null : json.readTree(texto);
     }
 
@@ -414,6 +417,205 @@ class ApiIntegracaoTest {
                     Map.of("modalidade", "ENTREGA", "enderecoId", perfil.get("enderecos").get(0).get("id").asString()))
                     .andExpect(status().isNotFound()));
             assertThat(erro.get("codigo").asString()).isEqualTo("ENDERECO_NAO_ENCONTRADO");
+        }
+    }
+
+    // ------------------------------------------------------------------ RF11–RF20 (Maycon - BackEnd)
+
+    @Nested
+    class RequisitosMaycon {
+
+        Map<String, String> dadosCartao() {
+            return Map.of("numero", "4111 1111 1111 1234", "nomeTitular", "Cliente Teste", "bandeira", "VISA",
+                    "dataValidade", YearMonth.now().plusYears(2).format(DateTimeFormatter.ofPattern("MM/yy")));
+        }
+
+        String cadastrarCartao(Cliente cliente) throws Exception {
+            return corpo(enviar(post("/api/usuarios/me/cartoes"), cliente.token(), dadosCartao())
+                    .andExpect(status().isCreated())).get("id").asString();
+        }
+
+        String criarPedido(Cliente cliente) throws Exception {
+            enviar(post("/api/carrinho/itens"), cliente.token(), Map.of("animalId", novoAnimal("Compra teste", "123.45")))
+                    .andExpect(status().isOk());
+            return corpo(enviar(post("/api/pedidos"), cliente.token(), Map.of("modalidade", "RETIRADA"))
+                    .andExpect(status().isCreated())).get("id").asString();
+        }
+
+        @Test
+        void idiomaPersistidoPreservaOsOutrosDadosDoPerfil() throws Exception {
+            Cliente cliente = novoCliente();
+            for (String idioma : List.of("en", "es", "pt-BR")) {
+                JsonNode perfil = corpo(enviar(put("/api/usuarios/me/idioma"), cliente.token(),
+                        Map.of("idiomaPreferencial", idioma)).andExpect(status().isOk()));
+                assertThat(perfil.get("idiomaPreferencial").asString()).isEqualTo(idioma);
+                assertThat(perfil.get("nome").asString()).isEqualTo("Ana");
+                assertThat(perfil.get("preferencias").get("categoriaFavorita").asString()).isEqualTo("dogs");
+                assertThat(corpo(enviar(get("/api/usuarios/me"), cliente.token(), null))
+                        .get("idiomaPreferencial").asString()).isEqualTo(idioma);
+            }
+            enviar(put("/api/usuarios/me/idioma"), cliente.token(), Map.of("idiomaPreferencial", "fr"))
+                    .andExpect(status().isBadRequest());
+            enviar(put("/api/usuarios/me/idioma"), cliente.token(), Map.of()).andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void cartaoFicticioGuardaSomenteOsUltimosDigitos() throws Exception {
+            Cliente cliente = novoCliente();
+            JsonNode resposta = corpo(enviar(post("/api/usuarios/me/cartoes"), cliente.token(), dadosCartao())
+                    .andExpect(status().isCreated()));
+            assertThat(resposta.has("numero")).isFalse();
+            assertThat(resposta.has("cvv")).isFalse();
+            assertThat(jdbc.queryForObject("select ultimos_digitos from jpetstore.cartao where id = ?",
+                    String.class, UUID.fromString(resposta.get("id").asString()))).isEqualTo("1234");
+            var dadosInvalidos = new java.util.HashMap<>(dadosCartao());
+            dadosInvalidos.put("numero", "abc");
+            enviar(post("/api/usuarios/me/cartoes"), cliente.token(), dadosInvalidos).andExpect(status().isBadRequest());
+            dadosInvalidos.put("numero", "4111111111111111");
+            dadosInvalidos.put("dataValidade", "01/20");
+            enviar(post("/api/usuarios/me/cartoes"), cliente.token(), dadosInvalidos)
+                    .andExpect(status().isUnprocessableContent());
+        }
+
+        @Test
+        void pagamentoSimuladoAtualizaPedidoENaoPodeSerDuplicado() throws Exception {
+            Cliente cliente = novoCliente();
+            String pedidoId = criarPedido(cliente);
+            var dados = Map.of("forma", "CARTAO_CREDITO", "cartaoId", cadastrarCartao(cliente));
+            JsonNode pago = corpo(enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), cliente.token(), dados)
+                    .andExpect(status().isOk()));
+            assertThat(pago.get("status").asString()).isEqualTo("PAGO");
+            assertThat(pago.get("valorTotal").decimalValue()).isEqualByComparingTo("123.45");
+            enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), cliente.token(), dados)
+                    .andExpect(status().isUnprocessableContent());
+            assertThat(jdbc.queryForObject("select count(*) from jpetstore.pagamento where pedido_id = ?",
+                    Long.class, UUID.fromString(pedidoId))).isEqualTo(1);
+        }
+
+        @Test
+        void pixEBoletoSaoSimuladosSemCartao() throws Exception {
+            Cliente cliente = novoCliente();
+            for (String forma : List.of("PIX", "BOLETO")) {
+                String pedidoId = criarPedido(cliente);
+                assertThat(corpo(enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), cliente.token(),
+                        Map.of("forma", forma)).andExpect(status().isOk())).get("status").asString()).isEqualTo("PAGO");
+            }
+        }
+
+        @Test
+        void cartaoOuPedidoAlheioNaoPodeSerUsado() throws Exception {
+            Cliente dono = novoCliente();
+            Cliente outro = novoCliente();
+            String pedidoId = criarPedido(dono);
+            enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), dono.token(), Map.of("forma", "CARTAO_CREDITO"))
+                    .andExpect(status().isUnprocessableContent());
+            enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), dono.token(),
+                    Map.of("forma", "CARTAO_CREDITO", "cartaoId", cadastrarCartao(outro)))
+                    .andExpect(status().isUnprocessableContent());
+            enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), outro.token(), Map.of("forma", "PIX"))
+                    .andExpect(status().isNotFound());
+            enviar(post("/api/pedidos/" + pedidoId + "/pagamento"), dono.token(), Map.of("forma", "DINHEIRO"))
+                    .andExpect(status().isBadRequest());
+            assertThat(corpo(enviar(get("/api/pedidos/" + pedidoId), dono.token(), null))
+                    .get("status").asString()).isEqualTo("AGUARDANDO_PAGAMENTO");
+        }
+
+        @Test
+        void cadastraEnderecoDeEntregaSemExporOsEnderecosDeOutraPessoa() throws Exception {
+            Cliente cliente = novoCliente();
+            String id = corpo(enviar(post("/api/usuarios/me/enderecos"), cliente.token(), endereco("Rua B", "42"))
+                    .andExpect(status().isCreated())).get("id").asString();
+            JsonNode enderecos = corpo(enviar(get("/api/usuarios/me/enderecos"), cliente.token(), null)
+                    .andExpect(status().isOk()));
+            assertThat(enderecos).hasSize(2);
+            JsonNode cadastrado = enderecos.valueStream().filter(e -> e.get("id").asString().equals(id)).findFirst().orElseThrow();
+            assertThat(cadastrado.get("cep").asString()).isEqualTo("01001000");
+            assertThat(cadastrado.get("numero").asString()).isEqualTo("42");
+            assertThat(cadastrado.get("principal").asBoolean()).isFalse();
+            JsonNode alheios = corpo(enviar(get("/api/usuarios/me/enderecos"), novoCliente().token(), null));
+            assertThat(alheios.valueStream().anyMatch(e -> e.get("id").asString().equals(id))).isFalse();
+            enviar(post("/api/usuarios/me/enderecos"), cliente.token(), endereco(null, null))
+                    .andExpect(status().isUnprocessableContent());
+            var invalido = endereco("Rua B", "42");
+            invalido.put("cep", "123");
+            enviar(post("/api/usuarios/me/enderecos"), cliente.token(), invalido).andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void detalheDoAnimalETagsSaoPublicos() throws Exception {
+            String tag = "Dócil" + UUID.randomUUID();
+            UUID animalId = jdbc.queryForObject("""
+                    select jpetstore.fn_cadastrar_animal('CACHORRO', jsonb_build_object(
+                        'racaId', (select id from jpetstore.raca where nome = 'Bulldog'),
+                        'nome', 'Ficha teste', 'preco', 99, 'porte', 'MEDIO',
+                        'imagens', jsonb_build_array('https://exemplo.com/animal.jpg'),
+                        'tags', jsonb_build_array(?::text),
+                        'laudos', jsonb_build_array(jsonb_build_object('titulo', 'Vacinação', 'dataEmissao', '2026-01-10'))))
+                    """, UUID.class, tag);
+            JsonNode animal = corpo(enviar(get("/api/animais/" + animalId), null, null).andExpect(status().isOk()));
+            assertThat(animal.get("raca").get("nome").asString()).isEqualTo("Bulldog");
+            assertThat(animal.get("atributos").get("porte").asString()).isEqualTo("MEDIO");
+            assertThat(animal.get("imagens").get(0).asString()).isEqualTo("https://exemplo.com/animal.jpg");
+            assertThat(animal.get("laudos").get(0).get("titulo").asString()).isEqualTo("Vacinação");
+            assertThat(animal.get("cuidados").asString()).isNotBlank();
+            JsonNode tags = corpo(enviar(get("/api/animais/tags").param("termo", tag.replace("ó", "o")), null, null)
+                    .andExpect(status().isOk()));
+            assertThat(tags).hasSize(1);
+            assertThat(tags.get(0).get("nome").asString()).isEqualTo(tag);
+            enviar(get("/api/animais/" + UUID.randomUUID()), null, null).andExpect(status().isNotFound());
+        }
+
+        @Test
+        void administradorPodeDesabilitarPersonalizarEHabilitarRodape() throws Exception {
+            String admin = login(ADMIN_EMAIL, ADMIN_SENHA);
+            JsonNode original = corpo(enviar(get("/api/rodape"), null, null).andExpect(status().isOk()));
+            try {
+                assertThat(corpo(enviar(post("/api/admin/rodape/desabilitar"), admin, null)
+                        .andExpect(status().isOk())).get("visivel").asBoolean()).isFalse();
+                JsonNode personalizado = corpo(enviar(put("/api/admin/rodape"), admin,
+                        Map.of("conteudoHtml", "<p>JPetStore - Contato</p>")).andExpect(status().isOk()));
+                assertThat(personalizado.get("visivel").asBoolean()).isFalse();
+                assertThat(corpo(enviar(post("/api/admin/rodape/habilitar"), admin, null)
+                        .andExpect(status().isOk())).get("visivel").asBoolean()).isTrue();
+                assertThat(corpo(enviar(get("/api/rodape"), null, null)).get("conteudoHtml").asString())
+                        .isEqualTo("<p>JPetStore - Contato</p>");
+            } finally {
+                jdbc.query("select jpetstore.fn_personalizar_rodape(?)", rs -> { },
+                        original.get("conteudoHtml").isNull() ? null : original.get("conteudoHtml").asString());
+                jdbc.query("select jpetstore.fn_definir_visibilidade_rodape(?)", rs -> { }, original.get("visivel").asBoolean());
+            }
+        }
+
+        @Test
+        void rodapeExigeAdminAtualInclusiveParaTokenAntigo() throws Exception {
+            Cliente cliente = novoCliente();
+            for (String acao : List.of("habilitar", "desabilitar")) {
+                enviar(post("/api/admin/rodape/" + acao), null, null).andExpect(status().isUnauthorized());
+                enviar(post("/api/admin/rodape/" + acao), cliente.token(), null).andExpect(status().isForbidden());
+            }
+            enviar(put("/api/admin/rodape"), cliente.token(), Map.of("conteudoHtml", "alterado"))
+                    .andExpect(status().isForbidden());
+            UUID usuarioId = jdbc.queryForObject("select usuario_id from jpetstore.endereco where id = ?", UUID.class,
+                    cliente.enderecoId());
+            jdbc.update("update jpetstore.usuario set papel = 'ADMIN' where id = ?", usuarioId);
+            String email = jdbc.queryForObject("select email from jpetstore.usuario where id = ?", String.class, usuarioId);
+            String tokenAdmin = login(email, "SenhaForte1");
+            jdbc.update("update jpetstore.usuario set papel = 'CLIENTE' where id = ?", usuarioId);
+            enviar(post("/api/admin/rodape/habilitar"), tokenAdmin, null).andExpect(status().isForbidden());
+            enviar(post("/api/admin/rodape/desabilitar"), tokenAdmin, null).andExpect(status().isForbidden());
+            enviar(put("/api/admin/rodape"), tokenAdmin, Map.of("conteudoHtml", "alterado"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void novasRotasPessoaisExigemLogin() throws Exception {
+            enviar(put("/api/usuarios/me/idioma"), null, Map.of("idiomaPreferencial", "en"))
+                    .andExpect(status().isUnauthorized());
+            enviar(post("/api/usuarios/me/cartoes"), null, dadosCartao()).andExpect(status().isUnauthorized());
+            enviar(get("/api/usuarios/me/enderecos"), null, null).andExpect(status().isUnauthorized());
+            enviar(post("/api/usuarios/me/enderecos"), null, endereco("Rua A", "1")).andExpect(status().isUnauthorized());
+            enviar(post("/api/pedidos/" + UUID.randomUUID() + "/pagamento"), null, Map.of("forma", "PIX"))
+                    .andExpect(status().isUnauthorized());
         }
     }
 

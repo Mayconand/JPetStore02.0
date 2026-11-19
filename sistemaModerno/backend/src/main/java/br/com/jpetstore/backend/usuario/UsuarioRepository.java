@@ -1,15 +1,19 @@
 package br.com.jpetstore.backend.usuario;
 
 import br.com.jpetstore.backend.comum.FuncoesBanco;
+import br.com.jpetstore.backend.comum.DadosEndereco;
 import br.com.jpetstore.backend.enums.IdiomaEnum;
 import br.com.jpetstore.backend.enums.PapelEnum;
 import br.com.jpetstore.backend.usuario.dto.AlterarPerfilRequest;
 import br.com.jpetstore.backend.usuario.dto.CadastroRequest;
 import br.com.jpetstore.backend.usuario.dto.PerfilResponse;
+import br.com.jpetstore.backend.usuario.dto.CadastrarCartaoRequest;
+import br.com.jpetstore.backend.usuario.dto.EnderecoResponse;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,6 +63,24 @@ public class UsuarioRepository {
 
     public void alterarSenha(UUID usuarioId, String senhaHash) {
         banco.executar("jpetstore.fn_alterar_senha(?, ?)", usuarioId, senhaHash);
+    }
+
+    public void selecionarIdioma(UUID usuarioId, IdiomaEnum idioma) {
+        banco.executar("jpetstore.fn_selecionar_idioma(?, ?)", usuarioId, idioma.getCodigo());
+    }
+
+    public UUID cadastrarCartao(UUID usuarioId, CadastrarCartaoRequest dados) {
+        return banco.valor("jpetstore.fn_cadastrar_cartao(?, ?, ?, ?, ?)", UUID.class,
+                usuarioId, dados.numero(), dados.nomeTitular(), dados.dataValidade(), dados.bandeira());
+    }
+
+    public List<EnderecoResponse> listarEnderecos(UUID usuarioId) {
+        return Arrays.asList(banco.json("jpetstore.fn_listar_enderecos(?)", EnderecoResponse[].class, usuarioId));
+    }
+
+    public UUID cadastrarEndereco(UUID usuarioId, DadosEndereco dados) {
+        return banco.valor("jpetstore.fn_cadastrar_endereco(?, ?::jsonb)", UUID.class,
+                usuarioId, banco.paraJson(dados));
     }
 
     private static String codigo(IdiomaEnum idioma) {

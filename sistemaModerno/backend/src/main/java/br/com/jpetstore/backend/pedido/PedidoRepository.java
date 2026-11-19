@@ -4,6 +4,7 @@ import br.com.jpetstore.backend.comum.FuncoesBanco;
 import br.com.jpetstore.backend.enums.ModalidadeEntregaEnum;
 import br.com.jpetstore.backend.pedido.dto.PedidoResponse;
 import br.com.jpetstore.backend.pedido.dto.PedidoResumo;
+import br.com.jpetstore.backend.pedido.dto.RealizarPagamentoRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
@@ -34,5 +35,10 @@ public class PedidoRepository {
 
     public PedidoResponse cancelar(UUID usuarioId, UUID pedidoId) {
         return banco.json("jpetstore.fn_cancelar_pedido(?, ?)", PedidoResponse.class, usuarioId, pedidoId);
+    }
+
+    public void pagar(UUID usuarioId, UUID pedidoId, RealizarPagamentoRequest dados) {
+        banco.executar("jpetstore.fn_realizar_pagamento(?, ?, ?::jpetstore.forma_pagamento, ?)",
+                usuarioId, pedidoId, dados.forma().name(), dados.cartaoId());
     }
 }

@@ -3,6 +3,7 @@ package br.com.jpetstore.backend.pedido;
 import br.com.jpetstore.backend.pedido.dto.CriarPedidoRequest;
 import br.com.jpetstore.backend.pedido.dto.PedidoResponse;
 import br.com.jpetstore.backend.pedido.dto.PedidoResumo;
+import br.com.jpetstore.backend.pedido.dto.RealizarPagamentoRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,9 +28,15 @@ public class PedidoService {
         return repository.obter(usuarioId, pedidoId);
     }
 
-    /** Cria o pedido a partir do carrinho (base do RF12 — Finalizar Compra). */
+    /** RF12 — Cria o pedido a partir do carrinho. */
     public PedidoResponse criar(UUID usuarioId, CriarPedidoRequest request) {
         UUID pedidoId = repository.criar(usuarioId, request.modalidade(), request.enderecoId());
+        return repository.obter(usuarioId, pedidoId);
+    }
+
+    /** RF14 — Usa a simulação já existente no banco; não realiza cobrança. */
+    public PedidoResponse pagar(UUID usuarioId, UUID pedidoId, RealizarPagamentoRequest dados) {
+        repository.pagar(usuarioId, pedidoId, dados);
         return repository.obter(usuarioId, pedidoId);
     }
 

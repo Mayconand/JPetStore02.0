@@ -1,9 +1,14 @@
 package br.com.jpetstore.backend.animal;
 
 import br.com.jpetstore.backend.animal.dto.AnimalResumo;
+import br.com.jpetstore.backend.animal.dto.AnimalResponse;
+import br.com.jpetstore.backend.animal.dto.TagResponse;
 import br.com.jpetstore.backend.animal.dto.BuscaAnimaisFiltro;
 import br.com.jpetstore.backend.comum.Pagina;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AnimalService {
@@ -14,6 +19,14 @@ public class AnimalService {
 
     public AnimalService(AnimalRepository repository) {
         this.repository = repository;
+    }
+
+    public AnimalResponse obter(UUID id) {
+        return repository.obter(id);
+    }
+
+    public List<TagResponse> buscarTags(String termo) {
+        return repository.buscarTags(termo);
     }
 
     /** RF07 — Buscar Animais. Página começa em 0. */
