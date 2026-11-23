@@ -1,32 +1,45 @@
 import "./CadastroCachorro.css";
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCadastroAnimal, useSugestoesDeTags } from "../../hooks/useCadastroAnimal";
+import { juntarOpcoes } from "../../services/listas";
+import { GRUPOS } from "../../services/rotulosAnimal";
 
 function CadastroReptil() {
   const navigate = useNavigate();
+  const form = useCadastroAnimal({
+    especie: "REPTIL",
+    camposDaEspecie: ["grupo", "mutacao", "altura", "peso"],
+    rotulos: { grupo: GRUPOS },
+    laudoMaximoMb: 10,
+  });
 
   // Campos principais
-  const [nome, setNome] = useState("");
-  const [especie, setEspecie] = useState("");
-  const [grupo, setGrupo] = useState("");
-  const [mutacao, setMutacao] = useState("");
-  const [altura, setAltura] = useState("");
-  const [peso, setPeso] = useState("");
-  const [nascimento, setNascimento] = useState("");
-  const [descricao, setDescricao] = useState("");
+  const nome = form.campo("nome");
+  const setNome = form.mudar("nome");
+  const especie = form.campo("raca");
+  const setEspecie = form.mudar("raca");
+  const grupo = form.campo("grupo");
+  const setGrupo = form.mudar("grupo");
+  const mutacao = form.campo("mutacao");
+  const setMutacao = form.mudar("mutacao");
+  const altura = form.campo("altura");
+  const setAltura = form.mudar("altura");
+  const peso = form.campo("peso");
+  const setPeso = form.mudar("peso");
+  const nascimento = form.campo("nascimento");
+  const setNascimento = form.mudar("nascimento");
+  const preco = form.campo("preco");
+  const setPreco = form.mudar("preco");
+  const descricao = form.campo("descricao");
+  const setDescricao = form.mudar("descricao");
 
   // Controle dos dropdowns (Espécie, Grupo e Mutação)
   const [abertoDropdown, setAbertoDropdown] = useState<
     "especie" | "grupo" | "mutacao" | null
   >(null);
 
-  const [especiesDisponiveis, setEspeciesDisponiveis] = useState<string[]>([
-    "Gecko Leopardo",
-    "Pogona (Dragão Barbudo)",
-    "Corn Snake (Cobra do Milho)",
-    "Jiboia",
-    "Jabuti Piranga",
-  ]);
+  const especiesDisponiveis = form.racas;
   const [adicionandoEspecie, setAdicionandoEspecie] = useState(false);
   const [novaEspecieInput, setNovaEspecieInput] = useState("");
 
@@ -37,24 +50,21 @@ function CadastroReptil() {
     "Crocodilianos",
   ];
 
-  const [mutacoesDisponiveis, setMutacoesDisponiveis] = useState<string[]>([
+  const [mutacoesDaTela, setMutacoesDisponiveis] = useState<string[]>([
     "Normal / Wild",
     "Albino",
     "Hypo",
     "Snow",
     "Tangerine",
   ]);
+  const mutacoesDisponiveis = juntarOpcoes(mutacoesDaTela, form.valoresUsados);
   const [adicionandoMutacao, setAdicionandoMutacao] = useState(false);
   const [novaMutacaoInput, setNovaMutacaoInput] = useState("");
 
   // Uploads (Imagem principal, Laudo PDF e 3 Fotos)
-  const [imagemPrincipal, setImagemPrincipal] = useState<string | null>(null);
-  const [nomeLaudo, setNomeLaudo] = useState<string>("");
-  const [fotosExtras, setFotosExtras] = useState<(string | null)[]>([
-    null,
-    null,
-    null,
-  ]);
+  const imagemPrincipal = form.imagemPrincipal;
+  const nomeLaudo = form.nomeLaudo;
+  const fotosExtras = form.nomesDasFotos;
 
   const inputPrincipalRef = useRef<HTMLInputElement | null>(null);
   const inputLaudoRef = useRef<HTMLInputElement | null>(null);
@@ -66,9 +76,8 @@ function CadastroReptil() {
 
   // TAGs (até 5)
   const [buscaTag, setBuscaTag] = useState("");
-  const [tagsSelecionadas, setTagsSelecionadas] = useState<string[]>([
-    "Atletico",
-  ]);
+  const tagsSelecionadas = form.tags;
+  const setTagsSelecionadas = form.setTags;
   const tagsSugeridas = [
     "Atletico",
     "Dócil",
@@ -80,44 +89,13 @@ function CadastroReptil() {
     "Microchipado",
   ];
 
-  const handleImagemPrincipalChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImagemPrincipal(URL.createObjectURL(file));
-    }
-  };
+  const handleImagemPrincipalChange = form.escolherPrincipal;
+  const handleLaudoChange = form.escolherLaudo;
+  const handleFotoExtraChange = form.escolherFoto;
 
-  const handleLaudoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert("O arquivo PDF deve ter no máximo 10MB.");
-      return;
-    }
-    setNomeLaudo(file.name);
-  };
-
-  const handleFotoExtraChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const atualizadas = [...fotosExtras];
-      atualizadas[index] = file.name;
-      setFotosExtras(atualizadas);
-    }
-  };
-
-  const handleAdicionarEspecie = () => {
+  const handleAdicionarEspecie = async () => {
     const limpa = novaEspecieInput.trim();
-    if (!limpa) return;
-    if (!especiesDisponiveis.includes(limpa)) {
-      setEspeciesDisponiveis([...especiesDisponiveis, limpa]);
-    }
-    setEspecie(limpa);
+    if (!limpa || !(await form.adicionarRaca(limpa))) return;
     setNovaEspecieInput("");
     setAdicionandoEspecie(false);
     setAbertoDropdown(null);
@@ -160,15 +138,14 @@ function CadastroReptil() {
     }
   };
 
-  const handleSalvar = (e: React.FormEvent) => {
+  const handleSalvar = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!(await form.salvar())) return;
     alert(`Réptil "${nome || "Sem nome"}" salvo com sucesso!`);
     navigate("/DashboardAdm");
   };
 
-  const tagsFiltradas = tagsSugeridas.filter((t) =>
-    t.toLowerCase().includes(buscaTag.toLowerCase())
-  );
+  const tagsFiltradas = useSugestoesDeTags(buscaTag, tagsSugeridas);
 
   return (
     <div className="cad-page">
@@ -487,6 +464,16 @@ function CadastroReptil() {
                 onChange={handleLaudoChange}
               />
             </div>
+          </div>
+
+          {/* Preço: obrigatório na API */}
+          <div className="cad-field">
+            <label>Preço:</label>
+            <input
+              type="text"
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+            />
           </div>
 
           {/* Descrição */}

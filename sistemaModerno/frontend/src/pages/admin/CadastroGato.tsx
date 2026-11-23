@@ -1,46 +1,53 @@
 import "./CadastroCachorro.css";
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCadastroAnimal, useSugestoesDeTags } from "../../hooks/useCadastroAnimal";
+import { juntarOpcoes } from "../../services/listas";
 
 function CadastroGato() {
   const navigate = useNavigate();
+  const form = useCadastroAnimal({
+    especie: "GATO",
+    camposDaEspecie: ["pelagem", "altura", "peso"],
+    laudoMaximoMb: 10,
+  });
 
   // Campos principais
-  const [nome, setNome] = useState("");
-  const [raca, setRaca] = useState("");
-  const [pelagem, setPelagem] = useState("");
-  const [altura, setAltura] = useState("");
-  const [peso, setPeso] = useState("");
-  const [nascimento, setNascimento] = useState("");
-  const [descricao, setDescricao] = useState("");
+  const nome = form.campo("nome");
+  const setNome = form.mudar("nome");
+  const raca = form.campo("raca");
+  const setRaca = form.mudar("raca");
+  const pelagem = form.campo("pelagem");
+  const setPelagem = form.mudar("pelagem");
+  const altura = form.campo("altura");
+  const setAltura = form.mudar("altura");
+  const peso = form.campo("peso");
+  const setPeso = form.mudar("peso");
+  const nascimento = form.campo("nascimento");
+  const setNascimento = form.mudar("nascimento");
+  const preco = form.campo("preco");
+  const setPreco = form.mudar("preco");
+  const descricao = form.campo("descricao");
+  const setDescricao = form.mudar("descricao");
 
   // Dropdowns customizados (Raça e Pelagem)
   const [abertoRaca, setAbertoRaca] = useState(false);
   const [abertoPelagem, setAbertoPelagem] = useState(false);
-  const [racasDisponiveis, setRacasDisponiveis] = useState<string[]>([
-    "Siamês",
-    "Persa",
-    "Maine Coon",
-    "SRD (Vira-lata)",
-  ]);
+  const racasDisponiveis = form.racas;
   const [adicionandoRaca, setAdicionandoRaca] = useState(false);
   const [novaRacaInput, setNovaRacaInput] = useState("");
 
-  const pelagensDisponiveis = [
+  const pelagensDisponiveis = juntarOpcoes([
     "Pelo Longo",
     "Pelo Curto",
     "Encaracolado",
     "Sem Pelo",
-  ];
+  ], form.valoresUsados);
 
   // Uploads (Imagem principal, Laudo PDF e 3 Fotos)
-  const [imagemPrincipal, setImagemPrincipal] = useState<string | null>(null);
-  const [nomeLaudo, setNomeLaudo] = useState<string>("");
-  const [fotosExtras, setFotosExtras] = useState<(string | null)[]>([
-    null,
-    null,
-    null,
-  ]);
+  const imagemPrincipal = form.imagemPrincipal;
+  const nomeLaudo = form.nomeLaudo;
+  const fotosExtras = form.nomesDasFotos;
 
   const inputPrincipalRef = useRef<HTMLInputElement | null>(null);
   const inputLaudoRef = useRef<HTMLInputElement | null>(null);
@@ -52,9 +59,8 @@ function CadastroGato() {
 
   // TAGs (até 5)
   const [buscaTag, setBuscaTag] = useState("");
-  const [tagsSelecionadas, setTagsSelecionadas] = useState<string[]>([
-    "Atletico",
-  ]);
+  const tagsSelecionadas = form.tags;
+  const setTagsSelecionadas = form.setTags;
   const tagsSugeridas = [
     "Atletico",
     "Dócil",
@@ -66,44 +72,13 @@ function CadastroGato() {
     "Sociável",
   ];
 
-  const handleImagemPrincipalChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImagemPrincipal(URL.createObjectURL(file));
-    }
-  };
+  const handleImagemPrincipalChange = form.escolherPrincipal;
+  const handleLaudoChange = form.escolherLaudo;
+  const handleFotoExtraChange = form.escolherFoto;
 
-  const handleLaudoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert("O arquivo PDF deve ter no máximo 10MB.");
-      return;
-    }
-    setNomeLaudo(file.name);
-  };
-
-  const handleFotoExtraChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const atualizadas = [...fotosExtras];
-      atualizadas[index] = file.name;
-      setFotosExtras(atualizadas);
-    }
-  };
-
-  const handleAdicionarRaca = () => {
+  const handleAdicionarRaca = async () => {
     const limpa = novaRacaInput.trim();
-    if (!limpa) return;
-    if (!racasDisponiveis.includes(limpa)) {
-      setRacasDisponiveis([...racasDisponiveis, limpa]);
-    }
-    setRaca(limpa);
+    if (!limpa || !(await form.adicionarRaca(limpa))) return;
     setNovaRacaInput("");
     setAdicionandoRaca(false);
     setAbertoRaca(false);
@@ -134,15 +109,14 @@ function CadastroGato() {
     }
   };
 
-  const handleSalvar = (e: React.FormEvent) => {
+  const handleSalvar = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!(await form.salvar())) return;
     alert(`Gato "${nome || "Sem nome"}" salvo com sucesso!`);
     navigate("/DashboardAdm");
   };
 
-  const tagsFiltradas = tagsSugeridas.filter((t) =>
-    t.toLowerCase().includes(buscaTag.toLowerCase())
-  );
+  const tagsFiltradas = useSugestoesDeTags(buscaTag, tagsSugeridas);
 
   return (
     <div className="cad-page">
@@ -387,6 +361,16 @@ function CadastroGato() {
                 onChange={handleLaudoChange}
               />
             </div>
+          </div>
+
+          {/* Preço: obrigatório na API */}
+          <div className="cad-field">
+            <label>Preço:</label>
+            <input
+              type="text"
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+            />
           </div>
 
           {/* Descrição */}

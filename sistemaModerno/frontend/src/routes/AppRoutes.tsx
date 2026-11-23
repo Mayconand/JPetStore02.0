@@ -24,6 +24,7 @@ import ListaGatos from "../pages/admin/ListaGatos";
 import ListaRepteis from "../pages/admin/ListaRepteis";
 import ListaPassaros from "../pages/admin/ListaPassaros";
 import ListaPeixes from "../pages/admin/ListaPeixes";
+import RotaAdmin from "./RotaAdmin";
 
 
 function AppRoutes() { 
@@ -42,17 +43,24 @@ function AppRoutes() {
             <Route path="/ErrorPage" element={<ErrorPage />} />
             <Route path="/ProfilePage" element={<ProfilePage />} />
             <Route path="/HelpPage" element={<HelpPage />} />
-            <Route path="/DashboardAdm" element={<DashboardAdm />} />
-            <Route path="/adm/adicionar" element={<CadastroCachorro />} />
-            <Route path="/adm/adicionar-gato" element={<CadastroGato />} />
-            <Route path="/adm/adicionar-reptil" element={<CadastroReptil />} />
-            <Route path="/adm/adicionar-passaro" element={<CadastroPassaro />} />
-            <Route path="/adm/adicionar-peixe" element={<CadastroPeixe />} />
-            <Route path="/adm/categoria/cachorro" element={<ListaCachorros />} />
-            <Route path="/adm/categoria/gatos" element={<ListaGatos />} />
-            <Route path="/adm/categoria/repteis" element={<ListaRepteis />} />
-            <Route path="/adm/categoria/passaros" element={<ListaPassaros />} />
-            <Route path="/adm/categoria/peixes" element={<ListaPeixes />} />
+            <Route element={<RotaAdmin />}>
+                <Route path="/DashboardAdm" element={<DashboardAdm />} />
+                <Route path="/adm/adicionar" element={<CadastroCachorro key="novo" />} />
+                <Route path="/adm/adicionar-gato" element={<CadastroGato key="novo" />} />
+                <Route path="/adm/adicionar-reptil" element={<CadastroReptil key="novo" />} />
+                <Route path="/adm/adicionar-passaro" element={<CadastroPassaro key="novo" />} />
+                <Route path="/adm/adicionar-peixe" element={<CadastroPeixe key="novo" />} />
+                <Route path="/adm/categoria/cachorro" element={<ListaCachorros />} />
+                <Route path="/adm/categoria/cachorro/:id" element={<CadastroCachorro key="editar" />} />
+                <Route path="/adm/categoria/gatos" element={<ListaGatos />} />
+                <Route path="/adm/categoria/gatos/:id" element={<CadastroGato key="editar" />} />
+                <Route path="/adm/categoria/repteis" element={<ListaRepteis />} />
+                <Route path="/adm/categoria/repteis/:id" element={<CadastroReptil key="editar" />} />
+                <Route path="/adm/categoria/passaros" element={<ListaPassaros />} />
+                <Route path="/adm/categoria/passaros/:id" element={<CadastroPassaro key="editar" />} />
+                <Route path="/adm/categoria/peixes" element={<ListaPeixes />} />
+                <Route path="/adm/categoria/peixes/:id" element={<CadastroPeixe key="editar" />} />
+            </Route>
         </Routes>
     );
 }

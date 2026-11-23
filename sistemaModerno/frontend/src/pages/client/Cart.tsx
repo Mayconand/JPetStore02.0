@@ -3,39 +3,97 @@ import "./Cart.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import SearchBox from "../../components/client/SearchBox";
+import UserBox from "../../components/client/UserBox";
+import { fotoOuPadrao } from "../../services/animais";
+import { aplicarCupom, obterCarrinho, removerCupom, removerDoCarrinho } from "../../services/carrinho";
+import type { Carrinho } from "../../services/carrinho";
+import { criarPedido } from "../../services/pedidos";
+import { mensagemDeErro, naoAutenticado } from "../../services/api";
 
 function Cart() {
 
-    const [produtos, setProdutos] = useState([
-        {
-            id: 1,
-            nome: "Nome do animal",
-            quantidade: 2,
-            preco: 2500,
-            imagem: null
-        },
-        {
-            id: 2,
-            nome: "Nome do animal",
-            quantidade: 1,
-            preco: 1500,
-            imagem: null
-        }
-    ]);
+    const navigate = useNavigate();
+    const [carrinho, setCarrinho] = useState<Carrinho | null>(null);
+
+    // Cada animal é único, então a quantidade é sempre 1.
+    const produtos = (carrinho?.itens ?? []).map((item) => ({
+        id: item.animalId,
+        nome: item.nome,
+        quantidade: 1,
+        preco: item.precoUnitario,
+        imagem: fotoOuPadrao(item.imagemUrl, item.especie)
+    }));
 
     const [entrega, setEntrega] = useState("local");
     const [cupom, setCupom] = useState("");
 
-    const subtotal = produtos.reduce(
-        (total, produto) =>
-            total + produto.preco * produto.quantidade,
-        0
-    );
+    const subtotal = carrinho?.subtotal ?? 0;
+    const total = carrinho?.total ?? 0;
 
-    const removerProduto = (id: number) => {
-        setProdutos(produtos.filter(produto => produto.id !== id));
+    function mostrarErro(e: unknown): void {
+        if (naoAutenticado(e)) navigate("/login");
+        else alert(mensagemDeErro(e));
+    }
+
+    function receber(dados: Carrinho): void {
+        setCarrinho(dados);
+        setCupom(dados.cupom?.codigo ?? "");
+    }
+
+    // RF08 — Visualizar Carrinho.
+    useEffect(() => {
+        let ativo = true;
+        obterCarrinho()
+            .then((dados) => {
+                if (!ativo) return;
+                setCarrinho(dados);
+                setCupom(dados.cupom?.codigo ?? "");
+            })
+            .catch((e) => {
+                if (!ativo) return;
+                if (naoAutenticado(e)) navigate("/login");
+                else alert(mensagemDeErro(e));
+            });
+        return () => { ativo = false; };
+    }, [navigate]);
+
+    // RF09 — Remover animal do carrinho.
+    const removerProduto = async (id: string) => {
+        try {
+            receber(await removerDoCarrinho(id));
+        } catch (e) {
+            mostrarErro(e);
+        }
+    };
+
+    // RF29 — aplica o cupom digitado; com o campo vazio, retira o que estava aplicado.
+    const enviarCupom = async () => {
+        const codigo = cupom.trim();
+        if (!codigo && !carrinho?.cupom) return;
+        try {
+            const dados = codigo ? await aplicarCupom(codigo) : await removerCupom();
+            receber(dados);
+            alert(dados.cupom ? `Cupom aplicado: ${dados.cupom.percentualDesconto}% de desconto.` : "Cupom removido.");
+        } catch (e) {
+            mostrarErro(e);
+        }
+    };
+
+    const finalizarPedido = async () => {
+        if (entrega === "entrega") {
+            navigate("/AdressPayment");
+            return;
+        }
+        try {
+            await criarPedido("RETIRADA");
+            alert("Pedido criado! Ele está aguardando pagamento.");
+            receber(await obterCarrinho());
+        } catch (e) {
+            mostrarErro(e);
+        }
     };
 
     const formatarPreco = (valor: number): string => {
@@ -59,37 +117,10 @@ function Cart() {
 
                 <nav className="headerNav">
 
-                    <div className="searchBox">
-
-                        <input
-                            type="text"
-                            placeholder="Buscar"
-                            aria-label="Buscar animais"
-                        />
-
-                        <button type="button" aria-label="Pesquisar">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <circle
-                                    cx="10.8"
-                                    cy="10.8"
-                                    r="6.8"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                />
-
-                                <path
-                                    d="M16 16L21 21"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                        </button>
-
-                    </div>
+                    <SearchBox />
 
                     <Link
-                        to="/carrinho"
+                        to="/Cart"
                         className="headerIcon"
                         aria-label="Carrinho"
                     >
@@ -107,30 +138,7 @@ function Cart() {
                         </svg>
                     </Link>
 
-                    <div className="userBox">
-
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                            />
-
-                            <path
-                                d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-
-                        <span>
-                            <strong>Nome:</strong> Fulano
-                        </span>
-
-                    </div>
+                    <UserBox />
 
                 </nav>
 
@@ -192,7 +200,7 @@ function Cart() {
                                         type="button"
                                         className="removeProduct"
                                         aria-label={`Remover ${produto.nome}`}
-                                        onClick={() => removerProduto(produto.id)}
+                                        onClick={() => void removerProduto(produto.id)}
                                     >
                                         <svg viewBox="0 0 24 24" fill="none">
                                             <path
@@ -268,7 +276,7 @@ function Cart() {
                                     onChange={(e) => setCupom(e.target.value)}
                                 />
 
-                                <button type="button">
+                                <button type="button" onClick={() => void enviarCupom()}>
                                     Aplicar
                                 </button>
 
@@ -280,7 +288,7 @@ function Cart() {
 
                             <span>Total:</span>
 
-                            <strong>{formatarPreco(subtotal)}</strong>
+                            <strong>{formatarPreco(total)}</strong>
 
                         </div>
 
@@ -288,6 +296,7 @@ function Cart() {
                             type="button"
                             className="finishOrder"
                             disabled={produtos.length === 0}
+                            onClick={() => void finalizarPedido()}
                         >
                             Finalizar o pedido
                         </button>

@@ -83,6 +83,11 @@ public class UsuarioRepository {
                 usuarioId, banco.paraJson(dados));
     }
 
+    public EnderecoResponse editarEndereco(UUID usuarioId, UUID enderecoId, DadosEndereco dados) {
+        return banco.json("jpetstore.fn_editar_endereco(?, ?, ?::jsonb)", EnderecoResponse.class,
+                usuarioId, enderecoId, banco.paraJson(dados));
+    }
+
     private static String codigo(IdiomaEnum idioma) {
         return idioma != null ? idioma.getCodigo() : null;
     }

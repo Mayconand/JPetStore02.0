@@ -1,9 +1,38 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./SpecificProduct.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import SearchBox from "../../components/client/SearchBox";
+import UserBox from "../../components/client/UserBox";
+import ModalLaudos from "../../components/ModalLaudos";
+import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
+import { fotoOuPadrao, obterFicha } from "../../services/animais";
+import type { FichaAnimal } from "../../services/animais";
+import { baixarLaudo } from "../../services/laudos";
+import { mensagemDeErro, obterSessao, urlDoArquivo } from "../../services/api";
+
+const ROTULOS: Record<string, string> = {
+    porte: "Porte",
+    pelagem: "Pelagem",
+    altura: "Altura (cm)",
+    peso: "Peso (kg)",
+    plumagem: "Plumagem",
+    tipoDeAgua: "Tipo de água",
+    estirpe: "Estirpe",
+    ph: "PH",
+    expectativaDeVida: "Expectativa de vida",
+    grupo: "Grupo",
+    mutacao: "Mutação"
+};
+
+/** Códigos do backend -> texto da tela. */
+const VALORES: Record<string, string> = {
+    PEQUENO: "Pequeno", MEDIO: "Médio", GRANDE: "Grande",
+    DOCE: "Doce", SALGADA: "Salgada",
+    SERPENTES: "Serpentes", LAGARTOS: "Lagartos", QUELONIOS: "Quelônios", CROCODILIANOS: "Crocodilianos"
+};
 
 type GalleryItem = {
     url: string;
@@ -104,11 +133,57 @@ function Gallery({
     );
 }
 
+/** RF16 — ficha do animal (/SpecificProduct?id=...); RF26 — laudos na visão do cliente. */
 function SpecificProduct() {
 
-    const fotos: GalleryItem[] = [];
+    const [parametros] = useSearchParams();
+    const id = parametros.get("id") ?? "";
 
-    const laudos: GalleryItem[] = [];
+    // A chave recomeça do zero ao trocar de animal.
+    return <Ficha key={id} id={id} />;
+}
+
+function Ficha({ id }: { id: string }) {
+
+    const [animal, setAnimal] = useState<FichaAnimal | null>(null);
+    const [aviso, setAviso] = useState(id ? "Carregando..." : "Escolha um animal na lista para ver a ficha.");
+    const [laudos, setLaudos] = useState<GalleryItem[]>([]);
+    const [modalAberto, setModalAberto] = useState(false);
+    const adicionarCarrinho = useAdicionarAoCarrinho();
+    const logado = obterSessao() !== null;
+
+    useEffect(() => {
+        if (!id) return;
+        let ativo = true;
+        obterFicha(id)
+            .then((ficha) => ativo && setAnimal(ficha))
+            .catch((e) => ativo && setAviso(mensagemDeErro(e)));
+        return () => { ativo = false; };
+    }, [id]);
+
+    // Os PDFs exigem login.
+    useEffect(() => {
+        if (!animal || !logado) return;
+        let ativo = true;
+        const criados: string[] = [];
+        const comPdf = animal.laudos.filter((laudo) => laudo.arquivoUrl);
+        Promise.all(comPdf.map(async (laudo): Promise<GalleryItem> => {
+            const url = URL.createObjectURL(await baixarLaudo(laudo.arquivoUrl!));
+            criados.push(url);
+            return { url, nome: laudo.titulo, tipo: "pdf" };
+        }))
+            .then((itens) => ativo && setLaudos(itens))
+            .catch(() => ativo && setLaudos([])); // o botão "Laudos" mostra o erro de cada um
+        return () => {
+            ativo = false;
+            criados.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [animal, logado]);
+
+    if (!animal) return <div className="container"><p>{aviso}</p></div>;
+
+    const fotos: GalleryItem[] = animal.imagens.map((url, i) => ({ url: urlDoArquivo(url), nome: `${animal.nome} ${i + 1}` }));
+    const atributos = Object.entries(animal.atributos).filter(([, valor]) => valor !== null);
 
     return (
         <div className="container">
@@ -123,40 +198,10 @@ function SpecificProduct() {
 
                 <nav className="headerNav">
 
-                    <div className="searchBox">
-
-                        <input
-                            type="text"
-                            placeholder="Buscar"
-                            aria-label="Buscar animais"
-                        />
-
-                        <button
-                            type="button"
-                            aria-label="Pesquisar"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <circle
-                                    cx="10.8"
-                                    cy="10.8"
-                                    r="6.8"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                />
-
-                                <path
-                                    d="M16 16L21 21"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                        </button>
-
-                    </div>
+                    <SearchBox />
 
                     <Link
-                        to="/carrinho"
+                        to="/Cart"
                         className="headerIcon"
                         aria-label="Carrinho"
                     >
@@ -174,36 +219,13 @@ function SpecificProduct() {
                         </svg>
                     </Link>
 
-                    <div className="userBox">
-
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                            />
-
-                            <path
-                                d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-
-                        <span>
-                            <strong>Nome:</strong> Fulano
-                        </span>
-
-                    </div>
+                    <UserBox />
 
                 </nav>
 
             </header>
 
-            <h1>Perfil de Snoopy</h1>
+            <h1>Perfil de {animal.nome}</h1>
 
             <section className="productSection">
 
@@ -211,35 +233,35 @@ function SpecificProduct() {
 
                     <div className="productImage">
                         <img
-                            src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400"
-                            alt="Snoopy, cachorro da raça Labrador"
+                            src={fotoOuPadrao(animal.imagens[0], animal.especie)}
+                            alt={`${animal.nome}, ${animal.raca.nome}`}
                         />
                     </div>
 
                     <div className="productInfo">
 
-                        <p><strong>Nome:</strong> Snoopy</p>
+                        <p><strong>Nome:</strong> {animal.nome}</p>
 
                         <p>
-                            <strong>Raça:</strong> Labrador retriever
+                            <strong>Raça:</strong> {animal.raca.nome}
                         </p>
 
                         <p><strong>Ficha:</strong></p>
 
-                        <p>Nascimento: 31/08/2020</p>
+                        <p>Nascimento: {animal.dataNascimento ? animal.dataNascimento.split("-").reverse().join("/") : "Não informado"}</p>
 
-                        <p>Porte: Médio</p>
+                        {atributos.map(([campo, valor]) => (
+                            <p key={campo}>{ROTULOS[campo] ?? campo}: {VALORES[String(valor)] ?? String(valor)}</p>
+                        ))}
 
                         <div className="productTags">
 
                             <p><strong>TAGs:</strong></p>
 
                             <div className="tags">
-                                <span className="tag tagPink">#labrador</span>
-                                <span className="tag tagPink">#retriever</span>
-                                <span className="tag tagPink">#cachorro</span>
-                                <span className="tag tagYellow">#amigável</span>
-                                <span className="tag tagYellow">#brincalhão</span>
+                                {animal.tags.map((tag, i) => (
+                                    <span key={tag} className={`tag ${i % 2 ? "tagYellow" : "tagPink"}`}>#{tag}</span>
+                                ))}
                             </div>
 
                         </div>
@@ -253,6 +275,7 @@ function SpecificProduct() {
                     <button
                         type="button"
                         className="btn_laudos"
+                        onClick={() => setModalAberto(true)}
                     >
                         Laudos
                     </button>
@@ -260,6 +283,7 @@ function SpecificProduct() {
                     <button
                         type="button"
                         className="btn_carrinho"
+                        onClick={() => void adicionarCarrinho(animal)}
                     >
                         <span className="material-symbols-outlined">
                             shopping_cart
@@ -287,6 +311,14 @@ function SpecificProduct() {
                 />
 
             </section>
+
+            {modalAberto && (
+                <ModalLaudos
+                    animalId={animal.id}
+                    nome={animal.nome}
+                    onFechar={() => setModalAberto(false)}
+                />
+            )}
 
         </div>
     );

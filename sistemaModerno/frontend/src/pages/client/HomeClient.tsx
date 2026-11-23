@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import type {
     ChangeEvent,
-    FormEvent,
-    MouseEvent
+    FormEvent
 } from "react";
 
 import "./HomeClient.css";
@@ -20,75 +19,22 @@ import slidePeixe from "../../assets/imagens/animais/slidesClientHome/slidePeixe
 import { Link } from "react-router-dom";
 import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
+import ModalLaudos from "../../components/ModalLaudos";
 import { buscarAnimais, paraCardPet } from "../../services/animais";
 import type { CardPet } from "../../services/animais";
 import { mensagemDeErro } from "../../services/api";
 import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
+import { useRacasDoCatalogo } from "../../hooks/useRacasDoCatalogo";
 
-const opcoesAnimais = {
-    Cachorro: {
-        label: "Raça",
-        opcoes: [
-            "Labrador Retriever",
-            "Pastor Alemão",
-            "Golden Retriever",
-            "Poodle",
-            "Bulldog",
-            "Shih Tzu",
-            "Pinscher",
-            "Rottweiler"
-        ]
-    },
-
-    Gato: {
-        label: "Raça",
-        opcoes: [
-            "Persa",
-            "Siamês",
-            "Maine Coon",
-            "Angorá",
-            "Sphynx",
-            "Bengal"
-        ]
-    },
-
-    Réptil: {
-        label: "Espécie",
-        opcoes: [
-            "Iguana",
-            "Jabuti",
-            "Gecko",
-            "Camaleão",
-            "Cobra"
-        ]
-    },
-
-    Pássaro: {
-        label: "Espécie",
-        opcoes: [
-            "Calopsita",
-            "Canário",
-            "Papagaio",
-            "Periquito",
-            "Arara"
-        ]
-    },
-
-    Peixe: {
-        label: "Espécie",
-        opcoes: [
-            "Betta",
-            "Peixe-palhaço",
-            "Kinguios",
-            "Guppy",
-            "Acará-disco"
-        ]
-    }
+const ROTULO_DA_RACA = {
+    Cachorro: "Raça",
+    Gato: "Raça",
+    Réptil: "Espécie",
+    Pássaro: "Espécie",
+    Peixe: "Espécie"
 };
 
-
-
-type TipoAnimal = keyof typeof opcoesAnimais;
+type TipoAnimal = keyof typeof ROTULO_DA_RACA;
 
 type Pet = CardPet;
 
@@ -109,6 +55,7 @@ function HomeClient() {
 
     const [tipoAnimal, setTipoAnimal] = useState<TipoAnimal | "">("");
     const [racaEspecie, setRacaEspecie] = useState<string>("");
+    const racas = useRacasDoCatalogo(tipoAnimal || null);
 
     const [favoritos, setFavoritos] = useState<Favorito[]>([]);
 
@@ -183,7 +130,7 @@ function HomeClient() {
             id: Date.now(),
             tipo: tipoAnimal,
             racaEspecie: racaEspecie,
-            categoria: opcoesAnimais[tipoAnimal].label
+            categoria: ROTULO_DA_RACA[tipoAnimal]
         };
 
         setFavoritos((anteriores) => [
@@ -203,13 +150,6 @@ function HomeClient() {
                 (favorito) => favorito.id !== id
             )
         );
-    }
-
-
-    function impedirFechamento(
-        event: MouseEvent<HTMLDivElement>
-    ): void {
-        event.stopPropagation();
     }
 
 
@@ -330,14 +270,14 @@ function HomeClient() {
 
                             <article className="petCard" key={pet.id}>
 
-                                <div className="petImage">
+                                <Link to={`/SpecificProduct?id=${pet.id}`} className="petImage">
 
                                     <img
                                         src={pet.imagem}
                                         alt={pet.nome}
                                     />
 
-                                </div>
+                                </Link>
 
                                 <div className="petInformation">
 
@@ -446,44 +386,11 @@ function HomeClient() {
 
             {modalLaudo && petSelecionado && (
 
-                <div
-                    className="modalOverlay"
-                    onClick={fecharLaudo}
-                >
-
-                    <div
-                        className="modalLaudo"
-                        onClick={impedirFechamento}
-                    >
-
-                        <div className="modalHeader">
-
-                            <h2>Laudos - {petSelecionado.nome}</h2>
-
-                            <button
-                                type="button"
-                                className="btnFecharModal"
-                                onClick={fecharLaudo}
-                                aria-label="Fechar laudo"
-                            >
-                                ×
-                            </button>
-
-                        </div>
-
-                        <div className="modalPdf">
-
-                            <span>PDF</span>
-
-                            <p>
-                                Visualização do laudo de {petSelecionado.nome}
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
+                <ModalLaudos
+                    animalId={petSelecionado.id}
+                    nome={petSelecionado.nome}
+                    onFechar={fecharLaudo}
+                />
 
             )}
 
@@ -647,7 +554,7 @@ function HomeClient() {
                             <div className="campoFavorito">
 
                                 <label htmlFor="racaEspecie">
-                                    {opcoesAnimais[tipoAnimal].label}
+                                    {ROTULO_DA_RACA[tipoAnimal]}
                                 </label>
 
                                 <select
@@ -663,7 +570,7 @@ function HomeClient() {
                                         Selecione
                                     </option>
 
-                                    {opcoesAnimais[tipoAnimal].opcoes.map(
+                                    {racas.map(
                                         (opcao) => (
 
                                             <option

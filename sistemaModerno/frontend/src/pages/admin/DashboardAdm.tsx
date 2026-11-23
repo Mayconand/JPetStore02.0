@@ -8,14 +8,43 @@ import passarosAdm from "../../assets/imagens/animais/animais-Adm/passaros-Adm.p
 import peixesAdm from "../../assets/imagens/animais/animais-Adm/peixes-Adm.png";
 
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { mensagemDeErro, naoAutenticado, obterSessao } from "../../services/api";
+import { filtrarPedidos } from "../../services/lojaAdmin";
+import type { PedidoAdmin } from "../../services/lojaAdmin";
+import type { StatusPedido } from "../../services/pedidos";
 
 interface PedidoStatus {
-  id: number;
+  id: string;
   nome: string;
   horario: string;
   cliente: string;
-  status: "Preparação" | "Enviado" | "Entrega";
+  status: string;
+}
+
+/** Status da API -> texto da tela. */
+const STATUS: Record<StatusPedido, string> = {
+  AGUARDANDO_PAGAMENTO: "Aguardando",
+  PAGO: "Preparação",
+  ENVIADO: "Enviado",
+  ENTREGUE: "Entrega",
+  CANCELADO: "Cancelado",
+};
+
+function statusDoFiltro(texto: string): StatusPedido | undefined {
+  return (Object.keys(STATUS) as StatusPedido[]).find((status) => STATUS[status] === texto);
+}
+
+function paraLinha(pedido: PedidoAdmin): PedidoStatus {
+  const data = new Date(pedido.dataCriacao);
+  const hora = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return {
+    id: pedido.id,
+    nome: pedido.animais,
+    horario: `${data.toLocaleDateString("pt-BR")} as ${hora}`,
+    cliente: pedido.cliente,
+    status: STATUS[pedido.status],
+  };
 }
 
 function DashboardAdm() {
@@ -25,29 +54,39 @@ function DashboardAdm() {
   const [mostrarFiltro, setMostrarFiltro] = useState(false);
   const [modalAdicionarAberto, setModalAdicionarAberto] = useState(false);
 
-  const [pedidos, setPedidos] = useState<PedidoStatus[]>([
-    {
-      id: 1,
-      nome: "Snoopy",
-      horario: "00/00/000 as 00:00",
-      cliente: "Carlos Gonçales",
-      status: "Preparação",
-    },
-    {
-      id: 2,
-      nome: "Chico",
-      horario: "00/00/000 as 00:00",
-      cliente: "Duda Bellico",
-      status: "Enviado",
-    },
-    {
-      id: 3,
-      nome: "Thor",
-      horario: "00/00/000 as 00:00",
-      cliente: "Gisele Justus",
-      status: "Entrega",
-    },
-  ]);
+  const [pedidos, setPedidos] = useState<PedidoStatus[]>([]);
+  const [todos, setTodos] = useState<PedidoAdmin[]>([]);
+
+  // Totais dos cards: não dependem do filtro.
+  useEffect(() => {
+    let ativo = true;
+    filtrarPedidos()
+      .then((lista) => ativo && setTodos(lista))
+      .catch(() => {}); // a tabela, abaixo, mostra o erro
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  // RF30 — o filtro de status é aplicado pela API.
+  useEffect(() => {
+    let ativo = true;
+    filtrarPedidos(statusDoFiltro(filtroStatus))
+      .then((lista) => ativo && setPedidos(lista.map(paraLinha)))
+      .catch((e) => {
+        if (!ativo) return;
+        if (naoAutenticado(e)) navigate("/login");
+        else alert(mensagemDeErro(e));
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [filtroStatus, navigate]);
+
+  // Os cards contam os pedidos do status sobre os que não foram cancelados.
+  const ativos = todos.filter((pedido) => pedido.status !== "CANCELADO").length;
+  const contar = (status: StatusPedido) => todos.filter((pedido) => pedido.status === status).length;
+  const porcentagem = (status: StatusPedido) => `${ativos ? (contar(status) / ativos) * 100 : 0}%`;
 
   const categorias = [
     { id: "cachorro", nome: "CACHORRO", classe: "cat-cachorro", imagem: cachorroAdm },
@@ -69,30 +108,13 @@ function DashboardAdm() {
     const bateTexto =
       item.nome.toLowerCase().includes(busca.toLowerCase()) ||
       item.cliente.toLowerCase().includes(busca.toLowerCase());
-    const bateStatus =
-      filtroStatus === "Todos" || item.status === filtroStatus;
-    return bateTexto && bateStatus;
+    return bateTexto;
   });
 
-  const alternarStatus = (id: number) => {
-    const ordem: PedidoStatus["status"][] = [
-      "Preparação",
-      "Enviado",
-      "Entrega",
-    ];
-    setPedidos((prev) =>
-      prev.map((pedido) => {
-        if (pedido.id !== id) return pedido;
-        const proximoIndex = (ordem.indexOf(pedido.status) + 1) % ordem.length;
-        return { ...pedido, status: ordem[proximoIndex] };
-      })
-    );
-  };
-
   const getStatusClass = (status: PedidoStatus["status"]) => {
-    if (status === "Preparação") return "badge-preparacao";
     if (status === "Enviado") return "badge-enviado";
-    return "badge-entrega";
+    if (status === "Entrega") return "badge-entrega";
+    return "badge-preparacao";
   };
 
   return (
@@ -144,7 +166,7 @@ function DashboardAdm() {
               />
             </svg>
             <span>
-              <strong>Nome:</strong> Fulano
+              <strong>Nome:</strong> {obterSessao()?.usuario.nome}
             </span>
           </div>
         </div>
@@ -291,14 +313,14 @@ function DashboardAdm() {
 
               <div className="pedido-card-middle">
                 <div className="pedido-numero">
-                  <strong>2</strong>
-                  <span>/ 5</span>
+                  <strong>{contar("PAGO")}</strong>
+                  <span>/ {ativos}</span>
                 </div>
                 <span className="pedido-sublabel">Em preparação</span>
               </div>
 
               <div className="progress-track">
-                <div className="progress-fill" style={{ width: "40%" }} />
+                <div className="progress-fill" style={{ width: porcentagem("PAGO") }} />
               </div>
             </div>
 
@@ -320,13 +342,13 @@ function DashboardAdm() {
 
               <div className="pedido-card-middle">
                 <div className="pedido-numero">
-                  <strong>1</strong>
-                  <span>/ 2</span>
+                  <strong>{contar("ENVIADO")}</strong>
+                  <span>/ {ativos}</span>
                 </div>
               </div>
 
               <div className="progress-track">
-                <div className="progress-fill" style={{ width: "50%" }} />
+                <div className="progress-fill" style={{ width: porcentagem("ENVIADO") }} />
               </div>
             </div>
 
@@ -346,13 +368,13 @@ function DashboardAdm() {
 
               <div className="pedido-card-middle">
                 <div className="pedido-numero">
-                  <strong>1</strong>
-                  <span>/ 2</span>
+                  <strong>{contar("ENTREGUE")}</strong>
+                  <span>/ {ativos}</span>
                 </div>
               </div>
 
               <div className="progress-track">
-                <div className="progress-fill" style={{ width: "50%" }} />
+                <div className="progress-fill" style={{ width: porcentagem("ENTREGUE") }} />
               </div>
             </div>
           </div>
@@ -379,9 +401,7 @@ function DashboardAdm() {
                   <div className="col-status">
                     <button
                       type="button"
-                      title="Clique para alterar o status"
                       className={`status-badge ${getStatusClass(pedido.status)}`}
-                      onClick={() => alternarStatus(pedido.id)}
                     >
                       {pedido.status}
                     </button>

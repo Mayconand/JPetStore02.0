@@ -20,9 +20,8 @@ function Login() {
         setErro("");
         setEnviando(true);
         try {
-            // A página do administrador ainda não existe; por enquanto todos vão para a área do cliente.
-            await login(String(dados.get("email")), String(dados.get("password")));
-            navigate("/HomeClient");
+            const sessao = await login(String(dados.get("email")), String(dados.get("password")));
+            navigate(sessao.usuario.papel === "ADMIN" ? "/DashboardAdm" : "/HomeClient");
         } catch (e) {
             setErro(mensagemDeErro(e));
         } finally {

@@ -42,6 +42,18 @@ export async function removerDoCarrinho(animalId: string): Promise<Carrinho> {
     return data;
 }
 
+/** RF29 — Aplicar cupom promocional (substitui o anterior). */
+export async function aplicarCupom(codigo: string): Promise<Carrinho> {
+    const { data } = await api.put<Carrinho>("/api/carrinho/cupom", { codigo });
+    return data;
+}
+
+/** RF29 — Remover o cupom do carrinho. */
+export async function removerCupom(): Promise<Carrinho> {
+    const { data } = await api.delete<Carrinho>("/api/carrinho/cupom");
+    return data;
+}
+
 /** RF09 — Esvaziar o carrinho. */
 export async function limparCarrinho(): Promise<Carrinho> {
     const { data } = await api.delete<Carrinho>("/api/carrinho");

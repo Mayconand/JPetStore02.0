@@ -29,6 +29,16 @@ public class CarrinhoService {
         return repository.remover(usuarioId, animalId);
     }
 
+    /** RF29 — aplicar cupom. */
+    public CarrinhoResponse aplicarCupom(UUID usuarioId, String codigo) {
+        return repository.aplicarCupom(usuarioId, codigo);
+    }
+
+    /** RF29 — remover cupom. */
+    public CarrinhoResponse removerCupom(UUID usuarioId) {
+        return repository.removerCupom(usuarioId);
+    }
+
     /** RF09 — esvaziar carrinho. */
     public CarrinhoResponse limpar(UUID usuarioId) {
         return repository.limpar(usuarioId);

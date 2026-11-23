@@ -1,11 +1,5 @@
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import type {
-    ChangeEvent,
-    FormEvent,
-    MouseEvent
-} from "react";
-
 import "./Products.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import tituloCachorro from "../../assets/imagens/animais/titulos/tituloPagCachorro.png";
@@ -16,10 +10,12 @@ import tituloPeixe from "../../assets/imagens/animais/titulos/tituloPagPeixe.png
 import { Link } from "react-router-dom";
 import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
+import ModalLaudos from "../../components/ModalLaudos";
 import { buscarAnimais, paraCardPet } from "../../services/animais";
 import type { CardPet } from "../../services/animais";
 import { mensagemDeErro } from "../../services/api";
 import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
+import { useRacasDoCatalogo } from "../../hooks/useRacasDoCatalogo";
 
 
 type Pet = CardPet;
@@ -49,7 +45,13 @@ function faixaEtaria(dataNascimento: string | null): string {
 
 
 
+/** A chave recomeça os filtros ao trocar de espécie: sem ela, a raça anterior continuaria filtrando escondida. */
 function Products() {
+    const [parametros] = useSearchParams();
+    return <Catalogo key={parametros.get("tipo") ?? ""} />;
+}
+
+function Catalogo() {
 
     const [modalLaudo, setModalLaudo] = useState<boolean>(false);
     const [petSelecionado, setPetSelecionado] = useState<Pet | null>(null);
@@ -87,70 +89,9 @@ function Products() {
         imagemTitulo = tituloPeixe;
     }
 
-    const opcoesAnimais = {
-        Cachorro: {
-            label: "Raça",
-            opcoes: [
-                "Labrador Retriever",
-                "Pastor Alemão",
-                "Golden Retriever",
-                "Poodle",
-                "Bulldog",
-                "Shih Tzu",
-                "Pinscher",
-                "Rottweiler"
-            ]
-        },
-
-        Gato: {
-            label: "Raça",
-            opcoes: [
-                "Persa",
-                "Siamês",
-                "Maine Coon",
-                "Angorá",
-                "Sphynx",
-                "Bengal"
-            ]
-        },
-
-        Reptil: {
-            label: "Espécie",
-            opcoes: [
-                "Iguana",
-                "Jabuti",
-                "Gecko",
-                "Camaleão",
-                "Cobra"
-            ]
-        },
-
-        Passaro: {
-            label: "Espécie",
-            opcoes: [
-                "Calopsita",
-                "Canário",
-                "Papagaio",
-                "Periquito",
-                "Arara"
-            ]
-        },
-
-        Peixe: {
-            label: "Espécie",
-            opcoes: [
-                "Betta",
-                "Peixe-palhaço",
-                "Kinguios",
-                "Guppy",
-                "Acará-disco"
-            ]
-        }
-    };
-
-    const configuracaoAnimal = tipoAnimal
-        ? opcoesAnimais[tipoAnimal as keyof typeof opcoesAnimais]
-        : null;
+    // As raças vêm do banco, então as cadastradas pelo administrador aparecem no filtro.
+    const rotuloDaRaca = tipoAnimal === "Cachorro" || tipoAnimal === "Gato" ? "Raça" : "Espécie";
+    const racas = useRacasDoCatalogo(tipoAnimal);
 
     const [racaEspecie, setRacaEspecie] = useState("");
     const [idade, setIdade] = useState("");
@@ -259,7 +200,7 @@ function Products() {
 
                     <div className="filtrosCampos">
 
-                        {configuracaoAnimal && (
+                        {tipoAnimal && (
                             <div className="campoFiltro">
 
                                 <select
@@ -269,9 +210,9 @@ function Products() {
                                         setRacaEspecie(event.target.value)
                                     }
                                 >
-                                    <option value="">{configuracaoAnimal.label}</option>
+                                    <option value="">{rotuloDaRaca}</option>
 
-                                    {configuracaoAnimal.opcoes.map((opcao) => (
+                                    {racas.map((opcao) => (
                                         <option key={opcao} value={opcao}>
                                             {opcao}
                                         </option>
@@ -330,14 +271,14 @@ function Products() {
 
                                 <article className="petCard" key={pet.id}>
 
-                                    <div className="petImage">
+                                    <Link to={`/SpecificProduct?id=${pet.id}`} className="petImage">
 
                                         <img
                                             src={pet.imagem}
                                             alt={pet.nome}
                                         />
 
-                                    </div>
+                                    </Link>
 
                                     <div className="petInformation">
 
@@ -464,8 +405,14 @@ function Products() {
 
             </main>
 
-            
-            
+            {modalLaudo && petSelecionado && (
+                <ModalLaudos
+                    animalId={petSelecionado.id}
+                    nome={petSelecionado.nome}
+                    onFechar={fecharLaudo}
+                />
+            )}
+
         </div>
     );
 }

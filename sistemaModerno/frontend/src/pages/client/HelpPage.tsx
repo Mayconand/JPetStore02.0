@@ -1,29 +1,41 @@
-
 import "./helpPage.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { listarAjuda } from "../../services/ajuda";
+import type { TopicoAjuda } from "../../services/ajuda";
+import { mensagemDeErro, obterSessao } from "../../services/api";
 
+const ESPERA_DA_BUSCA_MS = 300;
+
+/** RF22 — Acessar informações de ajuda. */
 function HelpPage() {
 
-    const questions = [
-        {
-            question: "Questão 1?",
-            answer: "Resposta da primeira pergunta. Insira aqui as informações necessárias para ajudar o cliente."
-        },
-        {
-            question: "Questão 2?",
-            answer: "Resposta da segunda pergunta. Insira aqui as informações necessárias para ajudar o cliente."
-        },
-        {
-            question: "Questão 3?",
-            answer: "Resposta da terceira pergunta. Insira aqui as informações necessárias para ajudar o cliente."
-        },
-        {
-            question: "Questão 4?",
-            answer: "Resposta da quarta pergunta. Insira aqui as informações necessárias para ajudar o cliente."
-        }
-    ];
+    const [busca, setBusca] = useState("");
+    const [topicos, setTopicos] = useState<TopicoAjuda[]>([]);
+    const [aviso, setAviso] = useState("Carregando...");
+
+    useEffect(() => {
+        let ativo = true;
+        const espera = setTimeout(() => {
+            listarAjuda(busca.trim())
+                .then((lista) => {
+                    if (!ativo) return;
+                    setTopicos(lista);
+                    setAviso(lista.length ? "" : "Nenhuma resposta encontrada.");
+                })
+                .catch((e) => {
+                    if (!ativo) return;
+                    setTopicos([]);
+                    setAviso(mensagemDeErro(e));
+                });
+        }, busca ? ESPERA_DA_BUSCA_MS : 0);
+        return () => {
+            ativo = false;
+            clearTimeout(espera);
+        };
+    }, [busca]);
 
     return (
         <div className="container detailsPaymentPage helpPage">
@@ -44,6 +56,8 @@ function HelpPage() {
                         <input
                             type="text"
                             placeholder="Buscar"
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
                         />
 
                         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -53,7 +67,7 @@ function HelpPage() {
                     </div>
 
                     <Link
-                        to="/carrinho"
+                        to="/Cart"
                         className="profileHeaderIcon"
                         aria-label="Carrinho"
                     >
@@ -72,7 +86,7 @@ function HelpPage() {
                         </svg>
 
                         <span>
-                            <strong>Nome:</strong> Fulano
+                            <strong>Nome:</strong> {obterSessao()?.usuario.nome}
                         </span>
 
                     </div>
@@ -99,12 +113,14 @@ function HelpPage() {
 
                 <section className="helpQuestions">
 
-                    {questions.map((item, index) => (
+                    {aviso && <p>{aviso}</p>}
 
-                        <details className="helpQuestion" key={index}>
+                    {topicos.map((topico) => (
+
+                        <details className="helpQuestion" key={topico.id}>
 
                             <summary>
-                                <span>{item.question}</span>
+                                <span>{topico.titulo}</span>
 
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="m5 9 7 7 7-7" />
@@ -112,7 +128,7 @@ function HelpPage() {
                             </summary>
 
                             <div className="helpAnswer">
-                                {item.answer}
+                                {topico.conteudo}
                             </div>
 
                         </details>

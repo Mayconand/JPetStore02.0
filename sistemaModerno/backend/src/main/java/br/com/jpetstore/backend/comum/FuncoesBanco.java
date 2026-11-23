@@ -44,6 +44,11 @@ public class FuncoesBanco {
         jdbc.query("select " + sql, rs -> { }, args);
     }
 
+    /** Executa um UPDATE ou DELETE e devolve quantas linhas mudaram. */
+    public int alterar(String sql, Object... args) {
+        return jdbc.update(sql, args);
+    }
+
     /** Serializa um objeto Java para ser passado como parâmetro jsonb ({@code ?::jsonb}). */
     public String paraJson(Object valor) {
         return valor == null ? null : json.writeValueAsString(valor);

@@ -2,8 +2,44 @@
 import "./AdressPayment.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
-import { useState, type ChangeEvent, type FormEvent, type MouseEvent } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import SearchBox from "../../components/client/SearchBox";
+import UserBox from "../../components/client/UserBox";
+import { cadastrarEndereco, editarEndereco, listarEnderecos } from "../../services/usuarios";
+import type { Endereco } from "../../services/usuarios";
+import { mensagemDeErro, naoAutenticado } from "../../services/api";
+
+/** Endereço como a tela usa: rua, número e complemento em um campo só. */
+interface EnderecoDaTela {
+    id: string;
+    pais: string;
+    rua: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+}
+
+const SEM_ENDERECO: EnderecoDaTela = { id: "", pais: "", rua: "", bairro: "", cidade: "", estado: "", cep: "" };
+
+function paraTela(e: Endereco): EnderecoDaTela {
+    return {
+        id: e.id,
+        pais: e.pais ?? "Brasil",
+        rua: [e.rua, e.numero, e.complemento].filter(Boolean).join(", "),
+        bairro: e.bairro ?? "",
+        cidade: e.cidade,
+        estado: e.estado,
+        cep: e.cep
+    };
+}
+
+/** "Rua X, 10, Apto 2" -> rua, número e complemento (o que vier depois). */
+function separarRua(texto: string) {
+    const [rua, numero = "", ...complemento] = texto.split(",").map((parte) => parte.trim());
+    return { rua, numero, complemento: complemento.join(", ") };
+}
 
 function AdressPayment() {
 
@@ -13,22 +49,26 @@ function AdressPayment() {
     const [enderecoSelecionado, setEnderecoSelecionado] = useState(0);
     const [mesmoEndereco, setMesmoEndereco] = useState(false);
 
-    const [enderecos, setEnderecos] = useState([
-        {
-            rua: "R. Prof. Plínio Garcez de Sena, 42",
-            bairro: "Mussurunga",
-            cidade: "Salvador",
-            estado: "BA",
-            cep: "41480-225"
-        },
-        {
-            rua: "Praça Stella Maris, 200",
-            bairro: "Stella Maris",
-            cidade: "Salvador",
-            estado: "BA",
-            cep: "41600-500"
-        }
-    ]);
+    const navigate = useNavigate();
+    const [enderecos, setEnderecos] = useState<EnderecoDaTela[]>([]);
+    const [enderecoEmEdicao, setEnderecoEmEdicao] = useState<string | null>(null);
+
+    // O principal vem primeiro e começa selecionado.
+    useEffect(() => {
+        let ativo = true;
+        listarEnderecos()
+            .then((lista) => {
+                if (!ativo) return;
+                setEnderecos(lista.map(paraTela));
+                setNovoEndereco(lista.length === 0);
+            })
+            .catch((e) => {
+                if (!ativo) return;
+                if (naoAutenticado(e)) navigate("/login");
+                else alert(mensagemDeErro(e));
+            });
+        return () => { ativo = false; };
+    }, [navigate]);
 
     const [formEndereco, setFormEndereco] = useState({
         pais: "Brasil",
@@ -56,7 +96,7 @@ function AdressPayment() {
         complemento: ""
     });
 
-    const enderecoAtual = enderecos[enderecoSelecionado];
+    const enderecoAtual = enderecos[enderecoSelecionado] ?? SEM_ENDERECO;
 
     function atualizarEndereco(e: ChangeEvent<HTMLInputElement>) {
         setFormEndereco({
@@ -79,19 +119,26 @@ function AdressPayment() {
         });
     }
 
-    function salvarEndereco(e: FormEvent<HTMLFormElement>) {
+    // RF15 / RF21 — cadastra (ou corrige) um endereço e já o seleciona para a entrega.
+    async function salvarEndereco(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        const novo = {
-            rua: formEndereco.complemento || "Novo endereço",
-            bairro: formEndereco.bairro,
-            cidade: formEndereco.cidade,
-            estado: formEndereco.estado,
-            cep: formEndereco.cep
-        };
+        try {
+            const dados = { ...formEndereco, ...separarRua(formEndereco.complemento) };
+            let id = enderecoEmEdicao;
+            if (id) await editarEndereco(id, dados);
+            else id = await cadastrarEndereco(dados);
 
-        setEnderecos([...enderecos, novo]);
-        setEnderecoSelecionado(enderecos.length);
+            const lista = (await listarEnderecos()).map(paraTela);
+            setEnderecos(lista);
+            setEnderecoSelecionado(Math.max(0, lista.findIndex((endereco) => endereco.id === id)));
+        } catch (falha) {
+            if (naoAutenticado(falha)) navigate("/login");
+            else alert(mensagemDeErro(falha));
+            return;
+        }
+
+        setEnderecoEmEdicao(null);
         setNovoEndereco(false);
 
         setFormEndereco({
@@ -105,7 +152,7 @@ function AdressPayment() {
     }
 
     function continuarEndereco() {
-        if (novoEndereco) return;
+        if (novoEndereco || !enderecoAtual.id) return;
 
         setEtapa(2);
     }
@@ -136,36 +183,10 @@ function AdressPayment() {
 
                 <nav className="headerNav">
 
-                    <div className="searchBox">
-
-                        <input
-                            type="text"
-                            placeholder="Buscar"
-                            aria-label="Buscar animais"
-                        />
-
-                        <button type="button" aria-label="Pesquisar">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <circle
-                                    cx="10.8"
-                                    cy="10.8"
-                                    r="6.8"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                />
-                                <path
-                                    d="M16 16L21 21"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                        </button>
-
-                    </div>
+                    <SearchBox />
 
                     <Link
-                        to="/carrinho"
+                        to="/Cart"
                         className="headerIcon"
                         aria-label="Carrinho"
                     >
@@ -182,29 +203,7 @@ function AdressPayment() {
                         </svg>
                     </Link>
 
-                    <div className="userBox">
-
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                            />
-                            <path
-                                d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-
-                        <span>
-                            <strong>Nome:</strong> Fulano
-                        </span>
-
-                    </div>
+                    <UserBox />
 
                 </nav>
 
@@ -278,7 +277,10 @@ function AdressPayment() {
                                             <button
                                                 type="button"
                                                 className="btnNew"
-                                                onClick={() => setNovoEndereco(true)}
+                                                onClick={() => {
+                                                    setEnderecoEmEdicao(null);
+                                                    setNovoEndereco(true);
+                                                }}
                                             >
                                                 + Novo
                                             </button>
@@ -309,7 +311,7 @@ function AdressPayment() {
                                        <span className="material-symbols-outlined">location_on</span> Novo endereço de entrega
                                     </div>
 
-                                    <form onSubmit={salvarEndereco}>
+                                    <form onSubmit={(e) => void salvarEndereco(e)}>
 
                                         <div className="formGrid">
 
@@ -763,8 +765,9 @@ function AdressPayment() {
                                                 setEnderecoSelecionado(index);
                                                 setMostrarEnderecos(false);
                                                 setNovoEndereco(true);
+                                                setEnderecoEmEdicao(endereco.id);
                                                 setFormEndereco({
-                                                    pais: "Brasil",
+                                                    pais: endereco.pais,
                                                     estado: endereco.estado,
                                                     cidade: endereco.cidade,
                                                     bairro: endereco.bairro,

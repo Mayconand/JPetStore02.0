@@ -64,6 +64,22 @@ export async function alterarPerfil(dados: AlterarPerfilEntrada): Promise<Perfil
     return data;
 }
 
+/** Endereços do próprio usuário, com o principal primeiro. */
+export async function listarEnderecos(): Promise<Endereco[]> {
+    const { data } = await api.get<Endereco[]>("/api/usuarios/me/enderecos");
+    return data;
+}
+
+/** RF15 / RF21 — Cadastrar endereço; a partir do segundo, é alternativo. Devolve o id. */
+export async function cadastrarEndereco(dados: DadosEndereco): Promise<string> {
+    const { data } = await api.post<{ id: string }>("/api/usuarios/me/enderecos", dados);
+    return data.id;
+}
+
+export async function editarEndereco(id: string, dados: DadosEndereco): Promise<void> {
+    await api.put(`/api/usuarios/me/enderecos/${id}`, dados);
+}
+
 /** RF05 — Alterar senha. */
 export async function alterarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
     await api.put("/api/usuarios/me/senha", { senhaAtual, novaSenha });

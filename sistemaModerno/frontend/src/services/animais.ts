@@ -1,4 +1,5 @@
-import { api } from "./api";
+import { api, urlDoArquivo } from "./api";
+import type { Laudo } from "./laudos";
 
 import imgCachorro from "../assets/imagens/animais/cachorro.png";
 import imgGato from "../assets/imagens/animais/gato.png";
@@ -52,6 +53,47 @@ export async function buscarAnimais(filtro: FiltroAnimais = {}): Promise<Pagina<
     return data;
 }
 
+/** Ficha completa de um animal. */
+export interface FichaAnimal {
+    id: string;
+    nome: string;
+    especie: Especie;
+    raca: { id: string; nome: string };
+    dataNascimento: string | null;
+    sexo: "MACHO" | "FEMEA" | null;
+    castrado: boolean;
+    descricao: string | null;
+    preco: number;
+    disponivel: boolean;
+    cuidados: string | null;
+    atributos: Record<string, string | number | null>;
+    imagens: string[];
+    tags: string[];
+    laudos: Laudo[];
+}
+
+/** RF16 — Visualizar Animal (rota pública; inclui os laudos). */
+export async function obterFicha(id: string): Promise<FichaAnimal> {
+    const { data } = await api.get<FichaAnimal>(`/api/animais/${id}`);
+    return data;
+}
+
+/** RF26 — laudos na visão do cliente. */
+export async function laudosDaFicha(id: string): Promise<Laudo[]> {
+    return (await obterFicha(id)).laudos;
+}
+
+/** Raças cadastradas da espécie (rota pública). Aceita "Cachorro", "Réptil", "REPTIL"... */
+export async function listarRacasDoCatalogo(especie: string): Promise<string[]> {
+    const { data } = await api.get<string[]>("/api/animais/racas", { params: { especie } });
+    return data;
+}
+
+/** Foto do animal ou, sem foto, a ilustração da espécie. */
+export function fotoOuPadrao(url: string | null | undefined, especie: Especie): string {
+    return url ? urlDoArquivo(url) : IMAGEM_PADRAO[especie];
+}
+
 const IMAGEM_PADRAO: Record<Especie, string> = {
     CACHORRO: imgCachorro,
     GATO: imgGato,
@@ -85,7 +127,7 @@ export function paraCardPet(animal: AnimalResumo): CardPet {
         dataNascimento: animal.dataNascimento,
         sexo: animal.sexo === "MACHO" ? "Macho" : animal.sexo === "FEMEA" ? "Fêmea" : "Não informado",
         castrado: animal.castrado ? "Sim" : "Não",
-        imagem: animal.imagemUrl ?? IMAGEM_PADRAO[animal.especie],
+        imagem: fotoOuPadrao(animal.imagemUrl, animal.especie),
         tags: animal.tags,
         preco: animal.preco
     };

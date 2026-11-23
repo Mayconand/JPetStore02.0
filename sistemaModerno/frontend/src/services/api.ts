@@ -5,10 +5,17 @@ import axios, { AxiosError } from "axios";
  * Em desenvolvimento, o Vite encaminha /api para o backend (ver vite.config.ts).
  * Em outro ambiente, defina VITE_API_URL (ex.: https://api.jpetstore.com).
  */
+const BASE_URL = import.meta.env.VITE_API_URL ?? "";
+
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL ?? "",
+    baseURL: BASE_URL,
     headers: { "Content-Type": "application/json" }
 });
+
+/** Endereço completo de um arquivo servido pelo backend (ex.: foto). Links externos não mudam. */
+export function urlDoArquivo(url: string): string {
+    return url.startsWith("/api/") ? BASE_URL + url : url;
+}
 
 const CHAVE_SESSAO = "jpetstore.sessao";
 

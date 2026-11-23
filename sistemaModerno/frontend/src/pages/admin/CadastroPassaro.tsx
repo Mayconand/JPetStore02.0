@@ -1,33 +1,41 @@
 import "./CadastroCachorro.css";
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCadastroAnimal, useSugestoesDeTags } from "../../hooks/useCadastroAnimal";
+import { juntarOpcoes } from "../../services/listas";
 
 function CadastroPassaro() {
   const navigate = useNavigate();
+  const form = useCadastroAnimal({
+    especie: "PASSARO",
+    camposDaEspecie: ["plumagem"],
+    laudoMaximoMb: 5,
+  });
 
   // Campos principais
-  const [nome, setNome] = useState("");
-  const [especieFamilia, setEspecieFamilia] = useState("");
-  const [plumagem, setPlumagem] = useState("");
-  const [nascimento, setNascimento] = useState("");
-  const [descricao, setDescricao] = useState("");
+  const nome = form.campo("nome");
+  const setNome = form.mudar("nome");
+  const especieFamilia = form.campo("raca");
+  const setEspecieFamilia = form.mudar("raca");
+  const plumagem = form.campo("plumagem");
+  const setPlumagem = form.mudar("plumagem");
+  const nascimento = form.campo("nascimento");
+  const setNascimento = form.mudar("nascimento");
+  const preco = form.campo("preco");
+  const setPreco = form.mudar("preco");
+  const descricao = form.campo("descricao");
+  const setDescricao = form.mudar("descricao");
 
   // Controle dos dropdowns (Espécie / Família e Plumagem)
   const [abertoDropdown, setAbertoDropdown] = useState<
     "especie" | "plumagem" | null
   >(null);
 
-  const [especiesDisponiveis, setEspeciesDisponiveis] = useState<string[]>([
-    "Calopsita",
-    "Periquito Australiano",
-    "Agapornis",
-    "Canário Belga",
-    "Papagaio",
-  ]);
+  const especiesDisponiveis = form.racas;
   const [adicionandoEspecie, setAdicionandoEspecie] = useState(false);
   const [novaEspecieInput, setNovaEspecieInput] = useState("");
 
-  const [plumagensDisponiveis, setPlumagensDisponiveis] = useState<string[]>([
+  const [plumagensDaTela, setPlumagensDisponiveis] = useState<string[]>([
     "Silvestre",
     "Lutino",
     "Arlequim",
@@ -35,17 +43,14 @@ function CadastroPassaro() {
     "Albino",
     "Canela",
   ]);
+  const plumagensDisponiveis = juntarOpcoes(plumagensDaTela, form.valoresUsados);
   const [adicionandoPlumagem, setAdicionandoPlumagem] = useState(false);
   const [novaPlumagemInput, setNovaPlumagemInput] = useState("");
 
   // Uploads (Imagem principal, Laudo PDF e 3 Fotos)
-  const [imagemPrincipal, setImagemPrincipal] = useState<string | null>(null);
-  const [nomeLaudo, setNomeLaudo] = useState<string>("");
-  const [fotosExtras, setFotosExtras] = useState<(string | null)[]>([
-    null,
-    null,
-    null,
-  ]);
+  const imagemPrincipal = form.imagemPrincipal;
+  const nomeLaudo = form.nomeLaudo;
+  const fotosExtras = form.nomesDasFotos;
 
   const inputPrincipalRef = useRef<HTMLInputElement | null>(null);
   const inputLaudoRef = useRef<HTMLInputElement | null>(null);
@@ -57,9 +62,8 @@ function CadastroPassaro() {
 
   // TAGs (até 5)
   const [buscaTag, setBuscaTag] = useState("");
-  const [tagsSelecionadas, setTagsSelecionadas] = useState<string[]>([
-    "Atletico",
-  ]);
+  const tagsSelecionadas = form.tags;
+  const setTagsSelecionadas = form.setTags;
   const tagsSugeridas = [
     "Atletico",
     "Manso",
@@ -71,44 +75,13 @@ function CadastroPassaro() {
     "Dócil",
   ];
 
-  const handleImagemPrincipalChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImagemPrincipal(URL.createObjectURL(file));
-    }
-  };
+  const handleImagemPrincipalChange = form.escolherPrincipal;
+  const handleLaudoChange = form.escolherLaudo;
+  const handleFotoExtraChange = form.escolherFoto;
 
-  const handleLaudoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("O arquivo PDF deve ter no máximo 5MB.");
-      return;
-    }
-    setNomeLaudo(file.name);
-  };
-
-  const handleFotoExtraChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const atualizadas = [...fotosExtras];
-      atualizadas[index] = file.name;
-      setFotosExtras(atualizadas);
-    }
-  };
-
-  const handleAdicionarEspecie = () => {
+  const handleAdicionarEspecie = async () => {
     const limpa = novaEspecieInput.trim();
-    if (!limpa) return;
-    if (!especiesDisponiveis.includes(limpa)) {
-      setEspeciesDisponiveis([...especiesDisponiveis, limpa]);
-    }
-    setEspecieFamilia(limpa);
+    if (!limpa || !(await form.adicionarRaca(limpa))) return;
     setNovaEspecieInput("");
     setAdicionandoEspecie(false);
     setAbertoDropdown(null);
@@ -151,15 +124,14 @@ function CadastroPassaro() {
     }
   };
 
-  const handleSalvar = (e: React.FormEvent) => {
+  const handleSalvar = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!(await form.salvar())) return;
     alert(`Pássaro "${nome || "Sem nome"}" salvo com sucesso!`);
     navigate("/DashboardAdm");
   };
 
-  const tagsFiltradas = tagsSugeridas.filter((t) =>
-    t.toLowerCase().includes(buscaTag.toLowerCase())
-  );
+  const tagsFiltradas = useSugestoesDeTags(buscaTag, tagsSugeridas);
 
   return (
     <div className="cad-page">
@@ -418,6 +390,16 @@ function CadastroPassaro() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Preço: obrigatório na API */}
+          <div className="cad-field">
+            <label>Preço:</label>
+            <input
+              type="text"
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+            />
           </div>
 
           {/* Descrição */}

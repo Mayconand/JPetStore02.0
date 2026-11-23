@@ -69,12 +69,22 @@ public class UsuarioController {
         return service.listarEnderecos(UsuarioAutenticado.id(jwt));
     }
 
-    /** RF15 — Cadastra um endereço completo de entrega para o próprio usuário. */
+    /**
+     * RF15 — Cadastra um endereço completo de entrega para o próprio usuário.
+     * RF21 — A partir do segundo, é um endereço alternativo: o principal não muda.
+     */
     @PostMapping("/me/enderecos")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, UUID> cadastrarEndereco(@AuthenticationPrincipal Jwt jwt,
                                               @Valid @RequestBody DadosEndereco dados) {
         return Map.of("id", service.cadastrarEndereco(UsuarioAutenticado.id(jwt), dados));
+    }
+
+    /** RF21 — Corrige um endereço do próprio usuário (o principal não muda). */
+    @PutMapping("/me/enderecos/{id}")
+    public EnderecoResponse editarEndereco(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                                           @Valid @RequestBody DadosEndereco dados) {
+        return service.editarEndereco(UsuarioAutenticado.id(jwt), id, dados);
     }
 
     /** RF05 — Alterar senha. */

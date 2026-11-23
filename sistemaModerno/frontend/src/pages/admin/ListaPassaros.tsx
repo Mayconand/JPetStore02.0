@@ -3,43 +3,26 @@ import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import passarosAdm from "../../assets/imagens/animais/animais-Adm/passaros-Adm.png";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-interface PassaroItem {
-  id: number;
-  nome: string;
-  plumagem: string;
-  especie: string;
-  nascimento: string;
-}
+import { useListaAnimais } from "../../hooks/useListaAnimais";
+import { obterSessao } from "../../services/api";
+import { juntarOpcoes } from "../../services/listas";
 
 function ListaPassaros() {
   const navigate = useNavigate();
-  const [busca, setBusca] = useState("");
-  const [filtroPlumagem, setFiltroPlumagem] = useState("Todos");
+  const {
+    busca,
+    setBusca,
+    filtro: filtroPlumagem,
+    setFiltro: setFiltroPlumagem,
+    lista: filtrados,
+    valoresUsados,
+    aviso,
+    excluir,
+    verLaudo,
+  } = useListaAnimais("PASSARO", "plumagem");
   const [menuFiltroAberto, setMenuFiltroAberto] = useState(false);
 
-  const [lista, setLista] = useState<PassaroItem[]>([
-    { id: 1, nome: "Loro", plumagem: "Silvestre", especie: "Calopsita", nascimento: "00/00/0000" },
-    { id: 2, nome: "Piu", plumagem: "Lutino", especie: "Canário Belga", nascimento: "00/00/0000" },
-    { id: 3, nome: "Blu", plumagem: "Arlequim", especie: "Periquito Australiano", nascimento: "00/00/0000" },
-  ]);
-
-  const opcoesFiltro = ["Todos", "Silvestre", "Lutino", "Arlequim"];
-
-  const filtrados = lista.filter((item) => {
-    const bateBusca =
-      item.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      item.plumagem.toLowerCase().includes(busca.toLowerCase()) ||
-      item.especie.toLowerCase().includes(busca.toLowerCase());
-    const bateFiltro = filtroPlumagem === "Todos" || item.plumagem === filtroPlumagem;
-    return bateBusca && bateFiltro;
-  });
-
-  const handleExcluir = (id: number, nome: string) => {
-    if (window.confirm(`Deseja realmente excluir "${nome}"?`)) {
-      setLista(lista.filter((item) => item.id !== id));
-    }
-  };
+  const opcoesFiltro = juntarOpcoes(["Todos", "Silvestre", "Lutino", "Arlequim"], valoresUsados);
 
   return (
     <div className="lista-cat-page">
@@ -62,7 +45,7 @@ function ListaPassaros() {
                 <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
                 <path d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              <span><strong>Nome:</strong> Fulano</span>
+              <span><strong>Nome:</strong> {obterSessao()?.usuario.nome}</span>
             </div>
           </div>
         </header>
@@ -145,14 +128,14 @@ function ListaPassaros() {
                 filtrados.map((item) => (
                   <tr key={item.id}>
                     <td>{item.nome}</td>
-                    <td>{item.plumagem}</td>
-                    <td>{item.especie}</td>
+                    <td>{item.atributo}</td>
+                    <td>{item.raca}</td>
                     <td>{item.nascimento}</td>
                     <td>
                       <button
                         type="button"
                         className="lista-cat-pdf-btn"
-                        onClick={() => alert(`Abrindo laudo de ${item.nome}...`)}
+                        onClick={() => void verLaudo(item)}
                       >
                         Ver PDF
                       </button>
@@ -163,7 +146,7 @@ function ListaPassaros() {
                           type="button"
                           className="lista-cat-icon-btn edit"
                           title="Editar"
-                          onClick={() => navigate("/adm/adicionar-passaro")}
+                          onClick={() => navigate(`/adm/categoria/passaros/${item.id}`)}
                         >
                           <svg viewBox="0 0 24 24" fill="none">
                             <path d="M11 4H4C3.44772 4 3 4.44772 3 5V20C3 20.5523 3.44772 21 4 21H19C19.5523 21 20 20.5523 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -174,7 +157,7 @@ function ListaPassaros() {
                           type="button"
                           className="lista-cat-icon-btn delete"
                           title="Excluir"
-                          onClick={() => handleExcluir(item.id, item.nome)}
+                          onClick={() => void excluir(item.id, item.nome)}
                         >
                           <svg viewBox="0 0 24 24" fill="none">
                             <path d="M3 6H21M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6M19 6V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -187,7 +170,7 @@ function ListaPassaros() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="lista-cat-empty">Nenhum pássaro encontrado.</td>
+                  <td colSpan={6} className="lista-cat-empty">{aviso || "Nenhum pássaro encontrado."}</td>
                 </tr>
               )}
             </tbody>

@@ -57,11 +57,20 @@ public class UsuarioService {
     }
 
     public UUID cadastrarEndereco(UUID usuarioId, DadosEndereco dados) {
+        exigirRuaENumero(dados);
+        return repository.cadastrarEndereco(usuarioId, dados);
+    }
+
+    public EnderecoResponse editarEndereco(UUID usuarioId, UUID enderecoId, DadosEndereco dados) {
+        exigirRuaENumero(dados);
+        return repository.editarEndereco(usuarioId, enderecoId, dados);
+    }
+
+    private static void exigirRuaENumero(DadosEndereco dados) {
         if (dados.rua() == null || dados.rua().isBlank() || dados.numero() == null || dados.numero().isBlank()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "ENDERECO_INCOMPLETO",
                     "Informe a rua e o número para a entrega.");
         }
-        return repository.cadastrarEndereco(usuarioId, dados);
     }
 
     /** RF05 — Alterar senha (exige a senha atual). */

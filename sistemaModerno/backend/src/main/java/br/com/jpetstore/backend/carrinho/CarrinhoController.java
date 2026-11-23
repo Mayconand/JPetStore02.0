@@ -1,6 +1,7 @@
 package br.com.jpetstore.backend.carrinho;
 
 import br.com.jpetstore.backend.carrinho.dto.AdicionarItemRequest;
+import br.com.jpetstore.backend.carrinho.dto.AplicarCupomRequest;
 import br.com.jpetstore.backend.carrinho.dto.CarrinhoResponse;
 import br.com.jpetstore.backend.comum.UsuarioAutenticado;
 import jakarta.validation.Valid;
@@ -36,6 +37,18 @@ public class CarrinhoController {
     @DeleteMapping("/itens/{animalId}")
     public CarrinhoResponse remover(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID animalId) {
         return service.remover(UsuarioAutenticado.id(jwt), animalId);
+    }
+
+    /** RF29 — Aplicar cupom promocional (substitui o anterior). */
+    @PutMapping("/cupom")
+    public CarrinhoResponse aplicarCupom(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody AplicarCupomRequest request) {
+        return service.aplicarCupom(UsuarioAutenticado.id(jwt), request.codigo());
+    }
+
+    /** RF29 — Remover o cupom do carrinho. */
+    @DeleteMapping("/cupom")
+    public CarrinhoResponse removerCupom(@AuthenticationPrincipal Jwt jwt) {
+        return service.removerCupom(UsuarioAutenticado.id(jwt));
     }
 
     /** RF09 — Atualizar Carrinho: esvaziar. */

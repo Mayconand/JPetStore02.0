@@ -5,6 +5,7 @@ import br.com.jpetstore.backend.animal.dto.AnimalResponse;
 import br.com.jpetstore.backend.animal.dto.TagResponse;
 import br.com.jpetstore.backend.animal.dto.BuscaAnimaisFiltro;
 import br.com.jpetstore.backend.comum.Pagina;
+import br.com.jpetstore.backend.raca.RacaService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +21,11 @@ import java.util.UUID;
 public class AnimalController {
 
     private final AnimalService service;
+    private final RacaService racas;
 
-    public AnimalController(AnimalService service) {
+    public AnimalController(AnimalService service, RacaService racas) {
         this.service = service;
+        this.racas = racas;
     }
 
     /** RF16 — Visualizar a ficha de um animal selecionado. */
@@ -35,6 +38,12 @@ public class AnimalController {
     @GetMapping("/tags")
     public List<TagResponse> buscarTags(@RequestParam(required = false) String termo) {
         return service.buscarTags(termo);
+    }
+
+    /** Raças cadastradas, para os filtros do cliente (rota pública). */
+    @GetMapping("/racas")
+    public List<String> listarRacas(@RequestParam(required = false) String especie) {
+        return racas.listarNomes(especie);
     }
 
     /** RF07 — Buscar Animais (rota pública). */

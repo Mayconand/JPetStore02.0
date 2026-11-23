@@ -27,6 +27,14 @@ public class CarrinhoRepository {
         return banco.json("jpetstore.fn_remover_item_carrinho(?, ?)", CarrinhoResponse.class, usuarioId, animalId);
     }
 
+    public CarrinhoResponse aplicarCupom(UUID usuarioId, String codigo) {
+        return banco.json("jpetstore.fn_aplicar_cupom_carrinho(?, ?)", CarrinhoResponse.class, usuarioId, codigo);
+    }
+
+    public CarrinhoResponse removerCupom(UUID usuarioId) {
+        return banco.json("jpetstore.fn_remover_cupom_carrinho(?)", CarrinhoResponse.class, usuarioId);
+    }
+
     public CarrinhoResponse limpar(UUID usuarioId) {
         return banco.json("jpetstore.fn_limpar_carrinho(?)", CarrinhoResponse.class, usuarioId);
     }
