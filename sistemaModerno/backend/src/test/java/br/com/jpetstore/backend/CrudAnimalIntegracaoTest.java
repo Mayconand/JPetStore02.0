@@ -352,6 +352,26 @@ class CrudAnimalIntegracaoTest {
         }
 
         @Test
+        void mostraERemoveImagensELaudosQueSaoLinks() throws Exception {
+            String id = jdbc.queryForObject("""
+                    select jpetstore.fn_cadastrar_animal('GATO', jsonb_build_object(
+                        'racaId', (select id from jpetstore.raca where nome = 'Persa'), 'nome', 'Com links', 'preco', 10,
+                        'imagens', jsonb_build_array('https://b/2.jpg', 'https://a/1.jpg'),
+                        'laudos', jsonb_build_array(jsonb_build_object('titulo', 'Vacina'))))
+                    """, UUID.class).toString();
+            JsonNode ficha = corpo(enviar(get("/api/admin/animais/" + id), admin, null).andExpect(status().isOk()));
+            assertThat(ficha.get("galeria").get(0).get("url").asString()).isEqualTo("https://b/2.jpg");
+            assertThat(ficha.get("galeria").get(0).get("principal").asBoolean()).isTrue();
+            assertThat(ficha.get("galeria").get(1).get("principal").asBoolean()).isFalse();
+
+            JsonNode editado = corpo(editar(id, dados("GATO", "Persa", Map.of(
+                    "imagensRemovidas", List.of(ficha.get("galeria").get(1).get("id").asString()),
+                    "laudosRemovidos", List.of(ficha.get("laudos").get(0).get("id").asString())))).andExpect(status().isOk()));
+            assertThat(editado.get("galeria")).hasSize(1);
+            assertThat(editado.get("laudos")).isEmpty();
+        }
+
+        @Test
         void erroDesfazTudo() throws Exception {
             Map<String, Object> dados = cachorro();
             JsonNode animal = cadastrado(dados, foto(JPEG), foto(JPEG), foto(JPEG));
