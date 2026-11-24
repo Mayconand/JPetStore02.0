@@ -10,7 +10,6 @@ import UserBox from "../../components/client/UserBox";
 import { fotoOuPadrao } from "../../services/animais";
 import { aplicarCupom, obterCarrinho, removerCupom, removerDoCarrinho } from "../../services/carrinho";
 import type { Carrinho } from "../../services/carrinho";
-import { criarPedido } from "../../services/pedidos";
 import { mensagemDeErro, naoAutenticado } from "../../services/api";
 
 function Cart() {
@@ -82,18 +81,8 @@ function Cart() {
         }
     };
 
-    const finalizarPedido = async () => {
-        if (entrega === "entrega") {
-            navigate("/AdressPayment");
-            return;
-        }
-        try {
-            await criarPedido("RETIRADA");
-            alert("Pedido criado! Ele está aguardando pagamento.");
-            receber(await obterCarrinho());
-        } catch (e) {
-            mostrarErro(e);
-        }
+    const finalizarPedido = () => {
+        if(produtos.length)navigate("/AdressPayment?modalidade="+(entrega === "entrega"?"ENTREGA":"RETIRADA"));
     };
 
     const formatarPreco = (valor: number): string => {

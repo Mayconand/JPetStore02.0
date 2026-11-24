@@ -1,0 +1,133 @@
+JPETSTORE — CORREÇÕES E PENDÊNCIAS PARA A EQUIPE
+Data: 23/11/2026 (America/Bahia)
+
+BASE DO TRABALHO
+O projeto mantém o commit de Maycon 5f1cce0 (RF11–RF20) e os commits de Alexandre,
+até 7b929a0 (RF21–RF30). As correções complementam essa implementação. Controllers,
+services e hooks administrativos de Alexandre foram preservados. Não houve troca
+de tecnologias nem alteração nos arquivos CSS, imagens ou dependências.
+As correções estão reunidas em um commit local para revisão, sem envio ao remoto.
+
+CORRIGIDO
+1. Build e lint: removidos os quatro imports sem uso em App.tsx.
+2. Banco: criada a migration
+   database/supabase/migrations/20261124000000_completar_animais_arquivos.sql.
+   Ela completa o contrato que o backend já utilizava: arquivos no banco, funções
+   para imagens/PDFs, imagem principal e ordem da galeria, altura, peso e
+   expectativa de vida. Preserva os animais e links existentes e remove arquivos
+   sem referência quando suas imagens/laudos são excluídos ou substituídos.
+3. Perfil: carrega os dados da API e salva informações, preferências e os dois
+   endereços do formulário. A opção "Não possui" remove o segundo endereço.
+   A API de remoção verifica o dono e mantém outro endereço como principal.
+4. Compra: carrinho encaminha à confirmação de entrega ou retirada; resumo usa
+   itens, descontos e total calculados pelo backend. Criação do pedido e pagamento
+   foram conectados à simulação existente, com cartão fictício, Pix ou boleto.
+   Após uma falha, o checkout mantém o pedido criado na própria URL para nova
+   tentativa, sem criar outro pedido ao repetir o pagamento.
+5. Cobrança e detalhe: endereço de cobrança é salvo no pedido; detalhes mostram
+   dados reais do pagamento e somente os últimos quatro dígitos do cartão.
+   CPF/CVV não são enviados pela simulação.
+6. Pedidos: lista e detalhes foram conectados às APIs existentes; removidos dados
+   fixos de pedido, endereço e valor dessas telas. Acesso aos detalhes pelo botão
+   original de três pontos. Ações extras (Ver detalhes, Continuar pagamento e
+   Cancelar pedido) e texto de status do card foram retirados a pedido do Maycon.
+7. Painel: mantido o filtro original de status. Os campos adicionais de data e
+   cliente foram retirados a pedido do Maycon. Cabeçalho do cliente dá acesso
+   ao perfil/pedidos. As APIs de filtros existentes no backend foram preservadas.
+8. Login: requisição de entrada não envia um token de sessão anterior, evitando
+   que um token inválido impeça entrar novamente.
+9. Endereço de compra: corrigido o cadastro que não enviava o número da residência.
+   O campo existente passa a coletar número/complemento, com a rua vinda do CEP;
+   sem logradouro no CEP, recebe rua/número/complemento. A API rejeita novos
+   endereços incompletos. Na compra, um endereço antigo sem número abre o editor
+   existente com os dados preenchidos e valida antes de criar o pedido.
+
+TELA NOVA RETIRADA A PEDIDO DO MAYCON
+A tela de Clientes criada nesta correção foi removida, assim como sua rota.
+Nenhuma tela nova permanece adicionada. A implementação visual de Clientes fica
+com a responsável pelo front-end. O botão original "Ver clientes" permanece no
+painel e depende da entrega dessa rota para funcionar.
+
+VALIDAÇÃO
+- Backend: suíte completa com 114 testes, zero falhas e zero erros.
+  Inclui os 109 testes da versão recebida e cinco testes novos para pagamento,
+  cobrança, proteção de dados do cartão, remoção de endereços e cadastro sem número.
+- Endereços no frontend: seis testes de regressão aprovados, executáveis com
+  node --test tests/enderecos.test.mjs na pasta frontend. Usam somente Node e
+  o TypeScript já instalado pelo projeto.
+- Frontend: npm run build e npm run lint.
+- Conferência no navegador: login de cliente/admin, inclusão no carrinho,
+  compra com entrega e Pix simulado, detalhes e lista do pedido, edição do perfil
+  e persistência após recarregar, cadastro de cachorro
+  e reabertura da edição com medidas/data/preço persistidos.
+- Imagens e PDFs: contratos exercitados pelos testes de integração do backend;
+  não foi feita nova seleção manual de arquivos pelo navegador nesta rodada.
+- Banco usado: PostgreSQL 18 local, separado para testes e prévia. O projeto
+  documenta PostgreSQL 17/Supabase; repetir a validação nesse ambiente da equipe.
+- Regressão do endereço legado: conta fictícia local com número ausente; validação
+  antes de criar o pedido; correção do número preservando complemento; reutilização
+  do endereço e pagamento simulado aprovado pela API, com somente um pedido.
+  A verificação manual desse último ajuste não foi executada: a ferramenta de
+  navegador ficou indisponível. Build, lint, testes de API e de endereço passaram.
+- Nenhum acesso ou alteração foi feito no Supabase compartilhado.
+
+O QUE FALTA PARA A EQUIPE
+
+PRIORIDADE 1 — ENTREGA DO FRONT-END
+Responsável: equipe de front-end.
+Implementar a página /adm/clientes, usando GET /api/admin/clientes.
+Resposta: id, nome, sobrenome, email, telefone, quantidadePedidos,
+valorTotalGasto e ultimoPedido. A API já está implementada e testada.
+Pedidos por cliente estão disponíveis em GET /api/admin/pedidos?clienteId=<id>.
+A navegação visual fica a cargo do front-end; os filtros adicionais do painel
+foram retirados a pedido do Maycon.
+Critério de aceite: o botão Ver clientes abre a tela e os dados vêm da API.
+
+PRIORIDADE 1 — SINCRONIZAR O BANCO DA EQUIPE
+Responsável: quem administra o Supabase/backend.
+Revisar e aplicar a migration 20261124000000_completar_animais_arquivos.sql após
+as três migrations originais. Se alguém já criou partes do schema manualmente,
+comparar essas estruturas antes de aplicar, para evitar conflito de objetos.
+Esta migration foi aplicada somente nos bancos locais de teste/prévia.
+Critério de aceite: cadastro/edição de todas as espécies, imagens e PDFs funcionam
+no ambiente compartilhado sem erros de tabela, coluna ou função inexistente.
+
+PRIORIDADE 2 — VALIDAÇÃO CONJUNTA E AMBIENTE DE ENTREGA
+Responsáveis: equipe de front-end e backend.
+Revisar os pontos de acesso às funções no visual existente e testar os cenários
+de entrega/retirada, cartão/Pix/boleto, cupom inválido/vencido, pagamento recusado,
+sessão expirada e autorização de cliente/admin no PostgreSQL 17/Supabase.
+Conferir o visual em celular e o armazenamento/backup dos arquivos no banco.
+Configurar variáveis de ambiente e hospedagem conforme RUN.md.
+Critério de aceite: fluxo completo validado pela equipe no ambiente da entrega.
+
+PONTOS QUE EXIGEM ALINHAMENTO DE ESCOPO
+- Pagamento é simulado por decisão do backend existente. Não há gateway, cobrança
+  real, QR Pix ou boleto bancário real. Se isso for exigido, é uma integração
+  separada; não confundir a demonstração com pagamento de produção.
+- Envio/entrega: o painel consulta e filtra status, mas não há fluxo administrativo
+  para mudar um pedido de Preparação para Enviado/Entregue. Definir se isso faz
+  parte da entrega e, se fizer, implementar regras/API/ação do painel.
+- Idioma, Minha Lista e Meu Banner são preferências salvas. Tradução completa
+  das telas e aplicação visual dessas preferências ainda precisam ser definidas
+  e implementadas pelo front-end; o cadastro da preferência sozinho não as aplica.
+- Criador/proprietário nos cards ainda aparecem como textos de exemplo; esses
+  dados não estão no contrato atual de animal. A equipe deve definir se remove
+  os exemplos ou acrescenta campos reais no modelo/API/formulário.
+- "Esqueceu a senha?" no login ainda aponta para a página inicial; recuperação
+  de senha não está implementada. Confirmar se é requisito da entrega.
+- Rodapé: as APIs de configuração existem no backend, mas os rodapés visuais
+  ainda são estáticos. O front-end precisa consumir visibilidade/conteúdo da API
+  para refletir RF18–RF20, se essa integração fizer parte da entrega atual.
+- Histórico: preço, nome e endereço de entrega têm cópia no pedido. Raça/porte
+  e imagem consultam o cadastro atual; se for exigido histórico imutável desses
+  campos, acrescentar snapshots no item do pedido.
+
+COMO REVISAR LOCALMENTE
+Frontend: http://localhost:5173 — Backend: http://localhost:8080
+Contas do seed local: admin@jpetstore.com / Admin@123;
+cliente@jpetstore.com / Cliente@123.
+Os dados criados nesta prévia são fictícios e ficam somente no banco local.
+Evidências e logs desta rodada estão em .scratch/ na raiz do projeto:
+testes-correcao-equipe.log, build-correcao-equipe.log,
+lint-correcao-equipe.log, pedido-integrado-equipe.jpg e painel-equipe-final.jpg.

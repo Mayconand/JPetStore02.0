@@ -2,32 +2,44 @@
 import "./AdressPayment.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
-import { cadastrarEndereco, editarEndereco, listarEnderecos } from "../../services/usuarios";
-import type { Endereco } from "../../services/usuarios";
+import { cadastrarEndereco, editarEndereco, listarEnderecos, cadastrarCartao } from "../../services/usuarios";
+import type { DadosEndereco, Endereco } from "../../services/usuarios";
 import { mensagemDeErro, naoAutenticado } from "../../services/api";
+import { reutilizarEndereco } from "../../services/enderecos";
+
+import { obterCarrinho, type Carrinho } from "../../services/carrinho";
+import { criarPedido, obterPedido, pagarPedido, type Pedido } from "../../services/pedidos";
+const formas = { CARTAO_CREDITO: "Cartão de crédito", PIX: "Pix", BOLETO: "Boleto" };
+const moeda=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 /** Endereço como a tela usa: rua, número e complemento em um campo só. */
 interface EnderecoDaTela {
     id: string;
     pais: string;
     rua: string;
+    ruaOriginal: string;
+    numero: string;
+    complemento: string;
     bairro: string;
     cidade: string;
     estado: string;
     cep: string;
 }
 
-const SEM_ENDERECO: EnderecoDaTela = { id: "", pais: "", rua: "", bairro: "", cidade: "", estado: "", cep: "" };
+const SEM_ENDERECO: EnderecoDaTela = { id: "", pais: "", rua: "", ruaOriginal: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "", cep: "" };
 
 function paraTela(e: Endereco): EnderecoDaTela {
     return {
         id: e.id,
         pais: e.pais ?? "Brasil",
         rua: [e.rua, e.numero, e.complemento].filter(Boolean).join(", "),
+        ruaOriginal: e.rua ?? "",
+        numero: e.numero ?? "",
+        complemento: e.complemento ?? "",
         bairro: e.bairro ?? "",
         cidade: e.cidade,
         estado: e.estado,
@@ -43,11 +55,22 @@ function separarRua(texto: string) {
 
 function AdressPayment() {
 
+    const [params,setParams]=useSearchParams();
+    const pedidoId=params.get("pedidoId");
+    const [pedido,setPedido]=useState<Pedido|null>(null);
+    const modalidade=pedido?.modalidade ?? (params.get("modalidade")==="RETIRADA"?"RETIRADA":"ENTREGA");
+    const [carrinho,setCarrinho]=useState<Carrinho|null>(null);
+    const [forma,setForma]=useState<keyof typeof formas>("CARTAO_CREDITO");
+    const [cartaoId,setCartaoId]=useState<string>();
+    const [processando,setProcessando]=useState(false);
+    const trava=useRef(false);
+    const voltarParaCobranca=useRef(false);
+    const [aviso,setAviso]=useState("");
     const [etapa, setEtapa] = useState(1);
     const [mostrarEnderecos, setMostrarEnderecos] = useState(false);
     const [novoEndereco, setNovoEndereco] = useState(false);
     const [enderecoSelecionado, setEnderecoSelecionado] = useState(0);
-    const [mesmoEndereco, setMesmoEndereco] = useState(false);
+    const [mesmoEndereco, setMesmoEndereco] = useState(true);
 
     const navigate = useNavigate();
     const [enderecos, setEnderecos] = useState<EnderecoDaTela[]>([]);
@@ -61,6 +84,7 @@ function AdressPayment() {
                 if (!ativo) return;
                 setEnderecos(lista.map(paraTela));
                 setNovoEndereco(lista.length === 0);
+                setMesmoEndereco(lista.length > 0);
             })
             .catch((e) => {
                 if (!ativo) return;
@@ -96,7 +120,33 @@ function AdressPayment() {
         complemento: ""
     });
 
-    const enderecoAtual = enderecos[enderecoSelecionado] ?? SEM_ENDERECO;
+    const selecionado=enderecos[enderecoSelecionado];
+    const enderecoEntrega: DadosEndereco | undefined = pedido?.enderecoEntrega ?? (selecionado ? {
+        rua:selecionado.ruaOriginal,numero:selecionado.numero,complemento:selecionado.complemento,bairro:selecionado.bairro,
+        cidade:selecionado.cidade,estado:selecionado.estado,cep:selecionado.cep,pais:selecionado.pais
+    } : undefined);
+    const enderecoAtual = pedido?.enderecoEntrega ? paraTela({...pedido.enderecoEntrega,id:"pedido",principal:false}) : enderecos[enderecoSelecionado] ?? SEM_ENDERECO;
+    const itens=pedido?.itens ?? carrinho?.itens ?? [];
+    const total=pedido?.valorTotal ?? carrinho?.total ?? 0;
+    const desconto=pedido?.valorDesconto ?? carrinho?.desconto ?? 0;
+    useEffect(()=>{
+        if(trava.current)return;
+        let ativo=true;
+        const carregar=async()=>{
+            try{
+                if(pedidoId){
+                    const p=await obterPedido(pedidoId);if(!ativo)return;
+                    if(p.status!=="AGUARDANDO_PAGAMENTO"){navigate("/DetailsPayment?id="+p.id,{replace:true});return;}
+                    setPedido(p);setEtapa(2);
+                }else{
+                    const c=await obterCarrinho();if(!ativo)return;
+                    setCarrinho(c);
+                    if(!c.itens.length){setAviso("O carrinho está vazio.");return;}
+                    if(params.get("modalidade")==="RETIRADA")setEtapa(2);
+                }
+            }catch(e){if(ativo){if(naoAutenticado(e))navigate("/login");else setAviso(mensagemDeErro(e));}}
+        };void carregar();return()=>{ativo=false;};
+    },[pedidoId,navigate,params]);
 
     function atualizarEndereco(e: ChangeEvent<HTMLInputElement>) {
         setFormEndereco({
@@ -140,6 +190,12 @@ function AdressPayment() {
 
         setEnderecoEmEdicao(null);
         setNovoEndereco(false);
+        setAviso("");
+        if(voltarParaCobranca.current){
+            voltarParaCobranca.current=false;
+            setMesmoEndereco(true);
+            setEtapa(3);
+        }
 
         setFormEndereco({
             pais: "Brasil",
@@ -157,14 +213,71 @@ function AdressPayment() {
         setEtapa(2);
     }
 
-    function continuarPagamento(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        setEtapa(3);
+    async function continuarPagamento(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();if(trava.current)return;
+        trava.current=true;setProcessando(true);setAviso("");
+        try{
+            if(forma==="CARTAO_CREDITO")setCartaoId(await cadastrarCartao({numero:formCartao.numero,nomeTitular:formCartao.nome,
+                dataValidade:formCartao.validade,bandeira:/^4/.test(formCartao.numero)?"VISA":/^5[1-5]/.test(formCartao.numero)?"MASTERCARD":"OUTRA"}));
+            setEtapa(3);
+        }catch(falha){if(naoAutenticado(falha))navigate("/login");else setAviso(mensagemDeErro(falha));}
+        finally{trava.current=false;setProcessando(false);}
+    }
+
+    function dadosCobranca(): DadosEndereco {
+        if(mesmoEndereco)return reutilizarEndereco(enderecoEntrega);
+        const rua=separarRua(enderecoCobranca.complemento);
+        if(!rua.rua||!rua.numero)throw new Error("Informe a cobrança como Rua, número, complemento.");
+        return {...enderecoCobranca,...rua};
+    }
+
+    function corrigirEnderecoCadastrado() {
+        const salvo=enderecos[enderecoSelecionado];
+        voltarParaCobranca.current=true;
+        setEnderecoEmEdicao(salvo?.id ?? null);
+        setFormEndereco({
+            pais:salvo?.pais ?? "Brasil",estado:salvo?.estado ?? "",cidade:salvo?.cidade ?? "",
+            bairro:salvo?.bairro ?? "",cep:salvo?.cep ?? "",
+            // Mantém o espaço do número vazio, sem confundir o complemento com ele.
+            complemento:salvo ? `${salvo.ruaOriginal ?? ""}, ${salvo.numero ?? ""}, ${salvo.complemento ?? ""}` : ""
+        });
+        setMostrarEnderecos(false);
+        setNovoEndereco(true);
+        setEtapa(1);
+        setAviso("O endereço cadastrado está sem rua ou número. Complete os dados abaixo; os outros campos já foram preenchidos.");
+    }
+
+    function confirmarCobranca() {
+        try{dadosCobranca();setAviso("");setEtapa(4);}
+        catch(e){
+            if(mesmoEndereco)corrigirEnderecoCadastrado();
+            else setAviso((e as Error).message);
+        }
     }
 
     function finalizarCobranca(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setEtapa(4);
+        confirmarCobranca();
+    }
+    async function finalizarPedido() {
+        if(trava.current||!itens.length)return;
+        trava.current=true;setProcessando(true);setAviso("");
+        try{
+            const cobranca=dadosCobranca();
+            let atual=pedido;
+            if(!atual){
+                if(modalidade==="ENTREGA"&&!enderecos[enderecoSelecionado]?.id)throw new Error("Selecione o endereço de entrega.");
+                atual=await criarPedido(modalidade,modalidade==="ENTREGA"?enderecos[enderecoSelecionado]?.id:undefined);
+                setPedido(atual);setParams({pedidoId:atual.id},{replace:true});
+            }
+            await pagarPedido(atual.id,forma,forma==="CARTAO_CREDITO"?cartaoId:undefined,cobranca);
+            setFormCartao({numero:"",validade:"",cvv:"",nome:"",cpf:""});
+            navigate("/DetailsPayment?id="+atual.id,{replace:true});
+        }catch(falha){
+            if(naoAutenticado(falha))navigate("/login");
+            else if(mesmoEndereco&&(!enderecoEntrega?.rua?.trim()||!enderecoEntrega.numero?.trim()))corrigirEnderecoCadastrado();
+            else setAviso(falha instanceof Error && !('isAxiosError' in falha)?falha.message:mensagemDeErro(falha));
+        }finally{trava.current=false;setProcessando(false);}
     }
 
     return (
@@ -243,6 +356,8 @@ function AdressPayment() {
 
                     </div>
 
+                    {aviso && <p role="alert">{aviso}</p>}
+                    <p>Pagamento de demonstração. Use dados fictícios.</p>
                     {etapa === 1 && (
 
                         <section className="checkoutCard">
@@ -417,6 +532,10 @@ function AdressPayment() {
 
                             <form onSubmit={continuarPagamento}>
 
+                                <label>Forma de pagamento <select value={forma} onChange={e=>setForma(e.target.value as keyof typeof formas)}>
+                                    {Object.entries(formas).map(([codigo,nome])=><option key={codigo} value={codigo}>{nome}</option>)}
+                                </select></label>
+                                {forma === "CARTAO_CREDITO" && (<>
                                 <div className="formGrid paymentGrid">
 
                                     <div className="formGroup paymentNumber">
@@ -451,7 +570,6 @@ function AdressPayment() {
                                             onChange={atualizarCartao}
                                             placeholder="000"
                                             maxLength={4}
-                                            required
                                         />
                                     </div>
 
@@ -472,11 +590,11 @@ function AdressPayment() {
                                             value={formCartao.cpf}
                                             onChange={atualizarCartao}
                                             placeholder="000.000.000-00"
-                                            required
                                         />
                                     </div>
 
                                 </div>
+                                </>)}
 
                                 <div className="checkoutButtons">
 
@@ -513,7 +631,7 @@ function AdressPayment() {
                             </div>
 
                             <h4 className="billingTitle">
-                                Endereço de cobrança do cartão:
+                                Endereço de cobrança:
                             </h4>
 
                             <label className="sameAddress">
@@ -522,7 +640,7 @@ function AdressPayment() {
                                     checked={mesmoEndereco}
                                     onChange={(e) => setMesmoEndereco(e.target.checked)}
                                 />
-                                Utilizar o mesmo endereço de entrega
+                                {modalidade === "RETIRADA" ? "Utilizar o endereço cadastrado" : "Utilizar o mesmo endereço de entrega"}
                             </label>
 
                             {!mesmoEndereco && (
@@ -582,7 +700,7 @@ function AdressPayment() {
                                         </div>
 
                                         <div className="formGroup">
-                                            <label>Complemento</label>
+                                            <label>Rua, número, complemento</label>
                                             <input
                                                 name="complemento"
                                                 value={enderecoCobranca.complemento}
@@ -630,7 +748,7 @@ function AdressPayment() {
                                     <button
                                         type="button"
                                         className="btnContinue"
-                                        onClick={() => setEtapa(4)}
+                                        onClick={confirmarCobranca}
                                     >
                                         Continuar
                                     </button>
@@ -656,21 +774,22 @@ function AdressPayment() {
                             </p>
 
                             <div className="confirmationDetails">
-                                <strong>Endereço de entrega:</strong>
+                                <strong>{modalidade === "RETIRADA" ? "Retirada:" : "Endereço de entrega:"}</strong>
                                 <span>
-                                    {enderecoAtual.rua}, {enderecoAtual.bairro} -
-                                    {" "}{enderecoAtual.cidade}/{enderecoAtual.estado}
+                                    {modalidade === "RETIRADA" ? "Retirada na loja" : `${enderecoAtual.rua}, ${enderecoAtual.bairro} - ${enderecoAtual.cidade}/${enderecoAtual.estado}`}
                                 </span>
 
                                 <strong>Forma de pagamento:</strong>
-                                <span>Cartão de crédito</span>
+                                <span>{formas[forma]}</span>
                             </div>
 
                             <button
                                 type="button"
                                 className="btnContinue"
+                                disabled={processando || !itens.length}
+                                onClick={() => void finalizarPedido()}
                             >
-                                Finalizar pedido
+                                {processando ? "Processando..." : "Finalizar pedido"}
                             </button>
 
                         </section>
@@ -680,35 +799,12 @@ function AdressPayment() {
                 </section>
 
                 <aside className="orderSummary">
-
-                    <h3>Resumo - Pedido Nº 1000</h3>
-
-                    <div className="summaryLine">
-                        <span>Dia:</span>
-                        <span>00/00/0000</span>
-                    </div>
-
-                    <div className="summaryLine">
-                        <span>Hora:</span>
-                        <span>00:00</span>
-                    </div>
-
-                    <div className="summaryProducts">
-
-                        <strong>Pets</strong>
-
-                        <div className="summaryLine">
-                            <span>Nome do animal</span>
-                            <span>R$ 4.000</span>
-                        </div>
-
-                    </div>
-
-                    <div className="summaryTotal">
-                        <span>Total:</span>
-                        <strong>R$ 4.000</strong>
-                    </div>
-
+                    <h3>{pedido ? "Resumo - Pedido #"+pedido.id.slice(0,8) : "Resumo do pedido"}</h3>
+                    {pedido && <div className="summaryLine"><span>Data:</span><span>{new Date(pedido.dataCriacao).toLocaleString("pt-BR")}</span></div>}
+                    <div className="summaryProducts"><strong>Pets</strong>{itens.map(item=><div className="summaryLine" key={item.animalId}><span>{item.nome}</span><span>{moeda(item.precoUnitario)}</span></div>)}</div>
+                    {desconto>0 && <div className="summaryLine"><span>Desconto:</span><span>{moeda(desconto)}</span></div>}
+                    <div className="summaryTotal"><span>Total:</span><strong>{moeda(total)}</strong></div>
+                    <Link to="/Orders">Ver meus pedidos</Link>
                 </aside>
 
             </main>

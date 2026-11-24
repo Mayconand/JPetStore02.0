@@ -31,9 +31,11 @@ function UserBox() {
 
             {sessao ? (
                 <>
-                    <span>
+                    <Link to="/ProfilePage" aria-label="Meu perfil" style={{color:"inherit",textDecoration:"none"}}>
                         <strong>Nome:</strong> {sessao.usuario.nome}
-                    </span>
+                    </Link>
+
+                    <Link to="/Orders" className="btnSair">Meus pedidos</Link>
 
                     <button type="button" className="btnSair" onClick={sair}>
                         Sair

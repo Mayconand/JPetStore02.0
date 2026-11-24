@@ -20,12 +20,14 @@ export interface Pedido {
     modalidade: ModalidadeEntrega;
     /** Cópia do endereço no momento da compra (null em RETIRADA). */
     enderecoEntrega: DadosEndereco | null;
+    enderecoCobranca: DadosEndereco | null;
+    pagamento: { forma: string; status: string; valor: number; dataPagamento: string; bandeira: string | null; ultimosDigitos: string | null } | null;
     cupom: string | null;
     valorItens: number;
     valorDesconto: number;
     valorTotal: number;
     canceladoEm: string | null;
-    itens: { animalId: string; nome: string; precoUnitario: number; imagemUrl: string | null }[];
+    itens: { animalId: string; nome: string; precoUnitario: number; imagemUrl: string | null; raca: string | null; porte: string | null }[];
 }
 
 /** RF06 — Visualizar Pedidos. */
@@ -51,3 +53,12 @@ export async function cancelarPedido(id: string): Promise<Pedido> {
     const { data } = await api.post<Pedido>(`/api/pedidos/${id}/cancelar`);
     return data;
 }
+
+export async function pagarPedido(id: string, forma: "CARTAO_CREDITO" | "PIX" | "BOLETO", cartaoId?: string, enderecoCobranca?: DadosEndereco): Promise<Pedido> {
+    const { data } = await api.post<Pedido>(`/api/pedidos/${id}/pagamento`, { forma, cartaoId, enderecoCobranca });
+    return data;
+}
+
+export const STATUS_PEDIDO: Record<StatusPedido, string> = {
+    AGUARDANDO_PAGAMENTO: "Aguardando pagamento", PAGO: "Preparação", ENVIADO: "Enviado", ENTREGUE: "Entregue", CANCELADO: "Cancelado"
+};

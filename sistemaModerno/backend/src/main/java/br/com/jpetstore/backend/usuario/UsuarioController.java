@@ -87,6 +87,12 @@ public class UsuarioController {
         return service.editarEndereco(UsuarioAutenticado.id(jwt), id, dados);
     }
 
+    @DeleteMapping("/me/enderecos/{id}")
+    public ResponseEntity<Void> removerEndereco(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        service.removerEndereco(UsuarioAutenticado.id(jwt), id);
+        return ResponseEntity.noContent().build();
+    }
+
     /** RF05 — Alterar senha. */
     @PutMapping("/me/senha")
     public ResponseEntity<Void> alterarSenha(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody AlterarSenhaRequest dados) {

@@ -29,6 +29,9 @@ public class UsuarioService {
 
     /** RF03 — Realizar Cadastro. Todo novo usuário é CLIENTE. */
     public PerfilResponse cadastrar(CadastroRequest dados) {
+        if (dados.enderecos() != null) {
+            dados.enderecos().forEach(UsuarioService::exigirRuaENumero);
+        }
         UUID id = repository.cadastrar(dados, senhas.encode(dados.senha()));
         return repository.obterPerfil(id);
     }
@@ -66,8 +69,12 @@ public class UsuarioService {
         return repository.editarEndereco(usuarioId, enderecoId, dados);
     }
 
+    public void removerEndereco(UUID usuarioId, UUID enderecoId) {
+        repository.removerEndereco(usuarioId, enderecoId);
+    }
+
     private static void exigirRuaENumero(DadosEndereco dados) {
-        if (dados.rua() == null || dados.rua().isBlank() || dados.numero() == null || dados.numero().isBlank()) {
+        if (dados == null || dados.rua() == null || dados.rua().isBlank() || dados.numero() == null || dados.numero().isBlank()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "ENDERECO_INCOMPLETO",
                     "Informe a rua e o número para a entrega.");
         }

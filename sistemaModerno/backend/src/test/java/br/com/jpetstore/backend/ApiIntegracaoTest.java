@@ -124,6 +124,80 @@ class ApiIntegracaoTest {
         return ids;
     }
 
+    @Test
+    void cadastroNaoGravaEnderecoSemNumero() throws Exception {
+        String email = emailNovo();
+        JsonNode erro = corpo(enviar(post("/api/usuarios"), null, Map.of(
+                "nome", "Teste", "sobrenome", "Endereço", "email", email, "senha", "SenhaForte1",
+                "enderecos", List.of(endereco("Rua do CEP", "")))).andExpect(status().isUnprocessableContent()));
+        assertThat(erro.get("codigo").asString()).isEqualTo("ENDERECO_INCOMPLETO");
+        assertThat(jdbc.queryForObject("select count(*) from jpetstore.usuario where email = ?", Long.class, email)).isZero();
+    }
+
+    @Test
+    void pagamentoGuardaCobrancaEExibeSomenteOsUltimosDigitos() throws Exception {
+        Cliente cliente = novoCliente();
+        UUID animal = novoAnimal("Checkout integrado", "200");
+        enviar(post("/api/carrinho/itens"), cliente.token(), Map.of("animalId", animal)).andExpect(status().isOk());
+        String id = corpo(enviar(post("/api/pedidos"), cliente.token(), Map.of("modalidade", "RETIRADA"))
+                .andExpect(status().isCreated())).get("id").asString();
+        String validade = YearMonth.now().plusYears(1).format(DateTimeFormatter.ofPattern("MM/yy"));
+        String cartao = corpo(enviar(post("/api/usuarios/me/cartoes"), cliente.token(), Map.of(
+                "numero", "4111111111111111", "nomeTitular", "Ana Souza", "dataValidade", validade, "bandeira", "VISA"))
+                .andExpect(status().isCreated())).get("id").asString();
+        JsonNode pago = corpo(enviar(post("/api/pedidos/" + id + "/pagamento"), cliente.token(), Map.of(
+                "forma", "CARTAO_CREDITO", "cartaoId", cartao, "enderecoCobranca", endereco("Rua Cobrança", "80")))
+                .andExpect(status().isOk()));
+        assertThat(pago.get("status").asString()).isEqualTo("PAGO");
+        assertThat(pago.get("pagamento").get("ultimosDigitos").asString()).isEqualTo("1111");
+        assertThat(pago.get("pagamento").get("bandeira").asString()).isEqualTo("VISA");
+        assertThat(pago.get("itens").get(0).get("raca").asString()).isEqualTo("Bulldog");
+        assertThat(pago.toString()).doesNotContain("4111111111111111", "cvv");
+        JsonNode detalhe = corpo(enviar(get("/api/pedidos/" + id), cliente.token(), null).andExpect(status().isOk()));
+        assertThat(detalhe.get("enderecoCobranca").get("rua").asString()).isEqualTo("Rua Cobrança");
+        enviar(get("/api/pedidos/" + id), novoCliente().token(), null).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cobrancaInvalidaNaoConfirmaOPagamento() throws Exception {
+        Cliente cliente = novoCliente();
+        UUID animal = novoAnimal("Cobrança inválida", "150");
+        enviar(post("/api/carrinho/itens"), cliente.token(), Map.of("animalId", animal)).andExpect(status().isOk());
+        String id = corpo(enviar(post("/api/pedidos"), cliente.token(), Map.of("modalidade", "RETIRADA")))
+                .get("id").asString();
+        enviar(post("/api/pedidos/" + id + "/pagamento"), cliente.token(), Map.of(
+                "forma", "PIX", "enderecoCobranca", endereco("", ""))).andExpect(status().isUnprocessableContent());
+        JsonNode detalhe = corpo(enviar(get("/api/pedidos/" + id), cliente.token(), null));
+        assertThat(detalhe.get("status").asString()).isEqualTo("AGUARDANDO_PAGAMENTO");
+        assertThat(detalhe.get("pagamento").isNull()).isTrue();
+    }
+
+    @Test
+    void pixRetornaODetalheSemDadosDeCartao() throws Exception {
+        Cliente cliente = novoCliente();
+        UUID animal = novoAnimal("Pagamento Pix", "99");
+        enviar(post("/api/carrinho/itens"), cliente.token(), Map.of("animalId", animal));
+        String id = corpo(enviar(post("/api/pedidos"), cliente.token(), Map.of("modalidade", "RETIRADA")))
+                .get("id").asString();
+        JsonNode pago = corpo(enviar(post("/api/pedidos/" + id + "/pagamento"), cliente.token(), Map.of("forma", "PIX"))
+                .andExpect(status().isOk()));
+        assertThat(pago.get("pagamento").get("forma").asString()).isEqualTo("PIX");
+        assertThat(pago.get("pagamento").get("ultimosDigitos").isNull()).isTrue();
+    }
+
+    @Test
+    void removerEnderecoExigeDonoEPreservaOutroPrincipal() throws Exception {
+        Cliente cliente = novoCliente();
+        String alternativo = corpo(enviar(post("/api/usuarios/me/enderecos"), cliente.token(), endereco("Rua Alternativa", "2")))
+                .get("id").asString();
+        enviar(delete("/api/usuarios/me/enderecos/" + alternativo), novoCliente().token(), null).andExpect(status().isNotFound());
+        enviar(delete("/api/usuarios/me/enderecos/" + cliente.enderecoId()), cliente.token(), null).andExpect(status().isNoContent());
+        JsonNode lista = corpo(enviar(get("/api/usuarios/me/enderecos"), cliente.token(), null));
+        assertThat(lista).hasSize(1);
+        assertThat(lista.get(0).get("id").asString()).isEqualTo(alternativo);
+        assertThat(lista.get(0).get("principal").asBoolean()).isTrue();
+    }
+
     // ------------------------------------------------------------------ RF02 / RF03 / RF10
 
     @Nested
@@ -401,10 +475,10 @@ class ApiIntegracaoTest {
                     .andExpect(status().isUnprocessableContent()));
             assertThat(erro.get("codigo").asString()).isEqualTo("ENDERECO_OBRIGATORIO");
 
-            // Endereço sem rua/número (como o cadastro atual do front envia) não serve para entrega.
+            // Simula um endereço legado incompleto; novos cadastros já exigem rua e número.
             String email = emailNovo();
-            var semRua = endereco(null, null);
-            JsonNode perfil = cadastrar(email, List.of(semRua));
+            JsonNode perfil = cadastrar(email, List.of(endereco("Rua Antiga", "10")));
+            jdbc.update("update jpetstore.endereco set rua = null, numero = null where usuario_id = ?::uuid", perfil.get("id").asString());
             String token = login(email, "SenhaForte1");
             enviar(post("/api/carrinho/itens"), token, Map.of("animalId", novoAnimal("Lulu", "70.00"))).andExpect(status().isOk());
             erro = corpo(enviar(post("/api/pedidos"), token,

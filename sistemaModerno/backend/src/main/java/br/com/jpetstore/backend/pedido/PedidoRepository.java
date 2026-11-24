@@ -40,5 +40,9 @@ public class PedidoRepository {
     public void pagar(UUID usuarioId, UUID pedidoId, RealizarPagamentoRequest dados) {
         banco.executar("jpetstore.fn_realizar_pagamento(?, ?, ?::jpetstore.forma_pagamento, ?)",
                 usuarioId, pedidoId, dados.forma().name(), dados.cartaoId());
+        if (dados.enderecoCobranca() != null) {
+            banco.alterar("update jpetstore.pedido set endereco_cobranca = ?::jsonb where id = ? and usuario_id = ?",
+                    banco.paraJson(dados.enderecoCobranca()), pedidoId, usuarioId);
+        }
     }
 }

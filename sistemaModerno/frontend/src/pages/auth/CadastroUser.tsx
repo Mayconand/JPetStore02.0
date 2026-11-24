@@ -10,6 +10,7 @@ import { cadastrar } from "../../services/usuarios";
 import type { DadosEndereco, Idioma } from "../../services/usuarios";
 import { login } from "../../services/auth";
 import { mensagemDeErro } from "../../services/api";
+import { separarEnderecoCadastro } from "../../services/enderecos";
 
 function CadastroUser() {
     type Endereco = {
@@ -46,9 +47,8 @@ function CadastroUser() {
 
     function paraEnderecoApi(endereco: Endereco, complemento: FormDataEntryValue | null): DadosEndereco {
         return {
-            rua: endereco.street,
+            ...separarEnderecoCadastro(endereco.street, String(complemento ?? "")),
             bairro: endereco.district,
-            complemento: String(complemento ?? "").trim() || undefined,
             cidade: endereco.city.trim(),
             estado: endereco.state.trim(),
             cep: endereco.zipCode.trim(),
@@ -67,15 +67,14 @@ function CadastroUser() {
             return;
         }
 
-        const enderecos = [paraEnderecoApi(endereco1, dados.get("complement"))];
-        if (!semSegundoEndereco && endereco2.zipCode.trim()) {
-            enderecos.push(paraEnderecoApi(endereco2, dados.get("complement2")));
-        }
-
         const email = String(dados.get("email")).trim();
         setErro("");
         setEnviando(true);
         try {
+            const enderecos = [paraEnderecoApi(endereco1, dados.get("complement"))];
+            if (!semSegundoEndereco && endereco2.zipCode.trim()) {
+                enderecos.push(paraEnderecoApi(endereco2, dados.get("complement2")));
+            }
             await cadastrar({
                 nome: String(dados.get("name")).trim(),
                 sobrenome: String(dados.get("lastName")).trim(),
@@ -93,7 +92,7 @@ function CadastroUser() {
             await login(email, senha);
             navigate("/HomeClient");
         } catch (e) {
-            setErro(mensagemDeErro(e));
+            setErro(e instanceof Error && !("isAxiosError" in e) ? e.message : mensagemDeErro(e));
         } finally {
             setEnviando(false);
         }
@@ -286,8 +285,9 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="complement"
-                                placeholder="Complemento"
-                                aria-label="Complemento"
+                                placeholder={endereco1.street ? "Número, complemento (ex.: 42, Apto 2)" : "Rua, número, complemento"}
+                                aria-label={endereco1.street ? "Número e complemento" : "Rua, número e complemento"}
+                                required
                                 className="spanTwo"
                             />
                         </div>
@@ -368,8 +368,9 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="complement2"
-                                placeholder="Complemento"
-                                aria-label="Segundo endereço: complemento"
+                                placeholder={endereco2.street ? "Número, complemento (ex.: 42, Apto 2)" : "Rua, número, complemento"}
+                                aria-label="Segundo endereço: rua, número e complemento"
+                                required={!semSegundoEndereco}
                                 disabled={semSegundoEndereco}
                                 className="spanTwo"
                             />

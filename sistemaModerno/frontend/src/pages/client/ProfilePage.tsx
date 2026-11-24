@@ -1,11 +1,26 @@
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import "./ProfilePage.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { obterPerfil, alterarPerfil, cadastrarEndereco, editarEndereco, removerEndereco, type Perfil, type DadosEndereco, type Idioma } from "../../services/usuarios";
+import { mensagemDeErro, naoAutenticado, obterSessao, salvarSessao } from "../../services/api";
+import UserBox from "../../components/client/UserBox";
+import SearchBox from "../../components/client/SearchBox";
+const idiomas: Record<string, Idioma> = { "Português": "pt-BR", "Inglês": "en", "Espanhol": "es" };
+const categorias: Record<string,string> = { Cachorro: "dogs", Gato: "cats", "Réptil": "reptiles", "Pássaro": "birds", Peixe: "fish" };
+function camposEndereco(e: Perfil["enderecos"][number] | undefined, numero: number) {
+    return { ["cidade"+numero]: e?.cidade ?? "", ["estado"+numero]: e?.estado ?? "", ["pais"+numero]: e?.pais ?? "Brasil",
+        ["cep"+numero]: e?.cep ?? "", ["complemento"+numero]: [e?.rua,e?.numero,e?.complemento].filter(Boolean).join(", ") };
+}
 
 function ProfilePage() {
+    const navigate = useNavigate();
+    const [perfil, setPerfil] = useState<Perfil | null>(null);
+    const [carregando, setCarregando] = useState(true);
+    const [salvando, setSalvando] = useState(false);
+    const [aviso, setAviso] = useState("");
 
     const [semSegundoEndereco, setSemSegundoEndereco] = useState(false);
     const [minhaLista, setMinhaLista] = useState(false);
@@ -39,18 +54,50 @@ function ProfilePage() {
         }));
     }
 
-    function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    const preencher = useCallback((p: Perfil) => {
+        setPerfil(p);
+        setSemSegundoEndereco(!p.enderecos[1]);
+        setMinhaLista(p.preferencias.minhaLista === true);
+        setMeuBanner(p.preferencias.meuBanner === true);
+        setFormData(atual => ({...atual, nome:p.nome, sobrenome:p.sobrenome, email:p.email, telefone:p.telefone ?? "",
+            ...camposEndereco(p.enderecos[0],1), ...camposEndereco(p.enderecos[1],2),
+            idioma:Object.keys(idiomas).find(k=>idiomas[k]===p.idiomaPreferencial) ?? "Português",
+            categoria:Object.keys(categorias).find(k=>categorias[k]===p.preferencias.categoriaFavorita) ?? "" }));
+    }, []);
+    useEffect(() => {
+        let ativo=true;
+        obterPerfil().then(p=>{if(ativo)preencher(p);}).catch(e=>{
+            if(ativo){if(naoAutenticado(e))navigate("/login");else setAviso(mensagemDeErro(e));}
+        }).finally(()=>{if(ativo)setCarregando(false);});
+        return ()=>{ativo=false;};
+    },[navigate,preencher]);
+
+    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-
-        const dados = {
-            ...formData,
-            semSegundoEndereco,
-            minhaLista,
-            meuBanner
+        if(!perfil||salvando)return;
+        const dadosEndereco = (n: 1|2): DadosEndereco => {
+            const [rua,numero,...complemento]=formData[("complemento"+n) as "complemento1"|"complemento2"].split(",").map(v=>v.trim());
+            if(!rua||!numero)throw new Error("Preencha o endereço "+n+" como Rua, número, complemento.");
+            const sufixo=String(n);
+            return {rua,numero,complemento:complemento.join(", "),bairro:perfil.enderecos[n-1]?.bairro ?? "",
+                cidade:formData[("cidade"+sufixo) as "cidade1"|"cidade2"],estado:formData[("estado"+sufixo) as "estado1"|"estado2"],
+                pais:formData[("pais"+sufixo) as "pais1"|"pais2"],cep:formData[("cep"+sufixo) as "cep1"|"cep2"]};
         };
-
-        console.log("Dados do perfil:", dados);
-        alert("Informações salvas com sucesso!");
+        try {
+            // Valida os dois antes de iniciar as gravações.
+            const primeiro=dadosEndereco(1), segundo=semSegundoEndereco?null:dadosEndereco(2);
+            setSalvando(true);setAviso("");
+            if(perfil.enderecos[0])await editarEndereco(perfil.enderecos[0].id,primeiro);else await cadastrarEndereco(primeiro);
+            if(segundo){if(perfil.enderecos[1])await editarEndereco(perfil.enderecos[1].id,segundo);else await cadastrarEndereco(segundo);}
+            else if(perfil.enderecos[1])await removerEndereco(perfil.enderecos[1].id);
+            const atualizado=await alterarPerfil({nome:formData.nome,sobrenome:formData.sobrenome,email:formData.email,telefone:formData.telefone,
+                idiomaPreferencial:idiomas[formData.idioma],preferencias:{...perfil.preferencias,minhaLista,meuBanner,categoriaFavorita:categorias[formData.categoria] ?? ""}});
+            preencher(atualizado);
+            const sessao=obterSessao();if(sessao)salvarSessao({...sessao,usuario:{...sessao.usuario,nome:atualizado.nome,email:atualizado.email}});
+            setAviso("Informações salvas com sucesso.");
+        }catch(falha){
+            if(naoAutenticado(falha))navigate("/login");else setAviso(falha instanceof Error && !('isAxiosError' in falha)?falha.message:mensagemDeErro(falha));
+        }finally{setSalvando(false);}
     }
 
     return (
@@ -68,19 +115,9 @@ function ProfilePage() {
 
                 <div className="profileHeaderActions">
 
-                    <div className="profileSearch">
-                        <input
-                            type="text"
-                            placeholder="Buscar"
-                        />
+                    <SearchBox />
 
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="m16 16 5 5" />
-                        </svg>
-                    </div>
-
-                    <Link to="/carrinho" className="profileHeaderIcon" aria-label="Carrinho">
+                    <Link to="/Cart" className="profileHeaderIcon" aria-label="Carrinho">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M2 3h2l2.5 12h11L21 7H5" />
                             <circle cx="9" cy="19" r="1.5" />
@@ -88,14 +125,7 @@ function ProfilePage() {
                         </svg>
                     </Link>
 
-                    <div className="profileUser">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="12" cy="8" r="4" />
-                            <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
-                        </svg>
-
-                        <span><strong>Nome:</strong> Fulano</span>
-                    </div>
+                    <UserBox />
 
                 </div>
 
@@ -105,7 +135,9 @@ function ProfilePage() {
 
                 <h1>Perfil</h1>
 
-                <form onSubmit={handleSubmit}>
+                {aviso && <p role="status">{aviso}</p>}
+                {carregando && <p role="status">Carregando perfil...</p>}
+                <form onSubmit={handleSubmit}><fieldset disabled={carregando || salvando || !perfil} style={{border:0,padding:0,margin:0,minWidth:0}}>
 
                     <section className="profileSection">
 
@@ -116,7 +148,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="nome"
-                                placeholder="Nome"
+                                placeholder="Nome" required
                                 value={formData.nome}
                                 onChange={handleChange}
                             />
@@ -124,7 +156,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="sobrenome"
-                                placeholder="Sobrenome"
+                                placeholder="Sobrenome" required
                                 value={formData.sobrenome}
                                 onChange={handleChange}
                             />
@@ -132,7 +164,7 @@ function ProfilePage() {
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Email"
+                                placeholder="Email" required
                                 value={formData.email}
                                 onChange={handleChange}
                             />
@@ -190,7 +222,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="complemento1"
-                                placeholder="Complemento"
+                                placeholder="Rua, número, complemento"
                                 value={formData.complemento1}
                                 onChange={handleChange}
                                 className="profileWideInput"
@@ -258,7 +290,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="complemento2"
-                                placeholder="Complemento"
+                                placeholder="Rua, número, complemento"
                                 value={formData.complemento2}
                                 onChange={handleChange}
                                 className="profileWideInput"
@@ -335,7 +367,7 @@ function ProfilePage() {
                         Salvar
                     </button>
 
-                </form>
+                </fieldset></form>
 
             </main>
 

@@ -88,6 +88,10 @@ public class UsuarioRepository {
                 usuarioId, enderecoId, banco.paraJson(dados));
     }
 
+    public void removerEndereco(UUID usuarioId, UUID enderecoId) {
+        banco.executar("jpetstore.fn_remover_endereco(?, ?)", usuarioId, enderecoId);
+    }
+
     private static String codigo(IdiomaEnum idioma) {
         return idioma != null ? idioma.getCodigo() : null;
     }

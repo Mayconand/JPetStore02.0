@@ -59,7 +59,7 @@ export function limparSessao(): void {
 // Envia o token em toda requisição, quando houver sessão.
 api.interceptors.request.use((config) => {
     const sessao = obterSessao();
-    if (sessao) {
+    if (sessao && config.url !== "/api/auth/login") {
         config.headers.Authorization = `Bearer ${sessao.token}`;
     }
     return config;

@@ -3,9 +3,32 @@ import "./DetailsPayment.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { obterPedido, STATUS_PEDIDO, type Pedido } from "../../services/pedidos";
+import { obterPerfil, type Perfil, type DadosEndereco } from "../../services/usuarios";
+import { mensagemDeErro, naoAutenticado } from "../../services/api";
+import SearchBox from "../../components/client/SearchBox";
+import UserBox from "../../components/client/UserBox";
+const moeda=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const rua=(e:DadosEndereco|null)=>e?[e.rua,e.numero,e.complemento].filter(Boolean).join(", "):"Não informado";
 
 function DetailsPayment() {
+    const navigate=useNavigate();
+    const [params]=useSearchParams();const id=params.get("id");
+    const [pedido,setPedido]=useState<Pedido|null>(null);
+    const [perfil,setPerfil]=useState<Perfil|null>(null);
+    const [aviso,setAviso]=useState("");
+    useEffect(()=>{
+        if(!id){navigate("/Orders",{replace:true});return;}
+        let ativo=true;
+        Promise.all([obterPedido(id),obterPerfil()]).then(([p,u])=>{if(ativo){setPedido(p);setPerfil(u);}})
+            .catch(e=>{if(ativo){if(naoAutenticado(e))navigate("/login");else setAviso(mensagemDeErro(e));}});
+        return ()=>{ativo=false;};
+    },[id,navigate]);
+    if(!pedido)return <div className="container"><p role="status">{aviso||"Carregando pedido..."}</p><Link to="/Orders">Voltar aos pedidos</Link></div>;
+    const cobranca=pedido.enderecoCobranca, entrega=pedido.enderecoEntrega;
+    const pagamento=pedido.pagamento;
 
     return (
 
@@ -14,7 +37,7 @@ function DetailsPayment() {
 
             <header className="headerClient">
 
-                <Link to="/" className="logoLink">
+                <Link to="/HomeClient" className="logoLink">
 
                     <img
                         src={logo}
@@ -26,41 +49,10 @@ function DetailsPayment() {
 
                 <nav className="headerNav">
 
-                    <div className="searchBox">
-
-                        <input
-                            type="text"
-                            placeholder="Buscar"
-                            aria-label="Buscar animais"
-                        />
-
-                        <button type="button" aria-label="Pesquisar">
-
-                            <svg viewBox="0 0 24 24" fill="none">
-
-                                <circle
-                                    cx="10.8"
-                                    cy="10.8"
-                                    r="6.8"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                />
-
-                                <path
-                                    d="M16 16L21 21"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-
-                            </svg>
-
-                        </button>
-
-                    </div>
+                    <SearchBox />
 
                     <Link
-                        to="/carrinho"
+                        to="/Cart"
                         className="headerIcon"
                         aria-label="Carrinho"
                     >
@@ -82,32 +74,7 @@ function DetailsPayment() {
 
                     </Link>
 
-                    <div className="userBox">
-
-                        <svg viewBox="0 0 24 24" fill="none">
-
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                            />
-
-                            <path
-                                d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                            />
-
-                        </svg>
-
-                        <span>
-                            <strong>Nome:</strong> Fulano
-                        </span>
-
-                    </div>
+                    <UserBox />
 
                 </nav>
 
@@ -121,13 +88,13 @@ function DetailsPayment() {
 
                     <div className="detailsHeader">
 
-                        <h2>Detalhes do pedido</h2>
+                        <h2>Detalhes do pedido</h2><Link to="/Orders">← Meus pedidos</Link>
 
                         <div className="orderCode">
 
                             <span>Código do pedido</span>
 
-                            <strong>Nº 1000</strong>
+                            <strong>#{pedido.id.slice(0,8)}</strong>
 
                         </div>
 
@@ -135,7 +102,7 @@ function DetailsPayment() {
 
                             <span>Status</span>
 
-                            <strong>Preparação</strong>
+                            <strong>{STATUS_PEDIDO[pedido.status]}</strong>
 
                         </div>
 
@@ -147,25 +114,13 @@ function DetailsPayment() {
                         <h3>Detalhes do pagamento:</h3>
 
                         <div className="paymentDetails">
-
-                            <div className="paymentInfo">
-
-                                <p>
-                                    Bandeira do cartão: <strong>Visa</strong>
-                                </p>
-
-                                <p>
-                                    Número do cartão: <strong>0000 0000 0000 0000</strong>
-                                </p>
-
-                            </div>
-
-                            <p className="expirationDate">
-                                Data de vencimento: <strong>00/00</strong>
-                            </p>
-
+                            {pagamento ? <div className="paymentInfo">
+                                <p>Forma: <strong>{pagamento.forma==="CARTAO_CREDITO"?"Cartão de crédito":pagamento.forma==="PIX"?"Pix":"Boleto"}</strong></p>
+                                {pagamento.ultimosDigitos && <p>Cartão: <strong>{pagamento.bandeira} •••• {pagamento.ultimosDigitos}</strong></p>}
+                                <p>Data: <strong>{new Date(pagamento.dataPagamento).toLocaleString("pt-BR")}</strong></p>
+                                <p>Valor: <strong>{moeda(pagamento.valor)}</strong></p><p>Pagamento de demonstração.</p>
+                            </div>:<p>Nenhum pagamento registrado.</p>}
                         </div>
-
                     </section>
 
 
@@ -179,39 +134,39 @@ function DetailsPayment() {
                             <div className="addressRow">
 
                                 <p>
-                                    Nome: <strong>ABC</strong>
+                                    Nome: <strong>{perfil?.nome ?? ""}</strong>
                                 </p>
 
                                 <p>
-                                    Sobrenome: <strong>XYZ</strong>
+                                    Sobrenome: <strong>{perfil?.sobrenome ?? ""}</strong>
                                 </p>
 
                             </div>
 
                             <p>
-                                Endereço 1: <strong>XXX,XXXX,XXXXXXXXXXXXXXX</strong>
+                                Endereço: <strong>{cobranca ? rua(cobranca) : "Não informado"}</strong>
                             </p>
 
                             <p>
-                                Endereço 2: <strong>YYY,YYYY,YYYYYYYYYYYYYYYYYYYY</strong>
+                                Bairro: <strong>{cobranca?.bairro || "—"}</strong>
                             </p>
 
                             <div className="addressRow addressLocation">
 
                                 <p>
-                                    Cidade: <strong>ABC</strong>
+                                    Cidade: <strong>{cobranca?.cidade || "—"}</strong>
                                 </p>
 
                                 <p>
-                                    Estado: <strong>ABC</strong>
+                                    Estado: <strong>{cobranca?.estado || "—"}</strong>
                                 </p>
 
                                 <p>
-                                    CEP: <strong>00000-000</strong>
+                                    CEP: <strong>{cobranca?.cep || "—"}</strong>
                                 </p>
 
                                 <p>
-                                    País: <strong>ABC</strong>
+                                    País: <strong>{cobranca?.pais || "—"}</strong>
                                 </p>
 
                             </div>
@@ -231,39 +186,39 @@ function DetailsPayment() {
                             <div className="addressRow">
 
                                 <p>
-                                    Nome: <strong>ABC</strong>
+                                    Nome: <strong>{perfil?.nome ?? ""}</strong>
                                 </p>
 
                                 <p>
-                                    Sobrenome: <strong>XYZ</strong>
+                                    Sobrenome: <strong>{perfil?.sobrenome ?? ""}</strong>
                                 </p>
 
                             </div>
 
                             <p>
-                                Endereço 1: <strong>XXX,XXXX,XXXXXXXXXXXXXXX</strong>
+                                Endereço: <strong>{entrega ? rua(entrega) : "Retirada na loja"}</strong>
                             </p>
 
                             <p>
-                                Endereço 2: <strong>YYY,YYYY,YYYYYYYYYYYYYYYYYYYY</strong>
+                                Bairro: <strong>{entrega?.bairro || "—"}</strong>
                             </p>
 
                             <div className="addressRow addressLocation">
 
                                 <p>
-                                    Cidade: <strong>ABC</strong>
+                                    Cidade: <strong>{entrega?.cidade || "—"}</strong>
                                 </p>
 
                                 <p>
-                                    Estado: <strong>ABC</strong>
+                                    Estado: <strong>{entrega?.estado || "—"}</strong>
                                 </p>
 
                                 <p>
-                                    CEP: <strong>00000-000</strong>
+                                    CEP: <strong>{entrega?.cep || "—"}</strong>
                                 </p>
 
                                 <p>
-                                    País: <strong>ABC</strong>
+                                    País: <strong>{entrega?.pais || "—"}</strong>
                                 </p>
 
                             </div>
@@ -295,12 +250,7 @@ function DetailsPayment() {
 
                                 <tbody>
 
-                                    <tr>
-                                        <td>ABC</td>
-                                        <td>Medio</td>
-                                        <td>XXXXXXXX</td>
-                                        <td>R$ 4.000</td>
-                                    </tr>
+                                    {pedido.itens.map(item=><tr key={item.animalId}><td>{item.nome}</td><td>{item.porte ?? "—"}</td><td>{item.raca ?? "—"}</td><td>{moeda(item.precoUnitario)}</td></tr>)}
 
                                 </tbody>
 
@@ -309,7 +259,7 @@ function DetailsPayment() {
                                     <tr>
                                         <td colSpan={4}>
                                             <span>Total:</span>
-                                            <strong>R$ 4.000</strong>
+                                            <strong>{moeda(pedido.valorTotal)}</strong>
                                         </td>
                                     </tr>
 

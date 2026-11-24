@@ -16,6 +16,8 @@ public record PedidoResponse(
         StatusPedidoEnum status,
         ModalidadeEntregaEnum modalidade,
         DadosEndereco enderecoEntrega,
+        DadosEndereco enderecoCobranca,
+        Pagamento pagamento,
         String cupom,
         BigDecimal valorItens,
         BigDecimal valorDesconto,
@@ -23,6 +25,10 @@ public record PedidoResponse(
         OffsetDateTime canceladoEm,
         List<Item> itens) {
 
-    public record Item(UUID animalId, String nome, BigDecimal precoUnitario, String imagemUrl) {
+    public record Item(UUID animalId, String nome, BigDecimal precoUnitario, String imagemUrl, String raca, String porte) {
+    }
+
+    public record Pagamento(String forma, String status, BigDecimal valor, OffsetDateTime dataPagamento,
+                            String bandeira, String ultimosDigitos) {
     }
 }

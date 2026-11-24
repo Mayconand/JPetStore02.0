@@ -80,6 +80,15 @@ export async function editarEndereco(id: string, dados: DadosEndereco): Promise<
     await api.put(`/api/usuarios/me/enderecos/${id}`, dados);
 }
 
+export async function removerEndereco(id: string): Promise<void> {
+    await api.delete(`/api/usuarios/me/enderecos/${id}`);
+}
+
+export async function cadastrarCartao(dados: { numero: string; nomeTitular: string; dataValidade: string; bandeira: string }): Promise<string> {
+    const { data } = await api.post<{ id: string }>("/api/usuarios/me/cartoes", dados);
+    return data.id;
+}
+
 /** RF05 — Alterar senha. */
 export async function alterarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
     await api.put("/api/usuarios/me/senha", { senhaAtual, novaSenha });
