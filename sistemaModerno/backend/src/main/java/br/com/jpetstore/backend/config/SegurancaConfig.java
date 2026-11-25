@@ -46,7 +46,7 @@ public class SegurancaConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/usuarios").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/animais", "/api/animais/**", "/api/rodape", "/api/ajuda").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/animais", "/api/animais/**", "/api/ajuda").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

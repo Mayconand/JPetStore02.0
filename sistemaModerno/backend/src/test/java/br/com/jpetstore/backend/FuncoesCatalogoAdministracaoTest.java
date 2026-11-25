@@ -152,22 +152,38 @@ class FuncoesCatalogoAdministracaoTest extends FuncoesBancoTestBase {
 
         @Test
         void desabilitarHabilitarEPersonalizarRodape() {
-            // O rodapé é uma configuração única e compartilhada: restaura o estado original no fim.
-            JsonNode original = jsonDe("jpetstore.fn_obter_rodape()");
-            try {
-                executar("jpetstore.fn_desabilitar_rodape()");
-                assertThat(jsonDe("jpetstore.fn_obter_rodape()").get("visivel").asBoolean()).isFalse();
+            UUID usuario = novoUsuario();
+            UUID outro = novoUsuario();
+            JsonNode padrao = jsonDe("jpetstore.fn_obter_rodape()");
+            assertThat(jsonDe("jpetstore.fn_obter_rodape(?)", usuario)).isEqualTo(padrao);
 
-                executar("jpetstore.fn_personalizar_rodape(?)", "<p>Novo rodapé</p>");
-                executar("jpetstore.fn_habilitar_rodape()");
+            JsonNode personalizado = jsonDe("jpetstore.fn_personalizar_rodape(?, ?)", usuario, "<p>Novo rodapé</p>");
+            assertThat(personalizado.get("visivel")).isEqualTo(padrao.get("visivel"));
+            executar("jpetstore.fn_desabilitar_rodape(?)", usuario);
+            assertThat(jsonDe("jpetstore.fn_obter_rodape(?)", usuario).get("conteudoHtml").asString())
+                    .isEqualTo("<p>Novo rodapé</p>");
+            personalizado = jsonDe("jpetstore.fn_personalizar_rodape(?, ?)", usuario, "<p>Atualizado</p>");
+            assertThat(personalizado.get("visivel").asBoolean()).isFalse();
+            executar("jpetstore.fn_habilitar_rodape(?)", usuario);
 
-                JsonNode rodape = jsonDe("jpetstore.fn_obter_rodape()");
-                assertThat(rodape.get("visivel").asBoolean()).isTrue();
-                assertThat(rodape.get("conteudoHtml").asString()).isEqualTo("<p>Novo rodapé</p>");
-            } finally {
-                executar("jpetstore.fn_personalizar_rodape(?)", original.get("conteudoHtml").asString(null));
-                executar(original.get("visivel").asBoolean() ? "jpetstore.fn_habilitar_rodape()" : "jpetstore.fn_desabilitar_rodape()");
-            }
+            JsonNode rodape = jsonDe("jpetstore.fn_obter_rodape(?)", usuario);
+            assertThat(rodape.get("visivel").asBoolean()).isTrue();
+            assertThat(rodape.get("conteudoHtml").asString()).isEqualTo("<p>Atualizado</p>");
+            assertThat(jsonDe("jpetstore.fn_obter_rodape(?)", outro)).isEqualTo(padrao);
+            assertThat(jsonDe("jpetstore.fn_obter_rodape()")).isEqualTo(padrao);
+        }
+
+        @Test
+        void rodapeRecusaUsuarioInexistente() {
+            UUID inexistente = UUID.randomUUID();
+            deveFalhar("JP404", "USUARIO_NAO_ENCONTRADO",
+                    () -> jsonDe("jpetstore.fn_obter_rodape(?)", inexistente));
+            deveFalhar("JP404", "USUARIO_NAO_ENCONTRADO",
+                    () -> executar("jpetstore.fn_desabilitar_rodape(?)", inexistente));
+            deveFalhar("JP404", "USUARIO_NAO_ENCONTRADO",
+                    () -> executar("jpetstore.fn_habilitar_rodape(?)", inexistente));
+            deveFalhar("JP404", "USUARIO_NAO_ENCONTRADO",
+                    () -> executar("jpetstore.fn_personalizar_rodape(?, ?)", inexistente, "<p>Inválido</p>"));
         }
     }
 

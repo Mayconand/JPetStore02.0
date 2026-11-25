@@ -8,6 +8,8 @@ versionadas em `supabase/migrations/`, aplicadas em ordem:
 | `20261110120000_schema.sql` | schema `jpetstore`, tipos (enums), tabelas, índices e RLS |
 | `20261110120100_funcoes.sql` | funções de banco para todos os requisitos funcionais (RF01–RF30) |
 | `20261110120200_seed.sql` | espécies, raças (inspiradas no legado), animais de exemplo, usuários de desenvolvimento, cupom, rodapé e ajuda |
+| `20261124000000_completar_animais_arquivos.sql` | arquivos de imagens/laudos, galeria e medidas dos animais |
+| `20261124000100_rodape_por_usuario.sql` | configuração individual de rodapé por usuário (RF18–RF20) |
 
 Os dados e scripts originais do legado continuam em `sistemaLegado/db`.
 
@@ -33,6 +35,10 @@ Os dados e scripts originais do legado continuam em `sistemaLegado/db`.
 - **Pedido não é editado, só cancelado** (pelo dono, enquanto
   `AGUARDANDO_PAGAMENTO` ou `PAGO`).
 - **Cartão:** apenas os 4 últimos dígitos são armazenados.
+- **Rodapé:** `config_rodape_usuario` guarda visibilidade e conteúdo por conta.
+  As funções de RF18–RF20 recebem o UUID do usuário autenticado pelo backend.
+  Contas sem personalização usam o padrão de `config_rodape`; configurar uma
+  conta não altera esse padrão nem outra conta.
 
 ## Convenção de erros das funções
 
@@ -67,7 +73,7 @@ O backend converte isso automaticamente na resposta HTTP
 | RF15 / RF21 Endereços | `fn_cadastrar_endereco`, `fn_cadastrar_endereco_alternativo`, `fn_listar_enderecos`, `fn_editar_endereco`, `fn_remover_endereco`, `fn_definir_endereco_principal` |
 | RF16 Visualizar Animal | `fn_obter_animal` |
 | RF17 Tags | `fn_buscar_tags` |
-| RF18 / RF19 / RF20 Rodapé | `fn_desabilitar_rodape`, `fn_habilitar_rodape`, `fn_personalizar_rodape`, `fn_obter_rodape` |
+| RF18 / RF19 / RF20 Rodapé | `fn_desabilitar_rodape(usuario_id)`, `fn_habilitar_rodape(usuario_id)`, `fn_personalizar_rodape(usuario_id, conteudo_html)`, `fn_obter_rodape(usuario_id)` |
 | RF22 Ajuda | `fn_listar_ajuda` |
 | RF23 / RF27 / RF28 Animais (admin) | `fn_cadastrar_animal`, `fn_editar_animal`, `fn_excluir_animal` |
 | RF24 Raça | `fn_cadastrar_raca` |

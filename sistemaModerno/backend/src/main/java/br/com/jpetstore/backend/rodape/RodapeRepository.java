@@ -4,6 +4,8 @@ import br.com.jpetstore.backend.comum.FuncoesBanco;
 import br.com.jpetstore.backend.rodape.dto.RodapeResponse;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
 public class RodapeRepository {
     private final FuncoesBanco banco;
@@ -12,19 +14,19 @@ public class RodapeRepository {
         this.banco = banco;
     }
 
-    public RodapeResponse obter() {
-        return banco.json("jpetstore.fn_obter_rodape()", RodapeResponse.class);
+    public RodapeResponse obter(UUID usuarioId) {
+        return banco.json("jpetstore.fn_obter_rodape(?)", RodapeResponse.class, usuarioId);
     }
 
-    public RodapeResponse habilitar() {
-        return banco.json("jpetstore.fn_habilitar_rodape()", RodapeResponse.class);
+    public RodapeResponse habilitar(UUID usuarioId) {
+        return banco.json("jpetstore.fn_habilitar_rodape(?)", RodapeResponse.class, usuarioId);
     }
 
-    public RodapeResponse desabilitar() {
-        return banco.json("jpetstore.fn_desabilitar_rodape()", RodapeResponse.class);
+    public RodapeResponse desabilitar(UUID usuarioId) {
+        return banco.json("jpetstore.fn_desabilitar_rodape(?)", RodapeResponse.class, usuarioId);
     }
 
-    public RodapeResponse personalizar(String conteudoHtml) {
-        return banco.json("jpetstore.fn_personalizar_rodape(?)", RodapeResponse.class, conteudoHtml);
+    public RodapeResponse personalizar(UUID usuarioId, String conteudoHtml) {
+        return banco.json("jpetstore.fn_personalizar_rodape(?, ?)", RodapeResponse.class, usuarioId, conteudoHtml);
     }
 }

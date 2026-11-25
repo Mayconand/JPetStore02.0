@@ -88,10 +88,10 @@ schema (`ddl-auto=validate`), nunca o altera.
 | POST | `/api/pedidos/{id}/pagamento` `{forma, cartaoId}` | RF14 Pagamento simulado | logado (dono) |
 | POST | `/api/pedidos/{id}/cancelar` | Cancelar pedido | logado (dono) |
 | GET | `/api/admin/acesso` | RNF05 Controle de Acesso | ADMIN |
-| GET | `/api/rodape` | Consultar visibilidade e conteúdo do rodapé | público |
-| POST | `/api/admin/rodape/desabilitar` | RF18 Desabilitar footer | ADMIN |
-| POST | `/api/admin/rodape/habilitar` | RF19 Habilitar footer | ADMIN |
-| PUT | `/api/admin/rodape` `{conteudoHtml}` | RF20 Personalizar footer | ADMIN |
+| GET | `/api/rodape` | Consultar o próprio rodapé | logado |
+| POST | `/api/rodape/desabilitar` | RF18 Desabilitar o próprio footer | logado |
+| POST | `/api/rodape/habilitar` | RF19 Habilitar o próprio footer | logado |
+| PUT | `/api/rodape` `{conteudoHtml}` | RF20 Personalizar o próprio footer | logado |
 
 Erros seguem o formato `{ "codigo": "CARRINHO_VAZIO", "mensagem": "..." }`
 (validação: 400 com `campos`). A segurança usa o mesmo formato:
@@ -101,8 +101,8 @@ Idiomas aceitos: `pt-BR`, `en` e `es`. Senhas novas têm no mínimo 8 caracteres
 
 ## Compra de demonstração (RF11–RF20)
 
-As rotas usam as funções SQL que já existem no projeto. Não é necessário instalar
-outra dependência nem aplicar uma nova migration.
+Os fluxos de idioma e compra reutilizam as funções SQL existentes, sem novas
+dependências. O rodapé individual exige a migration descrita ao final desta seção.
 
 1. Selecione a preferência com `PUT /api/usuarios/me/idioma`, por exemplo
    `{"idiomaPreferencial":"en"}`. Isso salva a preferência; a tradução das telas
@@ -130,6 +130,13 @@ cancelado. Pedidos já pagos não aceitam outro pagamento.
 
 O detalhe do animal inclui raça, atributos da espécie, fotos, tags, laudos e
 orientações de cuidados. A busca de tags aceita trechos do nome e ignora acentos.
-O rodapé é uma configuração global: todos podem consultar, mas somente um
-administrador pode alterá-lo. As telas precisam consumir essas rotas para refletir
-as alterações na interface.
+O rodapé é uma configuração individual: cada usuário autenticado pode consultar,
+ocultar, reexibir e personalizar somente o seu, sem alterar o rodapé de outras
+contas. O usuário é identificado pelo JWT, sem receber um id no corpo ou na URL.
+As rotas não exigem papel ADMIN. O conteúdo aceita até 20.000 caracteres; mudar
+a visibilidade preserva o conteúdo, e personalizar preserva a visibilidade.
+
+Aplique a migration `20261124000100_rodape_por_usuario.sql` após as anteriores.
+Ela cria `config_rodape_usuario`; contas sem configuração usam o rodapé padrão
+existente. As antigas rotas `/api/admin/rodape/**` foram substituídas pelas rotas
+acima. O frontend precisa consumi-las para refletir as preferências na interface.

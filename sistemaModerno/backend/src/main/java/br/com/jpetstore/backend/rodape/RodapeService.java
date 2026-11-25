@@ -1,6 +1,5 @@
 package br.com.jpetstore.backend.rodape;
 
-import br.com.jpetstore.backend.admin.AdminService;
 import br.com.jpetstore.backend.rodape.dto.RodapeResponse;
 import org.springframework.stereotype.Service;
 
@@ -9,29 +8,24 @@ import java.util.UUID;
 @Service
 public class RodapeService {
     private final RodapeRepository repository;
-    private final AdminService admins;
 
-    public RodapeService(RodapeRepository repository, AdminService admins) {
+    public RodapeService(RodapeRepository repository) {
         this.repository = repository;
-        this.admins = admins;
     }
 
-    public RodapeResponse obter() {
-        return repository.obter();
+    public RodapeResponse obter(UUID usuarioId) {
+        return repository.obter(usuarioId);
     }
 
     public RodapeResponse habilitar(UUID usuarioId) {
-        admins.verificarAcesso(usuarioId);
-        return repository.habilitar();
+        return repository.habilitar(usuarioId);
     }
 
     public RodapeResponse desabilitar(UUID usuarioId) {
-        admins.verificarAcesso(usuarioId);
-        return repository.desabilitar();
+        return repository.desabilitar(usuarioId);
     }
 
     public RodapeResponse personalizar(UUID usuarioId, String conteudoHtml) {
-        admins.verificarAcesso(usuarioId);
-        return repository.personalizar(conteudoHtml);
+        return repository.personalizar(usuarioId, conteudoHtml);
     }
 }

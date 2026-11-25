@@ -17,24 +17,24 @@ public class RodapeController {
     }
 
     @GetMapping("/api/rodape")
-    public RodapeResponse obter() {
-        return service.obter();
+    public RodapeResponse obter(@AuthenticationPrincipal Jwt jwt) {
+        return service.obter(UsuarioAutenticado.id(jwt));
     }
 
-    /** RF18 — Somente um administrador pode alterar o rodapé da plataforma. */
-    @PostMapping("/api/admin/rodape/desabilitar")
+    /** RF18 — Oculta somente o rodapé do usuário autenticado. */
+    @PostMapping("/api/rodape/desabilitar")
     public RodapeResponse desabilitar(@AuthenticationPrincipal Jwt jwt) {
         return service.desabilitar(UsuarioAutenticado.id(jwt));
     }
 
     /** RF19 — Reexibe o rodapé, preservando seu conteúdo. */
-    @PostMapping("/api/admin/rodape/habilitar")
+    @PostMapping("/api/rodape/habilitar")
     public RodapeResponse habilitar(@AuthenticationPrincipal Jwt jwt) {
         return service.habilitar(UsuarioAutenticado.id(jwt));
     }
 
     /** RF20 — Altera o conteúdo, preservando a visibilidade atual. */
-    @PutMapping("/api/admin/rodape")
+    @PutMapping("/api/rodape")
     public RodapeResponse personalizar(@AuthenticationPrincipal Jwt jwt,
                                        @Valid @RequestBody PersonalizarRodapeRequest dados) {
         return service.personalizar(UsuarioAutenticado.id(jwt), dados.conteudoHtml());

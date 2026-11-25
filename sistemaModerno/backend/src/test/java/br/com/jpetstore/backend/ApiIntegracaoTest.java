@@ -640,45 +640,53 @@ class ApiIntegracaoTest {
         }
 
         @Test
-        void administradorPodeDesabilitarPersonalizarEHabilitarRodape() throws Exception {
-            String admin = login(ADMIN_EMAIL, ADMIN_SENHA);
-            JsonNode original = corpo(enviar(get("/api/rodape"), null, null).andExpect(status().isOk()));
-            try {
-                assertThat(corpo(enviar(post("/api/admin/rodape/desabilitar"), admin, null)
-                        .andExpect(status().isOk())).get("visivel").asBoolean()).isFalse();
-                JsonNode personalizado = corpo(enviar(put("/api/admin/rodape"), admin,
-                        Map.of("conteudoHtml", "<p>JPetStore - Contato</p>")).andExpect(status().isOk()));
-                assertThat(personalizado.get("visivel").asBoolean()).isFalse();
-                assertThat(corpo(enviar(post("/api/admin/rodape/habilitar"), admin, null)
-                        .andExpect(status().isOk())).get("visivel").asBoolean()).isTrue();
-                assertThat(corpo(enviar(get("/api/rodape"), null, null)).get("conteudoHtml").asString())
-                        .isEqualTo("<p>JPetStore - Contato</p>");
-            } finally {
-                jdbc.query("select jpetstore.fn_personalizar_rodape(?)", rs -> { },
-                        original.get("conteudoHtml").isNull() ? null : original.get("conteudoHtml").asString());
-                jdbc.query("select jpetstore.fn_definir_visibilidade_rodape(?)", rs -> { }, original.get("visivel").asBoolean());
-            }
+        void clientePodeConfigurarSeuRodapeSemAfetarOutraConta() throws Exception {
+            Cliente cliente = novoCliente();
+            Cliente outro = novoCliente();
+            JsonNode padrao = corpo(enviar(get("/api/rodape"), outro.token(), null).andExpect(status().isOk()));
+
+            assertThat(corpo(enviar(post("/api/rodape/desabilitar"), cliente.token(), null)
+                    .andExpect(status().isOk())).get("visivel").asBoolean()).isFalse();
+            JsonNode personalizado = corpo(enviar(put("/api/rodape"), cliente.token(),
+                    Map.of("conteudoHtml", "<p>Meu rodapé</p>")).andExpect(status().isOk()));
+            assertThat(personalizado.get("visivel").asBoolean()).isFalse();
+            assertThat(corpo(enviar(post("/api/rodape/habilitar"), cliente.token(), null)
+                    .andExpect(status().isOk())).get("visivel").asBoolean()).isTrue();
+            JsonNode salvo = corpo(enviar(get("/api/rodape"), cliente.token(), null).andExpect(status().isOk()));
+            assertThat(salvo.get("conteudoHtml").asString()).isEqualTo("<p>Meu rodapé</p>");
+            assertThat(salvo.get("atualizadoEm").isNull()).isFalse();
+            assertThat(corpo(enviar(get("/api/rodape"), outro.token(), null).andExpect(status().isOk())))
+                    .isEqualTo(padrao);
         }
 
         @Test
-        void rodapeExigeAdminAtualInclusiveParaTokenAntigo() throws Exception {
+        void rodapeExigeLoginEValidaConteudo() throws Exception {
             Cliente cliente = novoCliente();
+            enviar(get("/api/rodape"), null, null).andExpect(status().isUnauthorized());
             for (String acao : List.of("habilitar", "desabilitar")) {
-                enviar(post("/api/admin/rodape/" + acao), null, null).andExpect(status().isUnauthorized());
-                enviar(post("/api/admin/rodape/" + acao), cliente.token(), null).andExpect(status().isForbidden());
+                enviar(post("/api/rodape/" + acao), null, null).andExpect(status().isUnauthorized());
             }
-            enviar(put("/api/admin/rodape"), cliente.token(), Map.of("conteudoHtml", "alterado"))
-                    .andExpect(status().isForbidden());
-            UUID usuarioId = jdbc.queryForObject("select usuario_id from jpetstore.endereco where id = ?", UUID.class,
-                    cliente.enderecoId());
-            jdbc.update("update jpetstore.usuario set papel = 'ADMIN' where id = ?", usuarioId);
-            String email = jdbc.queryForObject("select email from jpetstore.usuario where id = ?", String.class, usuarioId);
-            String tokenAdmin = login(email, "SenhaForte1");
-            jdbc.update("update jpetstore.usuario set papel = 'CLIENTE' where id = ?", usuarioId);
-            enviar(post("/api/admin/rodape/habilitar"), tokenAdmin, null).andExpect(status().isForbidden());
-            enviar(post("/api/admin/rodape/desabilitar"), tokenAdmin, null).andExpect(status().isForbidden());
-            enviar(put("/api/admin/rodape"), tokenAdmin, Map.of("conteudoHtml", "alterado"))
-                    .andExpect(status().isForbidden());
+            enviar(put("/api/rodape"), null, Map.of("conteudoHtml", "alterado")).andExpect(status().isUnauthorized());
+            JsonNode original = corpo(enviar(get("/api/rodape"), cliente.token(), null).andExpect(status().isOk()));
+            enviar(put("/api/rodape"), cliente.token(), Map.of()).andExpect(status().isBadRequest());
+            enviar(put("/api/rodape"), cliente.token(), Map.of("conteudoHtml", "x".repeat(20001)))
+                    .andExpect(status().isBadRequest());
+            assertThat(corpo(enviar(get("/api/rodape"), cliente.token(), null).andExpect(status().isOk())))
+                    .isEqualTo(original);
+        }
+
+        @Test
+        void administradorConfiguraSomenteSeuRodapeTambem() throws Exception {
+            Cliente cliente = novoCliente();
+            JsonNode original = corpo(enviar(get("/api/rodape"), cliente.token(), null).andExpect(status().isOk()));
+            String admin = login(ADMIN_EMAIL, ADMIN_SENHA);
+            enviar(put("/api/rodape"), admin, Map.of("conteudoHtml", "<p>Rodapé do admin</p>"))
+                    .andExpect(status().isOk());
+            enviar(post("/api/rodape/desabilitar"), admin, null).andExpect(status().isOk());
+            assertThat(corpo(enviar(get("/api/rodape"), admin, null).andExpect(status().isOk()))
+                    .get("visivel").asBoolean()).isFalse();
+            assertThat(corpo(enviar(get("/api/rodape"), cliente.token(), null).andExpect(status().isOk())))
+                    .isEqualTo(original);
         }
 
         @Test
