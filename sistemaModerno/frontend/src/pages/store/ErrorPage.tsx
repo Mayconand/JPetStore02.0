@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 
 import "./ErrorPage.css";
 
@@ -30,10 +31,10 @@ function ErrorPage() {
 
                 <div id="conteinerTitulo">
                     <h1>ERR</h1>
-                    <img src={imgErro} alt="Cachorro triste" className="imgErro"/>
+                    <img src={imgErro} alt={t("Cachorro triste")} className="imgErro"/>
                 </div>
 
-                <h2>Opa... Algo deu errado...</h2>
+                <h2>{t("Opa... Algo deu errado...")}</h2>
                 
 
             </main>

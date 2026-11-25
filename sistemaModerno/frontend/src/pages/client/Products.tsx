@@ -1,3 +1,4 @@
+import { t, idiomaAtual } from "../../services/idioma";
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./Products.css";
@@ -32,23 +33,10 @@ const FAIXAS_PRECO: Record<string, { precoMin?: number; precoMax?: number }> = {
     "1000+": { precoMin: 1000 }
 };
 
-/** Faixa etária a partir da data de nascimento (filtro "Idade", aplicado na página carregada). */
-function faixaEtaria(dataNascimento: string | null): string {
-    if (!dataNascimento) return "";
-    const anos = (Date.now() - new Date(`${dataNascimento}T00:00:00`).getTime()) / (365.25 * 24 * 3600 * 1000);
-    if (anos < 1) return "Filhote";
-    if (anos < 3) return "Jovem";
-    if (anos < 8) return "Adulto";
-    return "Idoso";
-}
-
-
-
-
 /** A chave recomeça os filtros ao trocar de espécie: sem ela, a raça anterior continuaria filtrando escondida. */
 function Products() {
     const [parametros] = useSearchParams();
-    return <Catalogo key={parametros.get("tipo") ?? ""} />;
+    return <Catalogo key={JSON.stringify([parametros.get("tipo"), parametros.get("raca")])} />;
 }
 
 function Catalogo() {
@@ -93,14 +81,14 @@ function Catalogo() {
     const rotuloDaRaca = tipoAnimal === "Cachorro" || tipoAnimal === "Gato" ? "Raça" : "Espécie";
     const racas = useRacasDoCatalogo(tipoAnimal);
 
-    const [racaEspecie, setRacaEspecie] = useState("");
+    const [racaEspecie, setRacaEspecie] = useState(searchParams.get("raca") ?? "");
     const [idade, setIdade] = useState("");
     const [preco, setPreco] = useState("");
 
 
     // RF07 — Buscar Animais com os filtros da tela, paginado.
     // A página volta para a primeira sempre que um filtro muda.
-    const chaveFiltros = JSON.stringify([termo, tipoAnimal, racaEspecie, preco]);
+    const chaveFiltros = JSON.stringify([termo, tipoAnimal, racaEspecie, preco, idade]);
     const [paginacao, setPaginacao] = useState({ filtros: chaveFiltros, pagina: 0 });
     const pagina = paginacao.filtros === chaveFiltros ? paginacao.pagina : 0;
 
@@ -120,6 +108,7 @@ function Catalogo() {
             especie: tipoAnimal ?? undefined,
             raca: racaEspecie || undefined,
             ...FAIXAS_PRECO[preco],
+            idade: idade || undefined,
             page: pagina,
             size: TAMANHO_PAGINA
         })
@@ -135,14 +124,12 @@ function Catalogo() {
                 if (ativo) setResultado({ chave: chaveBusca, pets: [], totalPaginas: 0, erro: mensagemDeErro(erro) });
             });
         return () => { ativo = false; };
-    }, [chaveBusca, termo, tipoAnimal, racaEspecie, preco, pagina]);
+    }, [chaveBusca, termo, tipoAnimal, racaEspecie, preco, idade, pagina]);
 
     const carregando = resultado?.chave !== chaveBusca;
     const erroBusca = carregando ? "" : resultado.erro;
     const pets = carregando ? [] : resultado.pets;
     const totalPaginas = resultado?.totalPaginas ?? 0;
-    // "Idade" é calculada a partir do nascimento e filtra apenas a página carregada.
-    const petsFiltrados = idade ? pets.filter((pet) => faixaEtaria(pet.dataNascimento) === idade) : pets;
 
     // RF09 — Adicionar ao carrinho (exige login)
     const adicionarCarrinho = useAdicionarAoCarrinho();
@@ -166,7 +153,7 @@ function Catalogo() {
                         <Link
                             to="/Cart"
                             className="headerIcon"
-                            aria-label="Carrinho"
+                            aria-label={t("Carrinho")}
                         >
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path
@@ -189,14 +176,14 @@ function Catalogo() {
             </header>
 
             <main className="productsClient">
-                {imagemTitulo && (
+                {imagemTitulo && (idiomaAtual() === "pt-BR" ? (
                     <div className="tituloProdutos">
                         <img
                             src={imagemTitulo}
-                            alt={`Produtos para ${tipoAnimal}`}
+                            alt={t("Produtos para {tipo}", { tipo: t(tipoAnimal ?? "") })}
                         />
                     </div>
-                )}
+                ) : <h1>{t(tipoAnimal ?? "")}</h1>)}
 
                     <div className="filtrosCampos">
 
@@ -210,11 +197,11 @@ function Catalogo() {
                                         setRacaEspecie(event.target.value)
                                     }
                                 >
-                                    <option value="">{rotuloDaRaca}</option>
+                                    <option value="">{t(rotuloDaRaca)}</option>
 
                                     {racas.map((opcao) => (
                                         <option key={opcao} value={opcao}>
-                                            {opcao}
+                                            {t(opcao)}
                                         </option>
                                     ))}
 
@@ -230,11 +217,11 @@ function Catalogo() {
                                 value={idade}
                                 onChange={(event) => setIdade(event.target.value)}
                             >
-                                <option value="">Idade</option>
-                                <option value="Filhote">Filhote</option>
-                                <option value="Jovem">Jovem</option>
-                                <option value="Adulto">Adulto</option>
-                                <option value="Idoso">Idoso</option>
+                                <option value="">{t("Idade")}</option>
+                                <option value="Filhote">{t("Filhote")}</option>
+                                <option value="Jovem">{t("Jovem")}</option>
+                                <option value="Adulto">{t("Adulto")}</option>
+                                <option value="Idoso">{t("Idoso")}</option>
                             </select>
 
                         </div>
@@ -246,28 +233,28 @@ function Catalogo() {
                                 value={preco}
                                 onChange={(event) => setPreco(event.target.value)}
                             >
-                                <option value="">Faixa de preço</option>
-                                <option value="0-100">Até R$ 100</option>
-                                <option value="100-300">R$ 100 a R$ 300</option>
-                                <option value="300-500">R$ 300 a R$ 500</option>
-                                <option value="500-1000">R$ 500 a R$ 1.000</option>
-                                <option value="1000+">Acima de R$ 1.000</option>
+                                <option value="">{t("Faixa de preço")}</option>
+                                <option value="0-100">{t("Até R$ 100")}</option>
+                                <option value="100-300">{t("R$ 100 a R$ 300")}</option>
+                                <option value="300-500">{t("R$ 300 a R$ 500")}</option>
+                                <option value="500-1000">{t("R$ 500 a R$ 1.000")}</option>
+                                <option value="1000+">{t("Acima de R$ 1.000")}</option>
                             </select>
 
                         </div>
 
                     </div>
 
-                    {termo && <p>Resultados para "{termo}"</p>}
-                    {carregando && <p>Carregando animais...</p>}
-                    {erroBusca && <p role="alert">{erroBusca}</p>}
-                    {!carregando && !erroBusca && petsFiltrados.length === 0 && (
-                        <p>Nenhum animal encontrado com esses filtros.</p>
+                    {termo && <p>{t("Resultados para \"")}{termo}"</p>}
+                    {carregando && <p>{t("Carregando animais...")}</p>}
+                    {erroBusca && <p role="alert">{t(erroBusca)}</p>}
+                    {!carregando && !erroBusca && pets.length === 0 && (
+                        <p>{t("Nenhum animal encontrado com esses filtros.")}</p>
                     )}
 
                     <div className="petsGrid">
 
-                            {petsFiltrados.map((pet) => (
+                            {pets.map((pet) => (
 
                                 <article className="petCard" key={pet.id}>
 
@@ -291,23 +278,23 @@ function Catalogo() {
                                         <div className="petDetails">
 
                                             <p>
-                                                <strong>Raça:</strong> {pet.raca}
+                                                <strong>{t("Raça:")}</strong> {pet.raca}
                                             </p>
 
                                             <p>
-                                                <strong>Ficha:</strong>
+                                                <strong>{t("Ficha:")}</strong>
                                             </p>
 
                                             <p>
-                                                <strong>Nascimento:</strong> {pet.nascimento}
+                                                <strong>{t("Nascimento:")}</strong> {pet.nascimento}
                                             </p>
 
                                             <p>
-                                                <strong>Criador:</strong> Nome
+                                                <strong>{t("Criador:")}</strong>{" " + t("Nome")}
                                             </p>
 
                                             <p>
-                                                <strong>Proprietário:</strong> Nome
+                                                <strong>{t("Proprietário:")}</strong>{" " + t("Nome")}
                                             </p>
 
                                         </div>
@@ -315,7 +302,7 @@ function Catalogo() {
                                         <div className="petTags">
 
                                             <span className="tagTitle">
-                                                TAGs:
+                                                {t("TAGs:")}
                                             </span>
 
                                             <div className="tags">
@@ -345,7 +332,7 @@ function Catalogo() {
                                                 className="petLaudos"
                                                 onClick={() => abrirLaudo(pet)}
                                             >
-                                                Laudos
+                                                {t("Laudos")}
                                             </button>
 
                                             <button
@@ -367,7 +354,7 @@ function Catalogo() {
                                                     <circle cx="18" cy="20" r="1.5" fill="currentColor" />
                                                 </svg>
 
-                                                Adicionar ao carrinho
+                                                {t("Adicionar ao carrinho")}
 
                                             </button>
 
@@ -382,23 +369,23 @@ function Catalogo() {
                         </div>
 
                     {totalPaginas > 1 && (
-                        <nav className="paginacao" aria-label="Paginação dos resultados">
+                        <nav className="paginacao" aria-label={t("Paginação dos resultados")}>
                             <button
                                 type="button"
                                 onClick={() => irParaPagina(pagina - 1)}
                                 disabled={carregando || pagina === 0}
                             >
-                                Anterior
+                                {t("Anterior")}
                             </button>
 
-                            <span>Página {pagina + 1} de {totalPaginas}</span>
+                            <span>{t("Página") + " "}{pagina + 1}{" " + t("de") + " "}{totalPaginas}</span>
 
                             <button
                                 type="button"
                                 onClick={() => irParaPagina(pagina + 1)}
                                 disabled={carregando || pagina + 1 >= totalPaginas}
                             >
-                                Próxima
+                                {t("Próxima")}
                             </button>
                         </nav>
                     )}

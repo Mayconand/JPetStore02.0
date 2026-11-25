@@ -27,7 +27,8 @@ public class UsuarioRepository {
             rs.getString("nome"),
             rs.getString("email"),
             rs.getString("senha_hash"),
-            PapelEnum.valueOf(rs.getString("papel")));
+            PapelEnum.valueOf(rs.getString("papel")),
+            rs.getObject("versao_recuperacao", UUID.class));
 
     private final FuncoesBanco banco;
 
@@ -36,11 +37,17 @@ public class UsuarioRepository {
     }
 
     public Optional<Credenciais> buscarCredenciaisPorEmail(String email) {
-        return banco.linhas("jpetstore.fn_buscar_usuario_login(?)", CREDENCIAIS, email).stream().findFirst();
+        return banco.linhas("""
+                (select c.*, u.versao_recuperacao from jpetstore.fn_buscar_usuario_login(?) c
+                 join jpetstore.usuario u on u.id = c.id) credenciais
+                """, CREDENCIAIS, email).stream().findFirst();
     }
 
     public Optional<Credenciais> buscarCredenciaisPorId(UUID usuarioId) {
-        return banco.linhas("jpetstore.fn_buscar_usuario_por_id(?)", CREDENCIAIS, usuarioId).stream().findFirst();
+        return banco.linhas("""
+                (select c.*, u.versao_recuperacao from jpetstore.fn_buscar_usuario_por_id(?) c
+                 join jpetstore.usuario u on u.id = c.id) credenciais
+                """, CREDENCIAIS, usuarioId).stream().findFirst();
     }
 
     public UUID cadastrar(CadastroRequest dados, String senhaHash) {

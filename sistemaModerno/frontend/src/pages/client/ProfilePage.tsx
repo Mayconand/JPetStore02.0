@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import "./ProfilePage.css";
@@ -6,6 +7,9 @@ import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import { Link, useNavigate } from "react-router-dom";
 import { obterPerfil, alterarPerfil, cadastrarEndereco, editarEndereco, removerEndereco, type Perfil, type DadosEndereco, type Idioma } from "../../services/usuarios";
 import { mensagemDeErro, naoAutenticado, obterSessao, salvarSessao } from "../../services/api";
+import { definirIdioma } from "../../services/idioma";
+import ConfigurarRodape from "../../components/client/ConfigurarRodape";
+import AlteracaoSenha from "../../components/client/AlteracaoSenha";
 import UserBox from "../../components/client/UserBox";
 import SearchBox from "../../components/client/SearchBox";
 const idiomas: Record<string, Idioma> = { "Português": "pt-BR", "Inglês": "en", "Espanhol": "es" };
@@ -84,14 +88,21 @@ function ProfilePage() {
                 pais:formData[("pais"+sufixo) as "pais1"|"pais2"],cep:formData[("cep"+sufixo) as "cep1"|"cep2"]};
         };
         try {
-            // Valida os dois antes de iniciar as gravações.
-            const primeiro=dadosEndereco(1), segundo=semSegundoEndereco?null:dadosEndereco(2);
+            const mudouEndereco = (indice: number) =>
+                Object.entries(camposEndereco(perfil.enderecos[indice - 1], indice))
+                    .some(([campo, valor]) => formData[campo as keyof typeof formData] !== valor);
+            const primeiro = mudouEndereco(1) ? dadosEndereco(1) : null;
+            const segundo = !semSegundoEndereco && (!perfil.enderecos[1] || mudouEndereco(2)) ? dadosEndereco(2) : null;
             setSalvando(true);setAviso("");
-            if(perfil.enderecos[0])await editarEndereco(perfil.enderecos[0].id,primeiro);else await cadastrarEndereco(primeiro);
+            if (primeiro) {
+                if (perfil.enderecos[0]) await editarEndereco(perfil.enderecos[0].id, primeiro);
+                else await cadastrarEndereco(primeiro);
+            }
             if(segundo){if(perfil.enderecos[1])await editarEndereco(perfil.enderecos[1].id,segundo);else await cadastrarEndereco(segundo);}
-            else if(perfil.enderecos[1])await removerEndereco(perfil.enderecos[1].id);
+            else if(semSegundoEndereco && perfil.enderecos[1])await removerEndereco(perfil.enderecos[1].id);
             const atualizado=await alterarPerfil({nome:formData.nome,sobrenome:formData.sobrenome,email:formData.email,telefone:formData.telefone,
                 idiomaPreferencial:idiomas[formData.idioma],preferencias:{...perfil.preferencias,minhaLista,meuBanner,categoriaFavorita:categorias[formData.categoria] ?? ""}});
+            definirIdioma(atualizado.idiomaPreferencial);
             preencher(atualizado);
             const sessao=obterSessao();if(sessao)salvarSessao({...sessao,usuario:{...sessao.usuario,nome:atualizado.nome,email:atualizado.email}});
             setAviso("Informações salvas com sucesso.");
@@ -105,7 +116,7 @@ function ProfilePage() {
 
             <header className="headerClient profileHeader">
 
-                <Link to="/" className="logoLink">
+                <Link to="/HomeClient" className="logoLink">
                     <img
                         src={logo}
                         alt="Logo JPetStore"
@@ -117,7 +128,7 @@ function ProfilePage() {
 
                     <SearchBox />
 
-                    <Link to="/Cart" className="profileHeaderIcon" aria-label="Carrinho">
+                    <Link to="/Cart" className="profileHeaderIcon" aria-label={t("Carrinho")}>
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M2 3h2l2.5 12h11L21 7H5" />
                             <circle cx="9" cy="19" r="1.5" />
@@ -133,22 +144,22 @@ function ProfilePage() {
 
             <main className="ProfileMain">
 
-                <h1>Perfil</h1>
+                <h1>{t("Perfil")}</h1>
 
-                {aviso && <p role="status">{aviso}</p>}
-                {carregando && <p role="status">Carregando perfil...</p>}
+                {aviso && <p role="status">{t(aviso)}</p>}
+                {carregando && <p role="status">{t("Carregando perfil...")}</p>}
                 <form onSubmit={handleSubmit}><fieldset disabled={carregando || salvando || !perfil} style={{border:0,padding:0,margin:0,minWidth:0}}>
 
                     <section className="profileSection">
 
-                        <h2>Informações pessoais:</h2>
+                        <h2>{t("Informações pessoais:")}</h2>
 
                         <div className="profileGrid personalGrid">
 
                             <input
                                 type="text"
                                 name="nome"
-                                placeholder="Nome" required
+                                placeholder={t("Nome")} required
                                 value={formData.nome}
                                 onChange={handleChange}
                             />
@@ -156,7 +167,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="sobrenome"
-                                placeholder="Sobrenome" required
+                                placeholder={t("Sobrenome")} required
                                 value={formData.sobrenome}
                                 onChange={handleChange}
                             />
@@ -164,7 +175,7 @@ function ProfilePage() {
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Email" required
+                                placeholder={t("Email")} required
                                 value={formData.email}
                                 onChange={handleChange}
                             />
@@ -172,7 +183,7 @@ function ProfilePage() {
                             <input
                                 type="tel"
                                 name="telefone"
-                                placeholder="Telefone"
+                                placeholder={t("Telefone")}
                                 value={formData.telefone}
                                 onChange={handleChange}
                             />
@@ -183,14 +194,14 @@ function ProfilePage() {
 
                     <section className="profileSection">
 
-                        <h2 className="profileSubtitle">Endereço 1:</h2>
+                        <h2 className="profileSubtitle">{t("Endereço 1:")}</h2>
 
                         <div className="profileGrid addressGrid">
 
                             <input
                                 type="text"
                                 name="cidade1"
-                                placeholder="Cidade"
+                                placeholder={t("Cidade")}
                                 value={formData.cidade1}
                                 onChange={handleChange}
                             />
@@ -198,7 +209,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="estado1"
-                                placeholder="Estado"
+                                placeholder={t("Estado")}
                                 value={formData.estado1}
                                 onChange={handleChange}
                             />
@@ -206,7 +217,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="pais1"
-                                placeholder="País"
+                                placeholder={t("País")}
                                 value={formData.pais1}
                                 onChange={handleChange}
                             />
@@ -222,7 +233,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="complemento1"
-                                placeholder="Rua, número, complemento"
+                                placeholder={t("Rua, número, complemento")}
                                 value={formData.complemento1}
                                 onChange={handleChange}
                                 className="profileWideInput"
@@ -236,7 +247,7 @@ function ProfilePage() {
 
                         <div className="profileAddressHeader">
 
-                            <h2 className="profileSubtitle">Endereço 2:</h2>
+                            <h2 className="profileSubtitle">{t("Endereço 2:")}</h2>
 
                             <label className="profileCheckbox">
                                 <input
@@ -244,7 +255,7 @@ function ProfilePage() {
                                     checked={semSegundoEndereco}
                                     onChange={(e) => setSemSegundoEndereco(e.target.checked)}
                                 />
-                                <span>Não possui</span>
+                                <span>{t("Não possui")}</span>
                             </label>
 
                         </div>
@@ -254,7 +265,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="pais2"
-                                placeholder="País"
+                                placeholder={t("País")}
                                 value={formData.pais2}
                                 onChange={handleChange}
                                 disabled={semSegundoEndereco}
@@ -263,7 +274,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="estado2"
-                                placeholder="Estado"
+                                placeholder={t("Estado")}
                                 value={formData.estado2}
                                 onChange={handleChange}
                                 disabled={semSegundoEndereco}
@@ -272,7 +283,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="cidade2"
-                                placeholder="Cidade"
+                                placeholder={t("Cidade")}
                                 value={formData.cidade2}
                                 onChange={handleChange}
                                 disabled={semSegundoEndereco}
@@ -290,7 +301,7 @@ function ProfilePage() {
                             <input
                                 type="text"
                                 name="complemento2"
-                                placeholder="Rua, número, complemento"
+                                placeholder={t("Rua, número, complemento")}
                                 value={formData.complemento2}
                                 onChange={handleChange}
                                 className="profileWideInput"
@@ -303,12 +314,12 @@ function ProfilePage() {
 
                     <section className="profileSection profilePreferences">
 
-                        <h2>Preferências:</h2>
+                        <h2>{t("Preferências:")}</h2>
 
                         <div className="profilePreferencesContent">
 
                             <div className="profileSelectGroup">
-                                <label htmlFor="idioma">Idioma</label>
+                                <label htmlFor="idioma">{t("Idioma")}</label>
 
                                 <select
                                     id="idioma"
@@ -317,14 +328,14 @@ function ProfilePage() {
                                     onChange={handleChange}
                                 >
                                     <option value=""></option>
-                                    <option value="Português">Português</option>
-                                    <option value="Inglês">Inglês</option>
-                                    <option value="Espanhol">Espanhol</option>
+                                    <option value="Português">{t("Português")}</option>
+                                    <option value="Inglês">{t("Inglês")}</option>
+                                    <option value="Espanhol">{t("Espanhol")}</option>
                                 </select>
                             </div>
 
                             <div className="profileSelectGroup">
-                                <label htmlFor="categoria">Categoria favorita</label>
+                                <label htmlFor="categoria">{t("Categoria favorita")}</label>
 
                                 <select
                                     id="categoria"
@@ -333,11 +344,11 @@ function ProfilePage() {
                                     onChange={handleChange}
                                 >
                                     <option value=""></option>
-                                    <option value="Cachorro">Cachorro</option>
-                                    <option value="Gato">Gato</option>
-                                    <option value="Réptil">Réptil</option>
-                                    <option value="Pássaro">Pássaro</option>
-                                    <option value="Peixe">Peixe</option>
+                                    <option value="Cachorro">{t("Cachorro")}</option>
+                                    <option value="Gato">{t("Gato")}</option>
+                                    <option value="Réptil">{t("Réptil")}</option>
+                                    <option value="Pássaro">{t("Pássaro")}</option>
+                                    <option value="Peixe">{t("Peixe")}</option>
                                 </select>
                             </div>
 
@@ -347,7 +358,7 @@ function ProfilePage() {
                                     checked={minhaLista}
                                     onChange={(e) => setMinhaLista(e.target.checked)}
                                 />
-                                <span>Ativar Minha Lista</span>
+                                <span>{t("Ativar Minha Lista")}</span>
                             </label>
 
                             <label className="profileCheckbox preferenceCheckbox">
@@ -356,7 +367,7 @@ function ProfilePage() {
                                     checked={meuBanner}
                                     onChange={(e) => setMeuBanner(e.target.checked)}
                                 />
-                                <span>Ativar Meu Banner</span>
+                                <span>{t("Ativar Meu Banner")}<br /><small>{t("Esta opção usa sua categoria favorita.")}</small></span>
                             </label>
 
                         </div>
@@ -364,11 +375,12 @@ function ProfilePage() {
                     </section>
 
                     <button type="submit" className="profileSaveButton">
-                        Salvar
+                        {t("Salvar")}
                     </button>
 
                 </fieldset></form>
 
+                {perfil && <><AlteracaoSenha /><ConfigurarRodape /></>}
             </main>
 
         </div>

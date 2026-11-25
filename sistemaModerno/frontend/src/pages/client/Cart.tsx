@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 
 import "./Cart.css";
 
@@ -75,7 +76,7 @@ function Cart() {
         try {
             const dados = codigo ? await aplicarCupom(codigo) : await removerCupom();
             receber(dados);
-            alert(dados.cupom ? `Cupom aplicado: ${dados.cupom.percentualDesconto}% de desconto.` : "Cupom removido.");
+            alert(dados.cupom ? t("Cupom aplicado: {percentual}% de desconto.", { percentual: dados.cupom.percentualDesconto }) : t("Cupom removido."));
         } catch (e) {
             mostrarErro(e);
         }
@@ -111,7 +112,7 @@ function Cart() {
                     <Link
                         to="/Cart"
                         className="headerIcon"
-                        aria-label="Carrinho"
+                        aria-label={t("Carrinho")}
                     >
                         <svg viewBox="0 0 24 24" fill="none">
                             <path
@@ -135,16 +136,16 @@ function Cart() {
 
             <main className="cartMain">
 
-                <h1>Carrinho</h1>
+                <h1>{t("Carrinho")}</h1>
 
                 <div className="cartContent">
 
                     <section className="opcoesconteiner">
 
                         <div className="cartTableHeader">
-                            <span>Nome</span>
-                            <span>QTD.</span>
-                            <span>VALOR</span>
+                            <span>{t("Nome")}</span>
+                            <span>{t("QTD.")}</span>
+                            <span>{t("VALOR")}</span>
                             <span></span>
                         </div>
 
@@ -188,7 +189,7 @@ function Cart() {
                                     <button
                                         type="button"
                                         className="removeProduct"
-                                        aria-label={`Remover ${produto.nome}`}
+                                        aria-label={t("Remover {raca}", { raca: produto.nome })}
                                         onClick={() => void removerProduto(produto.id)}
                                     >
                                         <svg viewBox="0 0 24 24" fill="none">
@@ -209,7 +210,7 @@ function Cart() {
                         ) : (
 
                             <p className="emptyCart">
-                                Seu carrinho está vazio.
+                                {t("Seu carrinho está vazio.")}
                             </p>
 
                         )}
@@ -218,12 +219,12 @@ function Cart() {
 
                     <section className="resumoconteiner">
 
-                        <h2>Resumo</h2>
+                        <h2>{t("Resumo")}</h2>
 
                         <div className="deliveryOption">
 
                             <label htmlFor="entrega">
-                                Opção de Entrega:
+                                {t("Opção de Entrega:")}
                             </label>
 
                             <select
@@ -232,11 +233,11 @@ function Cart() {
                                 onChange={(e) => setEntrega(e.target.value)}
                             >
                                 <option value="local">
-                                    Retirar no local
+                                    {t("Retirar no local")}
                                 </option>
 
                                 <option value="entrega">
-                                    Entrega em domicílio
+                                    {t("Entrega em domicílio")}
                                 </option>
                             </select>
 
@@ -244,7 +245,7 @@ function Cart() {
 
                         <div className="subtotal">
 
-                            <span>Subtotal:</span>
+                            <span>{t("Subtotal:")}</span>
 
                             <span>{formatarPreco(subtotal)}</span>
 
@@ -253,7 +254,7 @@ function Cart() {
                         <div className="couponSection">
 
                             <label htmlFor="cupom">
-                                Cupom promocional:
+                                {t("Cupom promocional:")}
                             </label>
 
                             <div className="couponInput">
@@ -266,7 +267,7 @@ function Cart() {
                                 />
 
                                 <button type="button" onClick={() => void enviarCupom()}>
-                                    Aplicar
+                                    {t("Aplicar")}
                                 </button>
 
                             </div>
@@ -275,7 +276,7 @@ function Cart() {
 
                         <div className="total">
 
-                            <span>Total:</span>
+                            <span>{t("Total:")}</span>
 
                             <strong>{formatarPreco(total)}</strong>
 
@@ -287,7 +288,7 @@ function Cart() {
                             disabled={produtos.length === 0}
                             onClick={() => void finalizarPedido()}
                         >
-                            Finalizar o pedido
+                            {t("Finalizar o pedido")}
                         </button>
 
                     </section>

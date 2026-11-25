@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import "./DashboardAdm.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
@@ -10,7 +11,7 @@ import peixesAdm from "../../assets/imagens/animais/animais-Adm/peixes-Adm.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { mensagemDeErro, naoAutenticado, obterSessao } from "../../services/api";
-import { filtrarPedidos } from "../../services/lojaAdmin";
+import { alterarStatusPedido, filtrarPedidos } from "../../services/lojaAdmin";
 import type { PedidoAdmin } from "../../services/lojaAdmin";
 import type { StatusPedido } from "../../services/pedidos";
 
@@ -19,7 +20,7 @@ interface PedidoStatus {
   nome: string;
   horario: string;
   cliente: string;
-  status: string;
+  status: StatusPedido;
 }
 
 /** Status da API -> texto da tela. */
@@ -27,7 +28,7 @@ const STATUS: Record<StatusPedido, string> = {
   AGUARDANDO_PAGAMENTO: "Aguardando",
   PAGO: "Preparação",
   ENVIADO: "Enviado",
-  ENTREGUE: "Entrega",
+  ENTREGUE: "Entregue",
   CANCELADO: "Cancelado",
 };
 
@@ -40,10 +41,10 @@ function paraLinha(pedido: PedidoAdmin): PedidoStatus {
   const hora = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   return {
     id: pedido.id,
-    nome: pedido.animais,
+    nome: pedido.animais ?? "",
     horario: `${data.toLocaleDateString("pt-BR")} as ${hora}`,
     cliente: pedido.cliente,
-    status: STATUS[pedido.status],
+    status: pedido.status,
   };
 }
 
@@ -57,6 +58,25 @@ function DashboardAdm() {
   const [pedidos, setPedidos] = useState<PedidoStatus[]>([]);
   const [todos, setTodos] = useState<PedidoAdmin[]>([]);
 
+  const [revisao, setRevisao] = useState(0);
+  const [alterando, setAlterando] = useState<string | null>(null);
+  const [erro, setErro] = useState("");
+
+  async function avancarPedido(pedido: PedidoStatus) {
+    const proximo = pedido.status === "PAGO" ? "ENVIADO" : "ENTREGUE";
+    setAlterando(pedido.id);
+    setErro("");
+    try {
+      await alterarStatusPedido(pedido.id, proximo);
+    } catch (falha) {
+      if (naoAutenticado(falha)) navigate("/login");
+      else setErro(mensagemDeErro(falha));
+    } finally {
+      setRevisao(atual => atual + 1);
+      setAlterando(null);
+    }
+  }
+
   // Totais dos cards: não dependem do filtro.
   useEffect(() => {
     let ativo = true;
@@ -66,7 +86,7 @@ function DashboardAdm() {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [revisao]);
 
   // RF30 — o filtro de status é aplicado pela API.
   useEffect(() => {
@@ -81,7 +101,7 @@ function DashboardAdm() {
     return () => {
       ativo = false;
     };
-  }, [filtroStatus, navigate]);
+  }, [filtroStatus, navigate, revisao]);
 
   // Os cards contam os pedidos do status sobre os que não foram cancelados.
   const ativos = todos.filter((pedido) => pedido.status !== "CANCELADO").length;
@@ -112,8 +132,8 @@ function DashboardAdm() {
   });
 
   const getStatusClass = (status: PedidoStatus["status"]) => {
-    if (status === "Enviado") return "badge-enviado";
-    if (status === "Entrega") return "badge-entrega";
+    if (status === "ENVIADO") return "badge-enviado";
+    if (status === "ENTREGUE") return "badge-entrega";
     return "badge-preparacao";
   };
 
@@ -129,7 +149,7 @@ function DashboardAdm() {
           <button
             type="button"
             className="adm-bell-btn"
-            aria-label="Notificações"
+            aria-label={t("Notificações")}
           >
             <svg viewBox="0 0 24 24" fill="none">
               <path
@@ -166,7 +186,7 @@ function DashboardAdm() {
               />
             </svg>
             <span>
-              <strong>Nome:</strong> {obterSessao()?.usuario.nome}
+              <strong>{t("Nome:")}</strong> {obterSessao()?.usuario.nome}
             </span>
           </div>
         </div>
@@ -178,12 +198,12 @@ function DashboardAdm() {
           <div className="adm-search-box">
             <input
               type="text"
-              placeholder="Buscar"
+              placeholder={t("Buscar")}
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              aria-label="Buscar pedidos ou clientes"
+              aria-label={t("Buscar pedidos ou clientes")}
             />
-            <button type="button" aria-label="Pesquisar">
+            <button type="button" aria-label={t("Pesquisar")}>
               <svg viewBox="0 0 24 24" fill="none">
                 <circle
                   cx="10.8"
@@ -203,6 +223,7 @@ function DashboardAdm() {
           </div>
 
           <div className="adm-action-buttons">
+            <Link to="/adm/cupons" className="btn-adm btn-clientes">{t("Criar cupom")}</Link>
             <Link to="/adm/clientes" className="btn-adm btn-clientes">
               <svg viewBox="0 0 24 24" fill="none">
                 <circle
@@ -219,7 +240,7 @@ function DashboardAdm() {
                   strokeLinecap="round"
                 />
               </svg>
-              Ver clientes
+              {t("Ver clientes")}
             </Link>
 
             <div className="filter-wrapper">
@@ -237,14 +258,14 @@ function DashboardAdm() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                {filtroStatus === "Todos" ? "Filtrar" : filtroStatus}
+                {filtroStatus === "Todos" ? t("Filtrar") : t(filtroStatus)}
               </button>
 
               {mostrarFiltro && (
                 <div className="filter-dropdown">
-                  {["Todos", "Preparação", "Enviado", "Entrega"].map((st) => (
+                  {["Todos", ...Object.values(STATUS)].map((st) => (
                     <button
-                      key={st}
+                      key={t(st)}
                       type="button"
                       className={filtroStatus === st ? "active" : ""}
                       onClick={() => {
@@ -272,7 +293,7 @@ function DashboardAdm() {
                   strokeLinecap="round"
                 />
               </svg>
-              Adicionar
+              {t("Adicionar")}
             </button>
           </div>
         </section>
@@ -285,7 +306,7 @@ function DashboardAdm() {
               key={cat.id}
               className="category-card"
             >
-              <img src={cat.imagem} alt={cat.nome} />
+              <img src={cat.imagem} alt={t(cat.nome)} />
             </Link>
           ))}
         </section>
@@ -294,7 +315,7 @@ function DashboardAdm() {
 
         {/* Seção Pedidos */}
         <section className="adm-pedidos-section">
-          <h2>Pedidos</h2>
+          <h2>{t("Pedidos")}</h2>
 
           <div className="adm-pedidos-grid">
             {/* Card Em preparação */}
@@ -308,7 +329,7 @@ function DashboardAdm() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>Em preparação</span>
+                <span>{t("Em preparação")}</span>
               </div>
 
               <div className="pedido-card-middle">
@@ -316,7 +337,7 @@ function DashboardAdm() {
                   <strong>{contar("PAGO")}</strong>
                   <span>/ {ativos}</span>
                 </div>
-                <span className="pedido-sublabel">Em preparação</span>
+                <span className="pedido-sublabel">{t("Em preparação")}</span>
               </div>
 
               <div className="progress-track">
@@ -337,7 +358,7 @@ function DashboardAdm() {
                   <circle cx="5.5" cy="18.5" r="2" stroke="currentColor" strokeWidth="1.8" />
                   <circle cx="18.5" cy="18.5" r="2" stroke="currentColor" strokeWidth="1.8" />
                 </svg>
-                <span>Enviados</span>
+                <span>{t("Enviados")}</span>
               </div>
 
               <div className="pedido-card-middle">
@@ -363,7 +384,7 @@ function DashboardAdm() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>Entregues</span>
+                <span>{t("Entregues")}</span>
               </div>
 
               <div className="pedido-card-middle">
@@ -382,14 +403,15 @@ function DashboardAdm() {
 
         {/* Tabela Status de entregas */}
         <section className="adm-status-section">
-          <h2>Status de entregas</h2>
+          <h2>{t("Status de entregas")}</h2>
+          {erro && <p role="alert">{t(erro)}</p>}
 
           <div className="status-table-wrapper">
             <div className="status-table-header">
-              <span>Nome</span>
-              <span>Horario do pedido</span>
-              <span>Cliente</span>
-              <span>Status</span>
+              <span>{t("Nome")}</span>
+              <span>{t("Horario do pedido")}</span>
+              <span>{t("Cliente")}</span>
+              <span>{t("Status")}</span>
             </div>
 
             {pedidosFiltrados.length > 0 ? (
@@ -399,17 +421,19 @@ function DashboardAdm() {
                   <span className="col-horario">{pedido.horario}</span>
                   <span className="col-cliente">{pedido.cliente}</span>
                   <div className="col-status">
-                    <button
-                      type="button"
-                      className={`status-badge ${getStatusClass(pedido.status)}`}
-                    >
-                      {pedido.status}
-                    </button>
+                    <span className={`status-badge ${getStatusClass(pedido.status)}`}>
+                      {t(STATUS[pedido.status])}
+                    </span>
+                    {(pedido.status === "PAGO" || pedido.status === "ENVIADO") && (
+                      <button type="button" disabled={alterando !== null} onClick={() => avancarPedido(pedido)}>
+                        {pedido.status === "PAGO" ? t("Marcar como enviado") : t("Marcar como entregue")}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="status-empty">Nenhum pedido encontrado.</p>
+              <p className="status-empty">{t("Nenhum pedido encontrado.")}</p>
             )}
           </div>
         </section>
@@ -454,7 +478,7 @@ function DashboardAdm() {
               }}
             >
               <h2 style={{ margin: 0, fontSize: "18px", color: "#5b4338" }}>
-                O que você gostaria de adicionar?
+                {t("O que você gostaria de adicionar?")}
               </h2>
               <button
                 type="button"
@@ -492,7 +516,7 @@ function DashboardAdm() {
                     cursor: "pointer",
                   }}
                 >
-                  {opcao.nome}
+                  {t(opcao.nome)}
                 </button>
               ))}
             </div>

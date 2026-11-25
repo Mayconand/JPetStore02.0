@@ -14,5 +14,6 @@ public record BuscaAnimaisFiltro(
         UUID racaId,
         String raca,
         BigDecimal precoMin,
-        BigDecimal precoMax) {
+        BigDecimal precoMax,
+        String idade) {
 }

@@ -21,8 +21,12 @@ public class TokenRepository {
         banco.executar("jpetstore.fn_revogar_token(?, ?, ?)", jti, usuarioId, Timestamp.from(expiraEm));
     }
 
-    public boolean estaRevogado(String jti) {
-        return Boolean.TRUE.equals(banco.valor("jpetstore.fn_token_revogado(?)", Boolean.class, jti));
+    public boolean estaAtivo(String jti, UUID usuarioId, String versaoRecuperacao) {
+        return Boolean.TRUE.equals(banco.valor("""
+                exists (select 1 from jpetstore.usuario where id = ?
+                        and versao_recuperacao::text is not distinct from ?::text)
+                and not jpetstore.fn_token_revogado(?)
+                """, Boolean.class, usuarioId, versaoRecuperacao, jti));
     }
 
     /** Remove da lista os tokens que já expiraram; devolve quantos foram removidos. */

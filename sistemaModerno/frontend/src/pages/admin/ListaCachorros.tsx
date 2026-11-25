@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import "./ListaCategoria.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import cachorroAdm from "../../assets/imagens/animais/animais-Adm/cachorro-Adm.png";
@@ -32,7 +33,7 @@ function ListaCachorros() {
           </Link>
 
           <div className="lista-cat-user-area">
-            <button type="button" className="lista-cat-bell-btn" title="Notificações">
+            <button type="button" className="lista-cat-bell-btn" title={t("Notificações")}>
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -44,7 +45,7 @@ function ListaCachorros() {
                 <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
                 <path d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              <span><strong>Nome:</strong> {obterSessao()?.usuario.nome}</span>
+              <span><strong>{t("Nome:")}</strong> {obterSessao()?.usuario.nome}</span>
             </div>
           </div>
         </header>
@@ -52,7 +53,7 @@ function ListaCachorros() {
         <div className="lista-cat-search-bar">
           <input
             type="text"
-            placeholder="Buscar"
+            placeholder={t("Buscar")}
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
@@ -63,7 +64,7 @@ function ListaCachorros() {
         </div>
 
         <div className="lista-cat-controls-row">
-          <img src={cachorroAdm} alt="Cachorro" className="lista-cat-banner-img" />
+          <img src={cachorroAdm} alt={t("Cachorro")} className="lista-cat-banner-img" />
 
           <div className="lista-cat-actions">
             <button
@@ -74,7 +75,7 @@ function ListaCachorros() {
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
               </svg>
-              <span>Adicionar</span>
+              <span>{t("Adicionar")}</span>
             </button>
 
             <div className="lista-cat-filter-wrapper">
@@ -86,7 +87,7 @@ function ListaCachorros() {
                 <svg viewBox="0 0 24 24" fill="none">
                   <path d="M3 5H21L14 13.5V19L10 21V13.5L3 5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
                 </svg>
-                <span>{filtroPorte === "Todos" ? "Filtrar" : filtroPorte}</span>
+                <span>{filtroPorte === "Todos" ? t("Filtrar") : t(filtroPorte)}</span>
               </button>
 
               {menuFiltroAberto && (
@@ -101,7 +102,7 @@ function ListaCachorros() {
                         setMenuFiltroAberto(false);
                       }}
                     >
-                      {op}
+                      {t(op)}
                     </button>
                   ))}
                 </div>
@@ -114,11 +115,11 @@ function ListaCachorros() {
           <table className="lista-cat-table">
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Porte</th>
-                <th>Raça</th>
-                <th>Nascimento</th>
-                <th>Laudos</th>
+                <th>{t("Nome")}</th>
+                <th>{t("Porte")}</th>
+                <th>{t("Raça")}</th>
+                <th>{t("Nascimento")}</th>
+                <th>{t("Laudos")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -127,7 +128,7 @@ function ListaCachorros() {
                 filtrados.map((item) => (
                   <tr key={item.id}>
                     <td>{item.nome}</td>
-                    <td>{item.atributo}</td>
+                    <td>{t(item.atributo)}</td>
                     <td>{item.raca}</td>
                     <td>{item.nascimento}</td>
                     <td>
@@ -136,7 +137,7 @@ function ListaCachorros() {
                         className="lista-cat-pdf-btn"
                         onClick={() => void verLaudo(item)}
                       >
-                        Ver PDF
+                        {t("Ver PDF")}
                       </button>
                     </td>
                     <td>
@@ -144,7 +145,7 @@ function ListaCachorros() {
                         <button
                           type="button"
                           className="lista-cat-icon-btn edit"
-                          title="Editar"
+                          title={t("Editar")}
                           onClick={() => navigate(`/adm/categoria/cachorro/${item.id}`)}
                         >
                           <svg viewBox="0 0 24 24" fill="none">
@@ -155,7 +156,7 @@ function ListaCachorros() {
                         <button
                           type="button"
                           className="lista-cat-icon-btn delete"
-                          title="Excluir"
+                          title={t("Excluir")}
                           onClick={() => void excluir(item.id, item.nome)}
                         >
                           <svg viewBox="0 0 24 24" fill="none">

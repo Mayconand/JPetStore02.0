@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -22,13 +23,13 @@ function SearchBox() {
 
             <input
                 type="text"
-                placeholder="Buscar"
-                aria-label="Buscar animais"
+                placeholder={t("Buscar")}
+                aria-label={t("Buscar animais")}
                 value={termo}
                 onChange={(event) => setTermo(event.target.value)}
             />
 
-            <button type="submit" aria-label="Pesquisar">
+            <button type="submit" aria-label={t("Pesquisar")}>
                 <svg viewBox="0 0 24 24" fill="none">
                     <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" strokeWidth="2" />
                     <path d="M16 16L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

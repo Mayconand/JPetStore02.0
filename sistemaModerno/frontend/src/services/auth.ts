@@ -18,3 +18,11 @@ export async function logout(): Promise<void> {
         limparSessao();
     }
 }
+
+export async function solicitarRecuperacao(email: string): Promise<void> {
+    await api.post("/api/auth/recuperar-senha", { email });
+}
+
+export async function redefinirSenha(token: string, novaSenha: string): Promise<void> {
+    await api.post("/api/auth/redefinir-senha", { token, novaSenha });
+}

@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import { Link, useNavigate } from "react-router-dom";
 import { obterSessao } from "../../services/api";
 import { logout } from "../../services/auth";
@@ -31,18 +32,18 @@ function UserBox() {
 
             {sessao ? (
                 <>
-                    <Link to="/ProfilePage" aria-label="Meu perfil" style={{color:"inherit",textDecoration:"none"}}>
-                        <strong>Nome:</strong> {sessao.usuario.nome}
+                    <Link to="/ProfilePage" aria-label={t("Meu perfil")} style={{color:"inherit",textDecoration:"none"}}>
+                        <strong>{t("Nome:")}</strong> {sessao.usuario.nome}
                     </Link>
 
-                    <Link to="/Orders" className="btnSair">Meus pedidos</Link>
+                    <Link to="/Orders" className="btnSair">{t("Meus pedidos")}</Link>
 
                     <button type="button" className="btnSair" onClick={sair}>
-                        Sair
+                        {t("Sair")}
                     </button>
                 </>
             ) : (
-                <Link to="/login">Entrar</Link>
+                <Link to="/login">{t("Entrar")}</Link>
             )}
 
         </div>

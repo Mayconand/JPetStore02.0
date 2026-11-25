@@ -9,6 +9,11 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -24,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(BancoDeTesteConfig.class)
+@TestPropertySource(properties = { "spring.mail.host=localhost", "app.recuperacao.remetente=loja@exemplo.com" })
 class LojaAdminIntegracaoTest {
 
     @Autowired
@@ -40,6 +47,9 @@ class LojaAdminIntegracaoTest {
     JsonMapper json;
     @Autowired
     JdbcTemplate jdbc;
+
+    @MockitoBean
+    JavaMailSender mail;
 
     String admin;
 
@@ -122,15 +132,94 @@ class LojaAdminIntegracaoTest {
                 .andExpect(status().isCreated())).get("id").asString();
     }
 
-    /** O cupom é inserido direto no banco: não há rota de cadastro. */
-    String novoCupom(int percentual) {
+    String novoCupom(int percentual) throws Exception {
         String codigo = "T" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        jdbc.queryForObject("select jpetstore.fn_inserir_cupom(?, ?, current_date + 10)", UUID.class, codigo, percentual);
+        enviar(post("/api/admin/cupons"), admin, Map.of(
+                "codigo", codigo, "percentual", percentual, "dataValidade", LocalDate.now().plusDays(10).toString()))
+                .andExpect(status().isCreated());
         return codigo;
     }
 
     List<String> ids(JsonNode lista) {
         return lista.valueStream().map(item -> item.get("id").asString()).toList();
+    }
+
+    @Test
+    void avancaPedidoPagoEmOrdemESomenteComoAdmin() throws Exception {
+        Cliente cliente = novoCliente();
+        String id = novoPedido(cliente, "Pet para entrega", "100");
+        String caminho = "/api/admin/pedidos/" + id + "/status";
+        Map<String, String> enviado = Map.of("status", "ENVIADO");
+        Map<String, String> entregue = Map.of("status", "ENTREGUE");
+
+        enviar(put(caminho), cliente.token(), enviado).andExpect(status().isForbidden());
+        erro(enviar(put(caminho), admin, enviado), 409, "TRANSICAO_INVALIDA");
+        enviar(post("/api/pedidos/" + id + "/pagamento"), cliente.token(), Map.of("forma", "PIX"))
+                .andExpect(status().isOk());
+        erro(enviar(put(caminho), admin, entregue), 409, "TRANSICAO_INVALIDA");
+        enviar(put(caminho), admin, enviado).andExpect(status().isNoContent());
+        erro(enviar(post("/api/pedidos/" + id + "/cancelar"), cliente.token(), null), 422, "PEDIDO_NAO_CANCELAVEL");
+        enviar(put(caminho), admin, entregue).andExpect(status().isNoContent());
+        enviar(put(caminho), admin, entregue).andExpect(status().isNoContent());
+        assertThat(ok(get("/api/pedidos/" + id), cliente.token(), null).get("status").asString()).isEqualTo("ENTREGUE");
+    }
+
+    @Test
+    void filtraIdadeAntesDaPaginacao() throws Exception {
+        String prefixo = UUID.randomUUID().toString();
+        UUID filhoteA = novoAnimal(prefixo + " A", "99");
+        UUID idoso = novoAnimal(prefixo + " B", "99");
+        UUID filhoteC = novoAnimal(prefixo + " C", "99");
+        jdbc.update("update jpetstore.animal set data_nascimento = current_date - interval '2 months' where id in (?, ?)",
+                filhoteA, filhoteC);
+        jdbc.update("update jpetstore.animal set data_nascimento = current_date - interval '9 years' where id = ?", idoso);
+
+        JsonNode busca = ok(get("/api/animais").param("termo", prefixo)
+                .param("idade", "Filhote").param("size", "1").param("page", "1"), null, null);
+        assertThat(busca.get("totalElementos").asInt()).isEqualTo(2);
+        assertThat(busca.get("totalPaginas").asInt()).isEqualTo(2);
+        assertThat(ids(busca.get("conteudo"))).containsExactly(filhoteC.toString());
+    }
+
+    @Test
+    void guardaFavoritosSomenteNaContaDona() throws Exception {
+        Cliente cliente = novoCliente();
+        Cliente outro = novoCliente();
+        String caminho = "/api/usuarios/me/favoritos";
+        Map<String, String> favorito = Map.of("especie", "CACHORRO", "raca", "Bulldog");
+        enviar(put(caminho), cliente.token(), favorito).andExpect(status().isNoContent());
+        enviar(put(caminho), cliente.token(), favorito).andExpect(status().isNoContent());
+
+        String novaSessao = login(cliente.email(), "SenhaForte1");
+        List<String> favoritos = ids(ok(get(caminho), novaSessao, null));
+        assertThat(favoritos).hasSize(1);
+        assertThat(ok(get(caminho), outro.token(), null)).isEmpty();
+        enviar(delete(caminho + "/" + favoritos.getFirst()), outro.token(), null).andExpect(status().isNoContent());
+        assertThat(ids(ok(get(caminho), novaSessao, null))).isEqualTo(favoritos);
+        enviar(delete(caminho + "/" + favoritos.getFirst()), novaSessao, null).andExpect(status().isNoContent());
+        assertThat(ok(get(caminho), novaSessao, null)).isEmpty();
+    }
+
+    @Test
+    void recuperaSenhaPorEmailUmaVezERevogaSessaoAnterior() throws Exception {
+        Cliente cliente = novoCliente();
+        String recuperar = "/api/auth/recuperar-senha";
+        enviar(post(recuperar), null, Map.of("email", "sem-conta@exemplo.com")).andExpect(status().isNoContent());
+        enviar(post(recuperar), null, Map.of("email", cliente.email())).andExpect(status().isNoContent());
+        enviar(post(recuperar), null, Map.of("email", cliente.email())).andExpect(status().isNoContent());
+        var mensagem = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mail).send(mensagem.capture());
+        assertThat(mensagem.getValue().getTo()).containsExactly(cliente.email());
+        String token = mensagem.getValue().getText().split("#token=", 2)[1].strip().split("\\s+", 2)[0];
+
+        String redefinir = "/api/auth/redefinir-senha";
+        var dados = Map.of("token", token, "novaSenha", "NovaSenhaForte2");
+        enviar(post(redefinir), null, dados).andExpect(status().isNoContent());
+        erro(enviar(post(redefinir), null, dados), 400, "LINK_INVALIDO");
+        enviar(get("/api/usuarios/me"), cliente.token(), null).andExpect(status().isUnauthorized());
+        enviar(post("/api/auth/login"), null, Map.of("email", cliente.email(), "senha", "SenhaForte1"))
+                .andExpect(status().isUnauthorized());
+        assertThat(login(cliente.email(), "NovaSenhaForte2")).isNotBlank();
     }
 
     // ------------------------------------------------------------------ RF21

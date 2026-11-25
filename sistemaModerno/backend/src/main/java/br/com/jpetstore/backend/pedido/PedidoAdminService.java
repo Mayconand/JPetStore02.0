@@ -5,6 +5,7 @@ import br.com.jpetstore.backend.comum.ApiException;
 import br.com.jpetstore.backend.pedido.dto.FiltroPedidos;
 import br.com.jpetstore.backend.pedido.dto.PedidoAdminResumo;
 import org.springframework.http.HttpStatus;
+import br.com.jpetstore.backend.enums.StatusPedidoEnum;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,14 @@ public class PedidoAdminService {
     public PedidoAdminService(PedidoAdminRepository repository, AdminService admins) {
         this.repository = repository;
         this.admins = admins;
+    }
+
+    public void alterarStatus(UUID usuarioId, UUID pedidoId, StatusPedidoEnum status) {
+        admins.verificarAcesso(usuarioId);
+        if (status != StatusPedidoEnum.ENVIADO && status != StatusPedidoEnum.ENTREGUE) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "STATUS_INVALIDO", "Escolha Enviado ou Entregue.");
+        }
+        repository.alterarStatus(pedidoId, status);
     }
 
     public List<PedidoAdminResumo> filtrar(UUID usuarioId, FiltroPedidos filtro) {

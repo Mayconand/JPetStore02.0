@@ -1,3 +1,4 @@
+import { t, moedaLocal as moeda, idiomaAtual } from "../../services/idioma";
 
 import "./AdressPayment.css";
 
@@ -14,7 +15,6 @@ import { reutilizarEndereco } from "../../services/enderecos";
 import { obterCarrinho, type Carrinho } from "../../services/carrinho";
 import { criarPedido, obterPedido, pagarPedido, type Pedido } from "../../services/pedidos";
 const formas = { CARTAO_CREDITO: "Cartão de crédito", PIX: "Pix", BOLETO: "Boleto" };
-const moeda=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 /** Endereço como a tela usa: rua, número e complemento em um campo só. */
 interface EnderecoDaTela {
@@ -301,7 +301,7 @@ function AdressPayment() {
                     <Link
                         to="/Cart"
                         className="headerIcon"
-                        aria-label="Carrinho"
+                        aria-label={t("Carrinho")}
                     >
                         <svg viewBox="0 0 24 24" fill="none">
                             <path
@@ -342,7 +342,7 @@ function AdressPayment() {
                                         key={nome}
                                     >
 
-                                        <strong>{nome}</strong>
+                                        <strong>{t(nome)}</strong>
 
                                         <div className="stepCircle">
                                             {etapa > numero ? "✓" : numero === 3 && etapa === 4 ? "✓" : ""}
@@ -356,8 +356,8 @@ function AdressPayment() {
 
                     </div>
 
-                    {aviso && <p role="alert">{aviso}</p>}
-                    <p>Pagamento de demonstração. Use dados fictícios.</p>
+                    {aviso && <p role="alert">{t(aviso)}</p>}
+                    <p>{t("Pagamento de demonstração. Use dados fictícios.")}</p>
                     {etapa === 1 && (
 
                         <section className="checkoutCard">
@@ -368,7 +368,7 @@ function AdressPayment() {
 
                                     <div className="deliveryTitle">
                                         <span className="material-symbols-outlined">location_on</span>
-                                        Endereço de entrega
+                                        {t("Endereço de entrega")}
                                     </div>
 
                                     <div className="selectedAddress">
@@ -386,7 +386,7 @@ function AdressPayment() {
                                                 className="btnChange"
                                                 onClick={() => setMostrarEnderecos(true)}
                                             >
-                                                Trocar
+                                                {t("Trocar")}
                                             </button>
 
                                             <button
@@ -397,7 +397,7 @@ function AdressPayment() {
                                                     setNovoEndereco(true);
                                                 }}
                                             >
-                                                + Novo
+                                                {t("+ Novo")}
                                             </button>
 
                                         </div>
@@ -411,7 +411,7 @@ function AdressPayment() {
                                             className="btnContinue"
                                             onClick={continuarEndereco}
                                         >
-                                            Continuar
+                                            {t("Continuar")}
                                         </button>
 
                                     </div>
@@ -423,7 +423,7 @@ function AdressPayment() {
                                 <>
 
                                     <div className="deliveryTitle">
-                                       <span className="material-symbols-outlined">location_on</span> Novo endereço de entrega
+                                       <span className="material-symbols-outlined">location_on</span>{" " + t("Novo endereço de entrega")}
                                     </div>
 
                                     <form onSubmit={(e) => void salvarEndereco(e)}>
@@ -431,7 +431,7 @@ function AdressPayment() {
                                         <div className="formGrid">
 
                                             <div className="formGroup">
-                                                <label>País</label>
+                                                <label>{t("País")}</label>
                                                 <input
                                                     name="pais"
                                                     value={formEndereco.pais}
@@ -441,7 +441,7 @@ function AdressPayment() {
                                             </div>
 
                                             <div className="formGroup">
-                                                <label>Estado</label>
+                                                <label>{t("Estado")}</label>
                                                 <input
                                                     name="estado"
                                                     value={formEndereco.estado}
@@ -451,7 +451,7 @@ function AdressPayment() {
                                             </div>
 
                                             <div className="formGroup">
-                                                <label>Cidade</label>
+                                                <label>{t("Cidade")}</label>
                                                 <input
                                                     name="cidade"
                                                     value={formEndereco.cidade}
@@ -461,7 +461,7 @@ function AdressPayment() {
                                             </div>
 
                                             <div className="formGroup">
-                                                <label>Bairro</label>
+                                                <label>{t("Bairro")}</label>
                                                 <input
                                                     name="bairro"
                                                     value={formEndereco.bairro}
@@ -481,7 +481,7 @@ function AdressPayment() {
                                             </div>
 
                                             <div className="formGroup formWide">
-                                                <label>Rua, número e complemento</label>
+                                                <label>{t("Rua, número e complemento")}</label>
                                                 <input
                                                     name="complemento"
                                                     value={formEndereco.complemento}
@@ -499,14 +499,14 @@ function AdressPayment() {
                                                 className="btnBack"
                                                 onClick={() => setNovoEndereco(false)}
                                             >
-                                                Cancelar
+                                                {t("Cancelar")}
                                             </button>
 
                                             <button
                                                 type="submit"
                                                 className="btnContinue"
                                             >
-                                                Salvar endereço
+                                                {t("Salvar endereço")}
                                             </button>
 
                                         </div>
@@ -527,19 +527,19 @@ function AdressPayment() {
 
                             <div className="deliveryTitle">
                                 <span>ⓢ</span>
-                                Método de pagamento
+                                {t("Método de pagamento")}
                             </div>
 
                             <form onSubmit={continuarPagamento}>
 
-                                <label>Forma de pagamento <select value={forma} onChange={e=>setForma(e.target.value as keyof typeof formas)}>
-                                    {Object.entries(formas).map(([codigo,nome])=><option key={codigo} value={codigo}>{nome}</option>)}
+                                <label>{t("Forma de pagamento") + " "}<select value={forma} onChange={e=>setForma(e.target.value as keyof typeof formas)}>
+                                    {Object.entries(formas).map(([codigo,nome])=><option key={codigo} value={codigo}>{t(nome)}</option>)}
                                 </select></label>
                                 {forma === "CARTAO_CREDITO" && (<>
                                 <div className="formGrid paymentGrid">
 
                                     <div className="formGroup paymentNumber">
-                                        <label>Número do cartão</label>
+                                        <label>{t("Número do cartão")}</label>
                                         <input
                                             name="numero"
                                             value={formCartao.numero}
@@ -551,7 +551,7 @@ function AdressPayment() {
                                     </div>
 
                                     <div className="formGroup">
-                                        <label>Data de vencimento</label>
+                                        <label>{t("Data de vencimento")}</label>
                                         <input
                                             name="validade"
                                             value={formCartao.validade}
@@ -574,7 +574,7 @@ function AdressPayment() {
                                     </div>
 
                                     <div className="formGroup">
-                                        <label>Nome no cartão</label>
+                                        <label>{t("Nome no cartão")}</label>
                                         <input
                                             name="nome"
                                             value={formCartao.nome}
@@ -601,16 +601,16 @@ function AdressPayment() {
                                     <button
                                         type="button"
                                         className="btnBack"
-                                        onClick={() => setEtapa(1)}
+                                        onClick={() => pedidoId ? navigate("/Orders") : setEtapa(1)}
                                     >
-                                        Voltar
+                                        {t("Voltar")}
                                     </button>
 
                                     <button
                                         type="submit"
                                         className="btnContinue"
                                     >
-                                        Continuar
+                                        {t("Continuar")}
                                     </button>
 
                                 </div>
@@ -627,11 +627,11 @@ function AdressPayment() {
                         <section className="checkoutCard">
 
                             <div className="deliveryTitle">
-                                <span className="material-symbols-outlined">location_on</span> Endereço de entrega
+                                <span className="material-symbols-outlined">location_on</span>{" " + t("Endereço de entrega")}
                             </div>
 
                             <h4 className="billingTitle">
-                                Endereço de cobrança:
+                                {t("Endereço de cobrança:")}
                             </h4>
 
                             <label className="sameAddress">
@@ -640,7 +640,7 @@ function AdressPayment() {
                                     checked={mesmoEndereco}
                                     onChange={(e) => setMesmoEndereco(e.target.checked)}
                                 />
-                                {modalidade === "RETIRADA" ? "Utilizar o endereço cadastrado" : "Utilizar o mesmo endereço de entrega"}
+                                {modalidade === "RETIRADA" ? t("Utilizar o endereço cadastrado") : t("Utilizar o mesmo endereço de entrega")}
                             </label>
 
                             {!mesmoEndereco && (
@@ -650,7 +650,7 @@ function AdressPayment() {
                                     <div className="formGrid">
 
                                         <div className="formGroup">
-                                            <label>País</label>
+                                            <label>{t("País")}</label>
                                             <input
                                                 name="pais"
                                                 value={enderecoCobranca.pais}
@@ -660,7 +660,7 @@ function AdressPayment() {
                                         </div>
 
                                         <div className="formGroup">
-                                            <label>Estado</label>
+                                            <label>{t("Estado")}</label>
                                             <input
                                                 name="estado"
                                                 value={enderecoCobranca.estado}
@@ -670,7 +670,7 @@ function AdressPayment() {
                                         </div>
 
                                         <div className="formGroup">
-                                            <label>Cidade</label>
+                                            <label>{t("Cidade")}</label>
                                             <input
                                                 name="cidade"
                                                 value={enderecoCobranca.cidade}
@@ -680,7 +680,7 @@ function AdressPayment() {
                                         </div>
 
                                         <div className="formGroup">
-                                            <label>Bairro</label>
+                                            <label>{t("Bairro")}</label>
                                             <input
                                                 name="bairro"
                                                 value={enderecoCobranca.bairro}
@@ -700,7 +700,7 @@ function AdressPayment() {
                                         </div>
 
                                         <div className="formGroup">
-                                            <label>Rua, número, complemento</label>
+                                            <label>{t("Rua, número, complemento")}</label>
                                             <input
                                                 name="complemento"
                                                 value={enderecoCobranca.complemento}
@@ -717,14 +717,14 @@ function AdressPayment() {
                                             className="btnBack"
                                             onClick={() => setEtapa(2)}
                                         >
-                                            Voltar
+                                            {t("Voltar")}
                                         </button>
 
                                         <button
                                             type="submit"
                                             className="btnContinue"
                                         >
-                                            Continuar
+                                            {t("Continuar")}
                                         </button>
 
                                     </div>
@@ -742,7 +742,7 @@ function AdressPayment() {
                                         className="btnBack"
                                         onClick={() => setEtapa(2)}
                                     >
-                                        Voltar
+                                        {t("Voltar")}
                                     </button>
 
                                     <button
@@ -750,7 +750,7 @@ function AdressPayment() {
                                         className="btnContinue"
                                         onClick={confirmarCobranca}
                                     >
-                                        Continuar
+                                        {t("Continuar")}
                                     </button>
 
                                 </div>
@@ -767,20 +767,20 @@ function AdressPayment() {
 
                             <div className="confirmationIcon">✓</div>
 
-                            <h3>Pedido pronto para confirmação!</h3>
+                            <h3>{t("Pedido pronto para confirmação!")}</h3>
 
                             <p>
-                                Confira os dados do seu pedido antes de finalizar.
+                                {t("Confira os dados do seu pedido antes de finalizar.")}
                             </p>
 
                             <div className="confirmationDetails">
-                                <strong>{modalidade === "RETIRADA" ? "Retirada:" : "Endereço de entrega:"}</strong>
+                                <strong>{modalidade === "RETIRADA" ? t("Retirada:") : t("Endereço de entrega:")}</strong>
                                 <span>
-                                    {modalidade === "RETIRADA" ? "Retirada na loja" : `${enderecoAtual.rua}, ${enderecoAtual.bairro} - ${enderecoAtual.cidade}/${enderecoAtual.estado}`}
+                                    {modalidade === "RETIRADA" ? t("Retirada na loja") : `${enderecoAtual.rua}, ${enderecoAtual.bairro} - ${enderecoAtual.cidade}/${enderecoAtual.estado}`}
                                 </span>
 
-                                <strong>Forma de pagamento:</strong>
-                                <span>{formas[forma]}</span>
+                                <strong>{t("Forma de pagamento:")}</strong>
+                                <span>{t(formas[forma])}</span>
                             </div>
 
                             <button
@@ -789,7 +789,7 @@ function AdressPayment() {
                                 disabled={processando || !itens.length}
                                 onClick={() => void finalizarPedido()}
                             >
-                                {processando ? "Processando..." : "Finalizar pedido"}
+                                {processando ? t("Processando...") : t("Finalizar pedido")}
                             </button>
 
                         </section>
@@ -799,12 +799,12 @@ function AdressPayment() {
                 </section>
 
                 <aside className="orderSummary">
-                    <h3>{pedido ? "Resumo - Pedido #"+pedido.id.slice(0,8) : "Resumo do pedido"}</h3>
-                    {pedido && <div className="summaryLine"><span>Data:</span><span>{new Date(pedido.dataCriacao).toLocaleString("pt-BR")}</span></div>}
+                    <h3>{pedido ? t("Resumo - Pedido #") + pedido.id.slice(0,8) : t("Resumo do pedido")}</h3>
+                    {pedido && <div className="summaryLine"><span>{t("Data:")}</span><span>{new Date(pedido.dataCriacao).toLocaleString(idiomaAtual())}</span></div>}
                     <div className="summaryProducts"><strong>Pets</strong>{itens.map(item=><div className="summaryLine" key={item.animalId}><span>{item.nome}</span><span>{moeda(item.precoUnitario)}</span></div>)}</div>
-                    {desconto>0 && <div className="summaryLine"><span>Desconto:</span><span>{moeda(desconto)}</span></div>}
-                    <div className="summaryTotal"><span>Total:</span><strong>{moeda(total)}</strong></div>
-                    <Link to="/Orders">Ver meus pedidos</Link>
+                    {desconto>0 && <div className="summaryLine"><span>{t("Desconto:")}</span><span>{moeda(desconto)}</span></div>}
+                    <div className="summaryTotal"><span>{t("Total:")}</span><strong>{moeda(total)}</strong></div>
+                    <Link to="/Orders">{t("Ver meus pedidos")}</Link>
                 </aside>
 
             </main>
@@ -823,7 +823,7 @@ function AdressPayment() {
 
                         <div className="modalHeader">
 
-                            <h3>Endereço</h3>
+                            <h3>{t("Endereço")}</h3>
 
                             <button
                                 type="button"
@@ -872,7 +872,7 @@ function AdressPayment() {
                                                 });
                                             }}
                                         >
-                                            Editar
+                                            {t("Editar")}
                                         </button>
 
                                     </div>
@@ -890,7 +890,7 @@ function AdressPayment() {
                                 className="btnContinue"
                                 onClick={() => setMostrarEnderecos(false)}
                             >
-                                Confirmar endereço
+                                {t("Confirmar endereço")}
                             </button>
 
                         </div>

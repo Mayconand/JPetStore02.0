@@ -371,3 +371,9 @@ form{
     }
 
 }
+
+.profileConfiguracao { margin-top: 1.5rem; }
+.profileConfiguracao form { display: grid; gap: .8rem; max-width: 36rem; }
+.profileConfiguracao label { display: grid; gap: .35rem; }
+.profileConfiguracao input, .profileConfiguracao textarea, .profileConfiguracao button { padding: .55rem; }
+.profileConfiguracao button { justify-self: start; }

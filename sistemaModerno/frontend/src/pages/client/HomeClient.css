@@ -732,7 +732,7 @@ footer {
     font-size: 11px;
 }
 
-.favoritoInfo span {
+.favoritoInfo a {
     color: #666666;
     font-size: 10px;
     margin-left: 4px;
@@ -933,3 +933,5 @@ footer .footerLinks a{
     }
 
 }
+
+.rodapePersonalizado { width: 100%; height: 6rem; border: 0; }

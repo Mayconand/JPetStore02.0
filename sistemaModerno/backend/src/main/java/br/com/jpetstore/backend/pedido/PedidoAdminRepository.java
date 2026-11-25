@@ -46,4 +46,7 @@ public class PedidoAdminRepository {
                 filtro.status() != null ? filtro.status().name() : null,
                 filtro.inicio(), filtro.fim(), filtro.clienteId());
     }
+    public void alterarStatus(UUID id, StatusPedidoEnum status) {
+        banco.executar("jpetstore.fn_avancar_pedido(?, ?::jpetstore.status_pedido)", id, status.name());
+    }
 }

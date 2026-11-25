@@ -125,3 +125,13 @@ precisa terminar em `_test`.
 
 - `backend/README.md`: organização do código, autenticação e endpoints
 - `database/README.md`: schema, funções de banco por requisito e como aplicar migrations no Supabase
+
+## Recuperação de senha
+
+Aplique as migrations da pasta `database/supabase/migrations` em ordem. No
+`backend/.env`, configure `APP_URL_LOJA` com a URL pública do frontend,
+`MAIL_FROM` com o remetente e `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` e
+`SMTP_PASSWORD` com os dados do servidor de e-mail. As opções `SMTP_AUTH`
+e `SMTP_STARTTLS` ficam habilitadas por padrão e podem ser desativadas
+para um servidor de captura de e-mails local. O link expira em 30 minutos
+e só pode ser usado uma vez.

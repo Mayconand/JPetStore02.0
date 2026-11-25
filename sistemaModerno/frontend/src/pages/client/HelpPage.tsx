@@ -1,3 +1,4 @@
+import { t, idiomaAtual } from "../../services/idioma";
 import "./helpPage.css";
 
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
@@ -16,14 +17,21 @@ function HelpPage() {
     const [topicos, setTopicos] = useState<TopicoAjuda[]>([]);
     const [aviso, setAviso] = useState("Carregando...");
 
+    const idioma = idiomaAtual();
+
     useEffect(() => {
         let ativo = true;
         const espera = setTimeout(() => {
-            listarAjuda(busca.trim())
+            listarAjuda(idioma === "pt-BR" ? busca.trim() : undefined)
                 .then((lista) => {
                     if (!ativo) return;
-                    setTopicos(lista);
-                    setAviso(lista.length ? "" : "Nenhuma resposta encontrada.");
+                    const normalizar = (texto: string) => texto.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+                    const termo = normalizar(busca.trim());
+                    const encontrados = idioma === "pt-BR" ? lista : lista.filter(topico =>
+                        [topico.titulo, topico.conteudo, t(topico.titulo), t(topico.conteudo)]
+                            .some(texto => normalizar(texto).includes(termo)));
+                    setTopicos(encontrados);
+                    setAviso(encontrados.length ? "" : "Nenhuma resposta encontrada.");
                 })
                 .catch((e) => {
                     if (!ativo) return;
@@ -35,7 +43,7 @@ function HelpPage() {
             ativo = false;
             clearTimeout(espera);
         };
-    }, [busca]);
+    }, [busca, idioma]);
 
     return (
         <div className="container detailsPaymentPage helpPage">
@@ -55,7 +63,7 @@ function HelpPage() {
                     <div className="profileSearch">
                         <input
                             type="text"
-                            placeholder="Buscar"
+                            placeholder={t("Buscar")}
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
                         />
@@ -69,7 +77,7 @@ function HelpPage() {
                     <Link
                         to="/Cart"
                         className="profileHeaderIcon"
-                        aria-label="Carrinho"
+                        aria-label={t("Carrinho")}
                     >
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M2 3h2l2.5 12h11L21 7H5" />
@@ -86,7 +94,7 @@ function HelpPage() {
                         </svg>
 
                         <span>
-                            <strong>Nome:</strong> {obterSessao()?.usuario.nome}
+                            <strong>{t("Nome:")}</strong> {obterSessao()?.usuario.nome}
                         </span>
 
                     </div>
@@ -101,26 +109,24 @@ function HelpPage() {
 
                     <span className="helpTag">FAQs</span>
 
-                    <h1>Como podemos ajudar?</h1>
+                    <h1>{t("Como podemos ajudar?")}</h1>
 
                     <p>
-                        Veja abaixo algumas dúvidas respondidas e se não
-                        encontrar a sua resposta, entre em contato
-                        conosco pelo formulário de contato abaixo
+                        {t("Veja abaixo algumas dúvidas respondidas e se não encontrar a sua resposta, entre em contato conosco pelo formulário de contato abaixo")}
                     </p>
 
                 </section>
 
                 <section className="helpQuestions">
 
-                    {aviso && <p>{aviso}</p>}
+                    {aviso && <p>{t(aviso)}</p>}
 
                     {topicos.map((topico) => (
 
                         <details className="helpQuestion" key={topico.id}>
 
                             <summary>
-                                <span>{topico.titulo}</span>
+                                <span>{t(topico.titulo)}</span>
 
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="m5 9 7 7 7-7" />
@@ -128,7 +134,7 @@ function HelpPage() {
                             </summary>
 
                             <div className="helpAnswer">
-                                {topico.conteudo}
+                                {t(topico.conteudo)}
                             </div>
 
                         </details>
@@ -144,11 +150,10 @@ function HelpPage() {
                     <div className="helpContactContent">
 
                         <h2>
-                            Não conseguiu encontrar sua resposta?
-                            Precisa de uma resposta mais específica?
+                            {t("Não conseguiu encontrar sua resposta? Precisa de uma resposta mais específica?")}
                         </h2>
 
-                        <p>Entre em contato conosco</p>
+                        <p>{t("Entre em contato conosco")}</p>
 
                         <a
                             href="mailto:contato@jpetstore.com"

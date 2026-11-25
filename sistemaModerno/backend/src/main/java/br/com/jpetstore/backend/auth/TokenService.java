@@ -27,16 +27,18 @@ public class TokenService {
     public TokenEmitido emitir(Credenciais usuario) {
         Instant agora = Instant.now();
         Instant expiraEm = agora.plus(validade);
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .id(UUID.randomUUID().toString())
                 .issuer("jpetstore")
                 .subject(usuario.id().toString())
                 .issuedAt(agora)
                 .expiresAt(expiraEm)
                 .claim("nome", usuario.nome())
-                .claim("papel", usuario.papel().name())
-                .build();
-        String token = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims))
+                .claim("papel", usuario.papel().name());
+        if (usuario.versaoRecuperacao() != null) {
+            claims.claim("versaoRecuperacao", usuario.versaoRecuperacao().toString());
+        }
+        String token = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims.build()))
                 .getTokenValue();
         return new TokenEmitido(token, expiraEm);
     }

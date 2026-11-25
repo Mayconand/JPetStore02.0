@@ -1,3 +1,4 @@
+import { t, moedaLocal as moeda, idiomaAtual } from "../../services/idioma";
 
 import "./Orders.css";
 
@@ -5,11 +6,11 @@ import logo from "../../assets/imagens/logos/logoJPetStore.png";
 
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { listarPedidos, obterPedido, type Pedido } from "../../services/pedidos";
+import { listarPedidos, obterPedido, STATUS_PEDIDO, type Pedido } from "../../services/pedidos";
 import { mensagemDeErro, naoAutenticado, urlDoArquivo } from "../../services/api";
+import AcoesPedido from "../../components/client/AcoesPedido";
 import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
-const moeda=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 function Orders() {
     const navigate=useNavigate();
@@ -21,6 +22,10 @@ function Orders() {
             .catch(e=>{if(ativo){if(naoAutenticado(e))navigate("/login");else setAviso(mensagemDeErro(e));}});
         return ()=>{ativo=false;};
     },[navigate]);
+
+    function atualizarPedido(atualizado: Pedido) {
+        setPedidos(lista => lista.map(pedido => pedido.id === atualizado.id ? atualizado : pedido));
+    }
 
     return (
 
@@ -45,7 +50,7 @@ function Orders() {
                     <Link
                         to="/Cart"
                         className="headerIcon"
-                        aria-label="Carrinho"
+                        aria-label={t("Carrinho")}
                     >
 
                         <svg viewBox="0 0 24 24" fill="none">
@@ -76,13 +81,13 @@ function Orders() {
                 <section className="ordersContent">
 
                     <h1 className="ordersTitle">
-                        Seus Pedidos
+                        {t("Seus Pedidos")}
                     </h1>
 
                     <div className="ordersList">
 
-                        {aviso && <p role="status">{aviso}</p>}
-                        {!aviso && !pedidos.length && <p>Você ainda não tem pedidos.</p>}
+                        {aviso && <p role="status">{t(aviso)}</p>}
+                        {!aviso && !pedidos.length && <p>{t("Você ainda não tem pedidos.")}</p>}
                         {pedidos.map(pedido=><article className="orderCard" key={pedido.id}>
 
                             <div className="orderHeader">
@@ -91,20 +96,22 @@ function Orders() {
 
                                     <span className="material-symbols-outlined">pets</span>
 
-                                    <h2>Pedido #{pedido.id.slice(0,8)}</h2>
+                                    <h2>{t("Pedido #")}{pedido.id.slice(0,8)}</h2>
 
                                 </div>
 
                                 <button
                                     type="button"
                                     className="orderOptions"
-                                    aria-label="Detalhes do pedido" onClick={()=>navigate("/DetailsPayment?id="+pedido.id)}
+                                    aria-label={t("Detalhes do pedido")} onClick={()=>navigate("/DetailsPayment?id="+pedido.id)}
                                 >
                                     ...
                                 </button>
 
                             </div>
 
+                            <p>{t(STATUS_PEDIDO[pedido.status])}</p>
+                            <AcoesPedido pedido={pedido} atualizar={atualizarPedido} />
                             <div className="orderInfo">
 
                                 <div className="orderAddress">
@@ -129,7 +136,7 @@ function Orders() {
                                     </svg>
 
                                     <span>
-                                        {pedido.modalidade==="RETIRADA" ? "Retirada na loja" : [pedido.enderecoEntrega?.rua,pedido.enderecoEntrega?.numero,pedido.enderecoEntrega?.cidade,pedido.enderecoEntrega?.estado].filter(Boolean).join(", ")}
+                                        {pedido.modalidade==="RETIRADA" ? t("Retirada na loja") : [pedido.enderecoEntrega?.rua,pedido.enderecoEntrega?.numero,pedido.enderecoEntrega?.cidade,pedido.enderecoEntrega?.estado].filter(Boolean).join(", ")}
                                     </span>
 
                                 </div>
@@ -165,7 +172,7 @@ function Orders() {
                                     </svg>
 
                                     <span>
-                                        {new Date(pedido.dataCriacao).toLocaleString("pt-BR")}
+                                        {new Date(pedido.dataCriacao).toLocaleString(idiomaAtual())}
                                     </span>
 
                                 </div>
@@ -178,7 +185,7 @@ function Orders() {
                             </div>)}
                             <div className="orderTotal">
 
-                                <span>Total:</span>
+                                <span>{t("Total:")}</span>
                                 <strong>{moeda(pedido.valorTotal)}</strong>
 
                             </div>

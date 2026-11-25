@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 
 import { useEffect, useState } from "react";
 import "./SpecificProduct.css";
@@ -105,7 +106,7 @@ function Gallery({
                         )
                     ) : (
                         <p className="galleryEmpty">
-                            Nenhum {tipo === "foto" ? "registro de foto" : "laudo"} cadastrado.
+                            {t("Nenhum") + " "}{tipo === "foto" ? t("registro de foto") : t("laudo")}{" " + t("cadastrado.")}
                         </p>
                     )}
 
@@ -180,7 +181,7 @@ function Ficha({ id }: { id: string }) {
         };
     }, [animal, logado]);
 
-    if (!animal) return <div className="container"><p>{aviso}</p></div>;
+    if (!animal) return <div className="container"><p>{t(aviso)}</p></div>;
 
     const fotos: GalleryItem[] = animal.imagens.map((url, i) => ({ url: urlDoArquivo(url), nome: `${animal.nome} ${i + 1}` }));
     const atributos = Object.entries(animal.atributos).filter(([, valor]) => valor !== null);
@@ -203,7 +204,7 @@ function Ficha({ id }: { id: string }) {
                     <Link
                         to="/Cart"
                         className="headerIcon"
-                        aria-label="Carrinho"
+                        aria-label={t("Carrinho")}
                     >
                         <svg viewBox="0 0 24 24" fill="none">
                             <path
@@ -225,7 +226,7 @@ function Ficha({ id }: { id: string }) {
 
             </header>
 
-            <h1>Perfil de {animal.nome}</h1>
+            <h1>{t("Perfil de") + " "}{animal.nome}</h1>
 
             <section className="productSection">
 
@@ -240,15 +241,15 @@ function Ficha({ id }: { id: string }) {
 
                     <div className="productInfo">
 
-                        <p><strong>Nome:</strong> {animal.nome}</p>
+                        <p><strong>{t("Nome:")}</strong> {animal.nome}</p>
 
                         <p>
-                            <strong>Raça:</strong> {animal.raca.nome}
+                            <strong>{t("Raça:")}</strong> {animal.raca.nome}
                         </p>
 
-                        <p><strong>Ficha:</strong></p>
+                        <p><strong>{t("Ficha:")}</strong></p>
 
-                        <p>Nascimento: {animal.dataNascimento ? animal.dataNascimento.split("-").reverse().join("/") : "Não informado"}</p>
+                        <p>{t("Nascimento:") + " "}{animal.dataNascimento ? animal.dataNascimento.split("-").reverse().join("/") : t("Não informado")}</p>
 
                         {atributos.map(([campo, valor]) => (
                             <p key={campo}>{ROTULOS[campo] ?? campo}: {VALORES[String(valor)] ?? String(valor)}</p>
@@ -256,7 +257,7 @@ function Ficha({ id }: { id: string }) {
 
                         <div className="productTags">
 
-                            <p><strong>TAGs:</strong></p>
+                            <p><strong>{t("TAGs:")}</strong></p>
 
                             <div className="tags">
                                 {animal.tags.map((tag, i) => (
@@ -277,7 +278,7 @@ function Ficha({ id }: { id: string }) {
                         className="btn_laudos"
                         onClick={() => setModalAberto(true)}
                     >
-                        Laudos
+                        {t("Laudos")}
                     </button>
 
                     <button
@@ -289,7 +290,7 @@ function Ficha({ id }: { id: string }) {
                             shopping_cart
                         </span>
 
-                        Adicionar ao carrinho
+                        {t("Adicionar ao carrinho")}
                     </button>
 
                 </div>

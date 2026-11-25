@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 
 import { useEffect, useState } from "react";
 import type {
@@ -21,8 +22,11 @@ import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
 import ModalLaudos from "../../components/ModalLaudos";
 import { buscarAnimais, paraCardPet } from "../../services/animais";
-import type { CardPet } from "../../services/animais";
-import { mensagemDeErro } from "../../services/api";
+import type { CardPet, Especie } from "../../services/animais";
+import { obterPerfil, type Perfil } from "../../services/usuarios";
+import { obterRodape, type Rodape } from "../../services/rodape";
+import { excluirFavorito, incluirFavorito, listarFavoritos, type Favorito } from "../../services/favoritos";
+import { mensagemDeErro, obterSessao } from "../../services/api";
 import { useAdicionarAoCarrinho } from "../../hooks/useAdicionarAoCarrinho";
 import { useRacasDoCatalogo } from "../../hooks/useRacasDoCatalogo";
 
@@ -38,12 +42,17 @@ type TipoAnimal = keyof typeof ROTULO_DA_RACA;
 
 type Pet = CardPet;
 
-interface Favorito {
-    id: number;
-    tipo: TipoAnimal;
-    racaEspecie: string;
-    categoria: string;
-}
+const TIPOS: Record<TipoAnimal, Especie> = {
+    Cachorro: "CACHORRO", Gato: "GATO", "Réptil": "REPTIL", "Pássaro": "PASSARO", Peixe: "PEIXE",
+};
+
+const CATEGORIAS = [
+    { preferencia: "dogs", tipo: "Cachorro", imagem: slideCachorro },
+    { preferencia: "cats", tipo: "Gato", imagem: slideGato },
+    { preferencia: "reptiles", tipo: "Reptil", imagem: slideReptil },
+    { preferencia: "birds", tipo: "Passaro", imagem: slidePassaro },
+    { preferencia: "fish", tipo: "Peixe", imagem: slidePeixe },
+];
 
 
 function HomeClient() {
@@ -58,10 +67,30 @@ function HomeClient() {
     const racas = useRacasDoCatalogo(tipoAnimal || null);
 
     const [favoritos, setFavoritos] = useState<Favorito[]>([]);
+    const [erroFavoritos, setErroFavoritos] = useState("");
+    const [salvandoFavorito, setSalvandoFavorito] = useState(false);
+    const [perfil, setPerfil] = useState<Perfil | null>(null);
+    const [rodape, setRodape] = useState<Rodape | null>(null);
+    const usuarioId = obterSessao()?.usuario.id;
+    const categoriaFavorita = CATEGORIAS.find(categoria => categoria.preferencia === perfil?.preferencias.categoriaFavorita);
+    const minhaLista = perfil?.id === usuarioId && perfil?.preferencias.minhaLista === true;
+    const banner = perfil?.id === usuarioId && perfil?.preferencias.meuBanner === true
+        ? categoriaFavorita
+        : undefined;
 
     const [pets, setPets] = useState<Pet[]>([]);
     const [carregando, setCarregando] = useState<boolean>(true);
     const [erroBusca, setErroBusca] = useState<string>("");
+
+    useEffect(() => {
+        if (!usuarioId) return;
+        let ativo = true;
+        obterPerfil().then(dados => { if (ativo) setPerfil(dados); }).catch(() => {});
+        obterRodape().then(dados => { if (ativo) setRodape(dados); }).catch(() => {});
+        listarFavoritos().then(lista => { if (ativo) setFavoritos(lista); })
+            .catch(falha => { if (ativo) setErroFavoritos(mensagemDeErro(falha)); });
+        return () => { ativo = false; };
+    }, [usuarioId]);
 
     // RF07 — "Conheça eles": primeiros animais disponíveis
     useEffect(() => {
@@ -105,53 +134,41 @@ function HomeClient() {
         setRacaEspecie("");
     }
 
-    function salvarFavorito(
-        event: FormEvent<HTMLFormElement>
-    ): void {
+    async function salvarFavorito(evento: FormEvent<HTMLFormElement>) {
+        evento.preventDefault();
+        if (!tipoAnimal || !racaEspecie || salvandoFavorito) return;
 
-        event.preventDefault();
-
-        if (!tipoAnimal || !racaEspecie) {
+        const especie = TIPOS[tipoAnimal];
+        if (favoritos.some(favorito => favorito.especie === especie && favorito.raca === racaEspecie)) {
+            setErroFavoritos("Esse animal já está nos seus favoritos!");
             return;
         }
-
-        const jaExiste = favoritos.some(
-            (favorito) =>
-                favorito.tipo === tipoAnimal &&
-                favorito.racaEspecie === racaEspecie
-        );
-
-        if (jaExiste) {
-            alert("Esse animal já está nos seus favoritos!");
-            return;
+        setSalvandoFavorito(true);
+        setErroFavoritos("");
+        try {
+            await incluirFavorito(especie, racaEspecie);
+            setFavoritos(await listarFavoritos());
+            setTipoAnimal("");
+            setRacaEspecie("");
+        } catch (falha) {
+            setErroFavoritos(mensagemDeErro(falha));
+        } finally {
+            setSalvandoFavorito(false);
         }
-
-        const novoFavorito: Favorito = {
-            id: Date.now(),
-            tipo: tipoAnimal,
-            racaEspecie: racaEspecie,
-            categoria: ROTULO_DA_RACA[tipoAnimal]
-        };
-
-        setFavoritos((anteriores) => [
-            ...anteriores,
-            novoFavorito
-        ]);
-
-        setTipoAnimal("");
-        setRacaEspecie("");
     }
 
-
-    function removerFavorito(id: number): void {
-
-        setFavoritos((anteriores) =>
-            anteriores.filter(
-                (favorito) => favorito.id !== id
-            )
-        );
+    async function removerFavorito(id: string) {
+        setSalvandoFavorito(true);
+        setErroFavoritos("");
+        try {
+            await excluirFavorito(id);
+            setFavoritos(lista => lista.filter(favorito => favorito.id !== id));
+        } catch (falha) {
+            setErroFavoritos(mensagemDeErro(falha));
+        } finally {
+            setSalvandoFavorito(false);
+        }
     }
-
 
     return (
 
@@ -172,7 +189,7 @@ function HomeClient() {
                     <Link
                         to="/Cart"
                         className="headerIcon"
-                        aria-label="Carrinho"
+                        aria-label={t("Carrinho")}
                     >
                         <svg viewBox="0 0 24 24" fill="none">
                             <path
@@ -203,52 +220,26 @@ function HomeClient() {
 
                         <img
                             src={pata}
-                            alt="Pata"
+                            alt={t("Pata")}
                             className="paw pawLeft"
                         />
 
-                        <h1>SEU MELHOR AMIGO ESTA AQUI!</h1>
+                        <h1>{t("SEU MELHOR AMIGO ESTA AQUI!")}</h1>
 
                         <img
                             src={pata}
-                            alt="Pata"
+                            alt={t("Pata")}
                             className="paw pawRight"
                         />
 
                     </div>
 
                     <div className="presentationImage">
-
-                        <Link to="/Products?tipo=Cachorro">
-                            <img
-                                src={slideCachorro}
-                                alt="Apresentação"
-                            />
-                        </Link>
-                        <Link to="/Products?tipo=Gato">
-                            <img
-                                src={slideGato}
-                                alt="Apresentação"
-                            />
-                        </Link>
-                        <Link to="/Products?tipo=Reptil">
-                            <img
-                                src={slideReptil}
-                                alt="Apresentação"
-                            />
-                        </Link>
-                        <Link to="/Products?tipo=Passaro">
-                            <img
-                                src={slidePassaro}  
-                                alt="Apresentação"
-                            />
-                        </Link>
-                        <Link to="/Products?tipo=Peixe">
-                            <img
-                                src={slidePeixe}
-                                alt="Apresentação"
-                            />
-                        </Link>
+                        {(banner ? [banner] : CATEGORIAS).map(categoria => (
+                            <Link key={categoria.tipo} to={`/Products?tipo=${categoria.tipo}`}>
+                                <img src={categoria.imagem} alt={t(categoria.tipo)} />
+                            </Link>
+                        ))}
                     </div>
 
                 </section>
@@ -256,12 +247,12 @@ function HomeClient() {
 
                 <section className="filterConteiner">
 
-                    <h2>Conheça eles</h2>
+                    <h2>{t("Conheça eles")}</h2>
 
-                    {carregando && <p>Carregando animais...</p>}
-                    {erroBusca && <p role="alert">{erroBusca}</p>}
+                    {carregando && <p>{t("Carregando animais...")}</p>}
+                    {erroBusca && <p role="alert">{t(erroBusca)}</p>}
                     {!carregando && !erroBusca && pets.length === 0 && (
-                        <p>Nenhum animal disponível no momento.</p>
+                        <p>{t("Nenhum animal disponível no momento.")}</p>
                     )}
 
                     <div className="petsGrid">
@@ -290,23 +281,23 @@ function HomeClient() {
                                     <div className="petDetails">
 
                                         <p>
-                                            <strong>Raça:</strong> {pet.raca}
+                                            <strong>{t("Raça:")}</strong> {pet.raca}
                                         </p>
 
                                         <p>
-                                            <strong>Ficha:</strong>
+                                            <strong>{t("Ficha:")}</strong>
                                         </p>
 
                                         <p>
-                                            <strong>Nascimento:</strong> {pet.nascimento}
+                                            <strong>{t("Nascimento:")}</strong> {pet.nascimento}
                                         </p>
 
                                         <p>
-                                            <strong>Criador:</strong> Nome
+                                            <strong>{t("Criador:")}</strong>{" " + t("Nome")}
                                         </p>
 
                                         <p>
-                                            <strong>Proprietário:</strong> Nome
+                                            <strong>{t("Proprietário:")}</strong>{" " + t("Nome")}
                                         </p>
 
                                     </div>
@@ -314,7 +305,7 @@ function HomeClient() {
                                     <div className="petTags">
 
                                         <span className="tagTitle">
-                                            TAGs:
+                                            {t("TAGs:")}
                                         </span>
 
                                         <div className="tags">
@@ -344,7 +335,7 @@ function HomeClient() {
                                             className="petLaudos"
                                             onClick={() => abrirLaudo(pet)}
                                         >
-                                            Laudos
+                                            {t("Laudos")}
                                         </button>
 
                                         <button
@@ -366,7 +357,7 @@ function HomeClient() {
                                                 <circle cx="18" cy="20" r="1.5" fill="currentColor" />
                                             </svg>
 
-                                            Adicionar ao carrinho
+                                            {t("Adicionar ao carrinho")}
 
                                         </button>
 
@@ -394,16 +385,17 @@ function HomeClient() {
 
             )}
 
+            {minhaLista && <>
             <button
                 type="button"
                 className="btnMenuFavoritos"
                 onClick={abrirMenu}
-                aria-label="Abrir menu de animais favoritos"
+                aria-label={t("Abrir menu de animais favoritos")}
             >
 
                 <img
                     src={iconemenufavorito}
-                    alt="Ícone de menu de favoritos"
+                    alt={t("Ícone de menu de favoritos")}
                 />
 
             </button>
@@ -421,6 +413,7 @@ function HomeClient() {
 
             <aside
                 className={`menuFavoritos ${menuAberto ? "menuAberto" : ""}`}
+                inert={!menuAberto}
                 aria-hidden={!menuAberto}
             >
 
@@ -429,10 +422,10 @@ function HomeClient() {
 
                     <div>
 
-                        <h3>Pet Favorito</h3>
+                        <h3>{t("Pet Favorito")}</h3>
 
                         <p>
-                            Encontre aqui mais dos seus pets favoritos.
+                            {t("Encontre aqui mais dos seus pets favoritos.")}
                         </p>
 
                     </div>
@@ -440,7 +433,7 @@ function HomeClient() {
                     <button
                         type="button"
                         onClick={fecharMenu}
-                        aria-label="Fechar menu"
+                        aria-label={t("Fechar menu")}
                     >
                         ×
                     </button>
@@ -448,6 +441,7 @@ function HomeClient() {
                 </div>
 
                 <div className="menuFavoritosConteudo">
+                    {erroFavoritos && <p role="alert">{t(erroFavoritos)}</p>}
 
 
                     <div
@@ -459,48 +453,27 @@ function HomeClient() {
                     >
 
                         {favoritos.length === 0 ? (
-
-                            <p className="semFavoritos">
-                                Você ainda não possui animais favoritos.
-                            </p>
-
-                        ) : (
-
-                            favoritos.map((favorito) => (
-
-                                <div
-                                    className="favoritoItem"
-                                    key={favorito.id}
-                                >
-
+                            <p className="semFavoritos">{t("Você ainda não possui animais favoritos.")}</p>
+                        ) : favoritos.map(favorito => {
+                            const tipo = (Object.keys(TIPOS) as TipoAnimal[]).find(valor => TIPOS[valor] === favorito.especie);
+                            const rotaTipo = (tipo ?? favorito.especie).normalize("NFD").replace(/\p{Diacritic}/gu, "");
+                            const params = new URLSearchParams({ tipo: rotaTipo, raca: favorito.raca });
+                            return (
+                                <div className="favoritoItem" key={favorito.id}>
                                     <div className="favoritoInfo">
-
-                                        <strong>
-                                            {favorito.tipo}: 
-                                        </strong>
-
-                                        <span>
-                                            {favorito.racaEspecie}
-                                        </span>
-
+                                        <strong>{t(tipo ?? favorito.especie)}</strong>
+                                        <Link to={"/Products?" + params} onClick={fecharMenu}>{favorito.raca}</Link>
                                     </div>
-
                                     <button
                                         type="button"
+                                        disabled={salvandoFavorito}
                                         onClick={() => removerFavorito(favorito.id)}
-                                        aria-label={`Remover ${favorito.racaEspecie}`}
-                                    >
-                                        ×
-                                    </button>
-
+                                        aria-label={t("Remover {raca}", { raca: favorito.raca })}
+                                    >×</button>
                                 </div>
-
-                            ))
-
-                        )}
-
+                            );
+                        })}
                     </div>
-
 
                     <form
                         className="formFavoritos"
@@ -511,7 +484,7 @@ function HomeClient() {
                         <div className="campoFavorito">
 
                             <label htmlFor="tipoAnimal">
-                                Tipo
+                                {t("Tipo")}
                             </label>
 
                             <select
@@ -522,27 +495,27 @@ function HomeClient() {
                             >
 
                                 <option value="">
-                                    Selecione
+                                    {t("Selecione")}
                                 </option>
 
                                 <option value="Cachorro">
-                                    Cachorro
+                                    {t("Cachorro")}
                                 </option>
 
                                 <option value="Gato">
-                                    Gato
+                                    {t("Gato")}
                                 </option>
 
                                 <option value="Réptil">
-                                    Réptil
+                                    {t("Réptil")}
                                 </option>
 
                                 <option value="Pássaro">
-                                    Pássaro
+                                    {t("Pássaro")}
                                 </option>
 
                                 <option value="Peixe">
-                                    Peixe
+                                    {t("Peixe")}
                                 </option>
 
                             </select>
@@ -567,7 +540,7 @@ function HomeClient() {
                                 >
 
                                     <option value="">
-                                        Selecione
+                                        {t("Selecione")}
                                     </option>
 
                                     {racas.map(
@@ -577,7 +550,7 @@ function HomeClient() {
                                                 value={opcao}
                                                 key={opcao}
                                             >
-                                                {opcao}
+                                                {t(opcao)}
                                             </option>
 
                                         )
@@ -593,9 +566,9 @@ function HomeClient() {
                         <button
                             type="submit"
                             className="btnSalvarFavorito"
-                            disabled={!tipoAnimal || !racaEspecie}
+                            disabled={salvandoFavorito || !racaEspecie}
                         >
-                            Salvar
+                            {t("Salvar")}
                         </button>
 
                     </form>
@@ -603,49 +576,35 @@ function HomeClient() {
                 </div>
 
             </aside>
+            </>}
 
-            <footer>
+            {rodape?.visivel !== false && <footer>
                     <div className="footerInfo">
                         <img
                             src={logo}
                             alt="Logo JPetStore"
                             className="logo"
                         />
-                        <p>Encontre seu companheiro ideal e descubra o amor que só um pet pode oferecer.</p>
+                        {rodape?.conteudoHtml ? <iframe
+                            className="rodapePersonalizado"
+                            title={t("Conteúdo do rodapé")}
+                            sandbox=""
+                            referrerPolicy="no-referrer"
+                            srcDoc={`<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><style>body{margin:0;font:16px system-ui;overflow-wrap:anywhere;color:#fff}</style>${rodape.conteudoHtml}`}
+                        /> : <p>{t("Encontre seu companheiro ideal e descubra o amor que só um pet pode oferecer.")}</p>}
                         <Link to="/cadastroUser" className="btnCadastro">
-                            Cadastre-se
+                            {t("Cadastre-se")}
                         </Link>
                     </div>
 
-                    <div className="footerLinks">
-                        <h4><Link to="">Inicio</Link></h4>
-                        <div>
-                            <h4><Link to="">Cachorros</Link></h4>
-                            <ul>
-                                <li><Link to="">Porte Grande</Link></li>
-                                <li><Link to="">Porte Medio</Link></li>
-                                <li><Link to="">Porte Pequeno</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4><Link to="">Gatos</Link></h4>
-                            <ul>
-                                <li><Link to="">Porte Grande</Link></li>
-                                <li><Link to="">Porte Medio</Link></li>
-                                <li><Link to="">Porte Pequeno</Link></li>
-                            </ul>
-                        </div>
-
-                        <h4><Link to="">Repteis</Link></h4>
-
-                        <h4><Link to="">Passaros</Link></h4>
-
-                        <h4><Link to="">Peixes</Link></h4>
-
-                    </div>
-
-            </footer>
+                    <nav className="footerLinks" aria-label={t("Rodapé")}>
+                        <Link to="/HomeClient">{t("Inicio")}</Link>
+                        {CATEGORIAS.map(categoria => (
+                            <Link key={categoria.tipo} to={"/Products?tipo=" + categoria.tipo}>{t(categoria.tipo)}</Link>
+                        ))}
+                        <Link to="/HelpPage">{t("Como podemos ajudar?")}</Link>
+                    </nav>
+            </footer>}
 
         </div>
 

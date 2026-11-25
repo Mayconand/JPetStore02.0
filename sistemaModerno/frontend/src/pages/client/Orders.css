@@ -212,3 +212,7 @@
     }
 
 }
+
+.acoesPedido { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin: .75rem 0; }
+.acoesPedido > a, .acoesPedido > button { padding: .5rem .75rem; border: 1px solid currentColor; border-radius: .5rem; }
+.acoesPedido > p { flex-basis: 100%; }

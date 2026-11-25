@@ -63,9 +63,9 @@ public class AnimalRepository {
 
     public ResultadoBusca buscar(BuscaAnimaisFiltro filtro, int limite, int offset) {
         List<LinhaDaBusca> linhas = banco.linhas(
-                "jpetstore.fn_buscar_animais(?, ?, ?, ?, ?, ?, ?, ?)", LINHA,
+                "jpetstore.fn_buscar_animais_filtrados(?, ?, ?, ?, ?, ?, ?, ?, ?)", LINHA,
                 filtro.termo(), filtro.especie(), filtro.racaId(), filtro.raca(),
-                filtro.precoMin(), filtro.precoMax(), limite, offset);
+                filtro.precoMin(), filtro.precoMax(), filtro.idade(), limite, offset);
         long total = linhas.isEmpty() ? 0 : linhas.getFirst().totalDaBusca();
         return new ResultadoBusca(linhas.stream().map(LinhaDaBusca::animal).toList(), total);
     }

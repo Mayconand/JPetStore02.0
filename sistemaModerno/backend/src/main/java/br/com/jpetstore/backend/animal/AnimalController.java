@@ -55,8 +55,9 @@ public class AnimalController {
             @RequestParam(required = false) String raca,
             @RequestParam(required = false) BigDecimal precoMin,
             @RequestParam(required = false) BigDecimal precoMax,
+            @RequestParam(required = false) String idade,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
-        return service.buscar(new BuscaAnimaisFiltro(termo, especie, racaId, raca, precoMin, precoMax), page, size);
+        return service.buscar(new BuscaAnimaisFiltro(termo, especie, racaId, raca, precoMin, precoMax, idade), page, size);
     }
 }

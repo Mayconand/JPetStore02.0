@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { t } from "./idioma";
 
 /**
  * Cliente HTTP do backend JPetStore.
@@ -59,7 +60,7 @@ export function limparSessao(): void {
 // Envia o token em toda requisição, quando houver sessão.
 api.interceptors.request.use((config) => {
     const sessao = obterSessao();
-    if (sessao && config.url !== "/api/auth/login") {
+    if (sessao && !["/api/auth/login", "/api/auth/recuperar-senha", "/api/auth/redefinir-senha"].includes(config.url ?? "")) {
         config.headers.Authorization = `Bearer ${sessao.token}`;
     }
     return config;
@@ -89,14 +90,14 @@ export function mensagemDeErro(erro: unknown): string {
         const corpo = erro.response?.data;
         if (corpo?.campos) {
             return Object.entries(corpo.campos)
-                .map(([campo, msg]) => `${campo}: ${msg}`)
+                .map(([campo, msg]) => `${campo}: ${t(msg)}`)
                 .join("\n");
         }
-        if (corpo?.mensagem) return corpo.mensagem;
-        if (erro.response?.status === 401) return "Faça login para continuar.";
-        if (!erro.response) return "Não foi possível conectar ao servidor.";
+        if (corpo?.mensagem) return t(corpo.mensagem);
+        if (erro.response?.status === 401) return t("Faça login para continuar.");
+        if (!erro.response) return t("Não foi possível conectar ao servidor.");
     }
-    return "Ocorreu um erro inesperado.";
+    return t("Ocorreu um erro inesperado.");
 }
 
 /** true quando o erro é de usuário não autenticado (sem login ou sessão expirada). */

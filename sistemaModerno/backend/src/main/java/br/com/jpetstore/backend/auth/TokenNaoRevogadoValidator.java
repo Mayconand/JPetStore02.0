@@ -6,6 +6,8 @@ import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 /** Rejeita tokens que passaram pelo logout (RF10). */
 @Component
 public class TokenNaoRevogadoValidator implements OAuth2TokenValidator<Jwt> {
@@ -18,9 +20,17 @@ public class TokenNaoRevogadoValidator implements OAuth2TokenValidator<Jwt> {
 
     @Override
     public OAuth2TokenValidatorResult validate(Jwt jwt) {
-        if (jwt.getId() == null || tokens.estaRevogado(jwt.getId())) {
-            return OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Token revogado.", null));
+        UUID usuarioId;
+        try {
+            usuarioId = UUID.fromString(jwt.getSubject());
+        } catch (IllegalArgumentException | NullPointerException falha) {
+            return invalido();
         }
-        return OAuth2TokenValidatorResult.success();
+        return jwt.getId() != null && tokens.estaAtivo(jwt.getId(), usuarioId, jwt.getClaimAsString("versaoRecuperacao"))
+                ? OAuth2TokenValidatorResult.success() : invalido();
+    }
+
+    private OAuth2TokenValidatorResult invalido() {
+        return OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Token revogado.", null));
     }
 }

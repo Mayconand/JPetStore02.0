@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 
 import Home from "../pages/store/Home";
+import RecuperarSenha from "../pages/auth/RecuperarSenha";
 import Login from "../pages/auth/Login";
 import CadastroUser from "../pages/auth/CadastroUser";
 import HomeClient from "../pages/client/HomeClient";
@@ -13,6 +14,8 @@ import Orders from "../pages/client/Orders";
 import ErrorPage from "../pages/store/ErrorPage";
 import ProfilePage from "../pages/client/ProfilePage";
 import HelpPage from "../pages/client/HelpPage";
+import ClientesAdm from "../pages/admin/ClientesAdm";
+import CuponsAdm from "../pages/admin/CuponsAdm";
 import DashboardAdm from "../pages/admin/DashboardAdm";
 import CadastroCachorro from "../pages/admin/CadastroCachorro";
 import CadastroGato from "../pages/admin/CadastroGato";
@@ -31,6 +34,7 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
             <Route path="/login" element={<Login />} />
             <Route path="/CadastroUser" element={<CadastroUser />} />
             <Route path="/HomeClient" element={<HomeClient />} />
@@ -44,6 +48,8 @@ function AppRoutes() {
             <Route path="/ProfilePage" element={<ProfilePage />} />
             <Route path="/HelpPage" element={<HelpPage />} />
             <Route element={<RotaAdmin />}>
+                <Route path="/adm/clientes" element={<ClientesAdm />} />
+                <Route path="/adm/cupons" element={<CuponsAdm />} />
                 <Route path="/DashboardAdm" element={<DashboardAdm />} />
                 <Route path="/adm/adicionar" element={<CadastroCachorro key="novo" />} />
                 <Route path="/adm/adicionar-gato" element={<CadastroGato key="novo" />} />

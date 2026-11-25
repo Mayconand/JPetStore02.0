@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import "./CadastroCachorro.css";
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -122,9 +123,9 @@ function CadastroGato() {
     <div className="cad-page">
       <div className="cad-wrapper">
         <div className="cad-top-bar">
-          <h1 className="cad-title">Cadastro gato</h1>
+          <h1 className="cad-title">{t("Cadastro gato")}</h1>
           <Link to="/DashboardAdm" className="cad-back-link">
-            ← Voltar ao painel
+            {t("← Voltar ao painel")}
           </Link>
         </div>
 
@@ -139,7 +140,7 @@ function CadastroGato() {
               {imagemPrincipal ? (
                 <img
                   src={imagemPrincipal}
-                  alt="Preview principal"
+                  alt={t("Preview principal")}
                   className="cad-main-preview"
                 />
               ) : (
@@ -160,9 +161,9 @@ function CadastroGato() {
                     />
                   </svg>
                   <span>
-                    Insira a imagem
+                    {t("Insira a imagem")}
                     <br />
-                    principal
+                    {t("principal")}
                   </span>
                 </>
               )}
@@ -178,7 +179,7 @@ function CadastroGato() {
             {/* Campos da Direita */}
             <div className="cad-right-fields">
               <div className="cad-field">
-                <label>Nome:</label>
+                <label>{t("Nome:")}</label>
                 <input
                   type="text"
                   value={nome}
@@ -198,7 +199,7 @@ function CadastroGato() {
                       setAbertoPelagem(false);
                     }}
                   >
-                    <span>{raca || "Raça"}</span>
+                    <span>{raca || t("Raça")}</span>
                     <svg viewBox="0 0 24 24" fill="none">
                       <path
                         d="M6 9L12 15L18 9"
@@ -230,7 +231,7 @@ function CadastroGato() {
                         <div className="cad-new-breed-box">
                           <input
                             type="text"
-                            placeholder="Nome da raça..."
+                            placeholder={t("Nome da raça...")}
                             value={novaRacaInput}
                             onChange={(e) => setNovaRacaInput(e.target.value)}
                             autoFocus
@@ -245,7 +246,7 @@ function CadastroGato() {
                           className="cad-add-breed-btn"
                           onClick={() => setAdicionandoRaca(true)}
                         >
-                          + Adicionar nova raça
+                          {t("+ Adicionar nova raça")}
                         </button>
                       )}
                     </div>
@@ -262,7 +263,7 @@ function CadastroGato() {
                       setAbertoRaca(false);
                     }}
                   >
-                    <span>{pelagem || "Pelagem"}</span>
+                    <span>{pelagem || t("Pelagem")}</span>
                     <svg viewBox="0 0 24 24" fill="none">
                       <path
                         d="M6 9L12 15L18 9"
@@ -297,7 +298,7 @@ function CadastroGato() {
               {/* Linha Altura e Peso */}
               <div className="cad-two-cols">
                 <div className="cad-field">
-                  <label>Altura:</label>
+                  <label>{t("Altura:")}</label>
                   <input
                     type="text"
                     value={altura}
@@ -306,7 +307,7 @@ function CadastroGato() {
                 </div>
 
                 <div className="cad-field">
-                  <label>Peso:</label>
+                  <label>{t("Peso:")}</label>
                   <input
                     type="text"
                     value={peso}
@@ -320,7 +321,7 @@ function CadastroGato() {
           {/* Linha Nascimento e Laudos */}
           <div className="cad-mid-row">
             <div className="cad-field cad-field-nasc">
-              <label>Nascimento:</label>
+              <label>{t("Nascimento:")}</label>
               <input
                 type="text"
                 placeholder="00 / 00 / 0000"
@@ -330,7 +331,7 @@ function CadastroGato() {
             </div>
 
             <div className="cad-field cad-field-laudo">
-              <label>Laudos (em PDF ate 10MB):</label>
+              <label>{t("Laudos (em PDF ate 10MB):")}</label>
               <button
                 type="button"
                 className="cad-file-box"
@@ -365,7 +366,7 @@ function CadastroGato() {
 
           {/* Preço: obrigatório na API */}
           <div className="cad-field">
-            <label>Preço:</label>
+            <label>{t("Preço:")}</label>
             <input
               type="text"
               value={preco}
@@ -375,7 +376,7 @@ function CadastroGato() {
 
           {/* Descrição */}
           <div className="cad-field cad-desc-field">
-            <label>Descrição:</label>
+            <label>{t("Descrição:")}</label>
             <textarea
               rows={3}
               value={descricao}
@@ -385,7 +386,7 @@ function CadastroGato() {
 
           {/* Fotos (3 caixas) */}
           <div className="cad-field">
-            <label>Fotos:</label>
+            <label>{t("Fotos:")}</label>
             <div className="cad-fotos-grid">
               {[0, 1, 2].map((idx) => (
                 <div key={idx}>
@@ -427,15 +428,15 @@ function CadastroGato() {
 
           {/* TAGs */}
           <div className="cad-tags-section">
-            <label className="cad-tags-title">TAGs:</label>
+            <label className="cad-tags-title">{t("TAGs:")}</label>
             <span className="cad-tags-subtitle">
-              Selecione ate 5 tags do pet
+              {t("Selecione ate 5 tags do pet")}
             </span>
 
             <div className="cad-tag-search">
               <input
                 type="text"
-                placeholder="Pesquise uma tag"
+                placeholder={t("Pesquise uma tag")}
                 value={buscaTag}
                 onChange={(e) => setBuscaTag(e.target.value)}
                 onKeyDown={handleAdicionarTagDigitada}
@@ -483,7 +484,7 @@ function CadastroGato() {
                   key={tag}
                   type="button"
                   className="cad-tag-chip active"
-                  title="Clique para remover"
+                  title={t("Clique para remover")}
                   onClick={() => alternarTag(tag)}
                 >
                   {tag}
@@ -494,7 +495,7 @@ function CadastroGato() {
 
           {/* Botão Salvar */}
           <button type="submit" className="cad-submit-btn">
-            Salvar
+            {t("Salvar")}
           </button>
         </form>
       </div>

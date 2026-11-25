@@ -40,6 +40,7 @@ export interface FiltroAnimais {
     raca?: string;
     precoMin?: number;
     precoMax?: number;
+    idade?: string;
     page?: number;
     size?: number;
 }

@@ -45,7 +45,7 @@ public class SegurancaConfig {
                 .cors(cors -> { })
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/recuperar-senha", "/api/auth/redefinir-senha", "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/animais", "/api/animais/**", "/api/ajuda").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

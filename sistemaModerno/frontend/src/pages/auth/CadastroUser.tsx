@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 
 import "./CadastroUser.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
@@ -135,12 +136,12 @@ function CadastroUser() {
 
                 <img
                     src={imagemLogin}
-                    alt="Cachorro em um ambiente externo"
+                    alt={t("Cachorro em um ambiente externo")}
                 />
 
                 <div className="cadastroMessage">
                     <h2>
-                        Primeiro passo para encontrar seu novo companheiro
+                        {t("Primeiro passo para encontrar seu novo companheiro")}
                     </h2>
                 </div>
 
@@ -157,58 +158,57 @@ function CadastroUser() {
 
                 <div className="cadastroForm">
 
-                    <h1>Bem-vindo!</h1>
+                    <h1>{t("Bem-vindo!")}</h1>
 
                     <h3 className="cadastroDescription">
-                        Crie sua conta e dê o primeiro passo para encontrar
-                        seu novo companheiro de quatro patas.
+                        {t("Crie sua conta e dê o primeiro passo para encontrar seu novo companheiro de quatro patas.")}
                     </h3>
 
                     <form onSubmit={salvar}>
 
                         {/* Informações pessoais */}
                         <p className="formSectionTitle">
-                            Informações pessoais:
+                            {t("Informações pessoais:")}
                         </p>
 
                         <div className="formGrid gridTwo">
                             <input
                                 type="text"
                                 name="name"
-                                placeholder="Nome"
-                                aria-label="Nome"
+                                placeholder={t("Nome")}
+                                aria-label={t("Nome")}
                                 required
                             />
 
                             <input
                                 type="text"
                                 name="lastName"
-                                placeholder="Sobrenome"
-                                aria-label="Sobrenome"
+                                placeholder={t("Sobrenome")}
+                                aria-label={t("Sobrenome")}
                                 required
                             />
 
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Email"
-                                aria-label="Email"
+                                placeholder={t("Email")}
+                                aria-label={t("Email")}
                                 required
                             />
 
                             <input
                                 type="tel"
                                 name="phone"
-                                placeholder="Telefone"
-                                aria-label="Telefone"
+                                placeholder={t("Telefone")}
+                                aria-label={t("Telefone")}
                                 required
                             />
 
                             <input
                                 type="password"
                                 name="password"
-                                placeholder="Senha (mínimo 8 caracteres)"
-                                aria-label="Senha"
+                                placeholder={t("Senha (mínimo 8 caracteres)")}
+                                aria-label={t("Senha")}
                                 autoComplete="new-password"
                                 minLength={8}
                                 required
@@ -217,8 +217,8 @@ function CadastroUser() {
                             <input
                                 type="password"
                                 name="confirmPassword"
-                                placeholder="Confirmar senha"
-                                aria-label="Confirmar senha"
+                                placeholder={t("Confirmar senha")}
+                                aria-label={t("Confirmar senha")}
                                 autoComplete="new-password"
                                 minLength={8}
                                 required
@@ -227,14 +227,14 @@ function CadastroUser() {
 
                         {/* Endereço 1 */}
                         <p className="formSectionTitle">
-                            Endereço 1:
+                            {t("Endereço 1:")}
                         </p>
 
                         <div className="formGrid gridThree">
                             <input
                                 type="text"
                                 name="city"
-                                placeholder="Cidade"
+                                placeholder={t("Cidade")}
                                 value={endereco1.city}
                                 onChange={(e) => setEndereco1({
                                     ...endereco1,
@@ -246,7 +246,7 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="state"
-                                placeholder="Estado"
+                                placeholder={t("Estado")}
                                 value={endereco1.state}
                                 onChange={(e) => setEndereco1({
                                     ...endereco1,
@@ -258,7 +258,7 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="country"
-                                placeholder="País"
+                                placeholder={t("País")}
                                 value={endereco1.country}
                                 onChange={(e) => setEndereco1({
                                     ...endereco1,
@@ -285,8 +285,8 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="complement"
-                                placeholder={endereco1.street ? "Número, complemento (ex.: 42, Apto 2)" : "Rua, número, complemento"}
-                                aria-label={endereco1.street ? "Número e complemento" : "Rua, número e complemento"}
+                                placeholder={endereco1.street ? t("Número, complemento (ex.: 42, Apto 2)") : t("Rua, número, complemento")}
+                                aria-label={endereco1.street ? t("Número e complemento") : t("Rua, número e complemento")}
                                 required
                                 className="spanTwo"
                             />
@@ -295,7 +295,7 @@ function CadastroUser() {
                         {/* Endereço 2 */}
                         <div className="addressHeader">
                             <p className="formSectionTitle">
-                                Endereço 2:
+                                {t("Endereço 2:")}
                             </p>
 
                             <label className="checkboxLabel">
@@ -305,7 +305,7 @@ function CadastroUser() {
                                     checked={semSegundoEndereco}
                                     onChange={(e) => setSemSegundoEndereco(e.target.checked)}
                                 />
-                                Não possui
+                                {t("Não possui")}
                             </label>
                         </div>
 
@@ -313,7 +313,7 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="city2"
-                                placeholder="Cidade"
+                                placeholder={t("Cidade")}
                                 value={endereco2.city}
                                 onChange={(e) => setEndereco2({
                                     ...endereco2,
@@ -326,7 +326,7 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="state2"
-                                placeholder="Estado"
+                                placeholder={t("Estado")}
                                 value={endereco2.state}
                                 onChange={(e) => setEndereco2({
                                     ...endereco2,
@@ -339,7 +339,7 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="country2"
-                                placeholder="País"
+                                placeholder={t("País")}
                                 value={endereco2.country}
                                 onChange={(e) => setEndereco2({
                                     ...endereco2,
@@ -368,8 +368,8 @@ function CadastroUser() {
                             <input
                                 type="text"
                                 name="complement2"
-                                placeholder={endereco2.street ? "Número, complemento (ex.: 42, Apto 2)" : "Rua, número, complemento"}
-                                aria-label="Segundo endereço: rua, número e complemento"
+                                placeholder={endereco2.street ? t("Número, complemento (ex.: 42, Apto 2)") : t("Rua, número, complemento")}
+                                aria-label={t("Segundo endereço: rua, número e complemento")}
                                 required={!semSegundoEndereco}
                                 disabled={semSegundoEndereco}
                                 className="spanTwo"
@@ -378,34 +378,34 @@ function CadastroUser() {
 
                         {/* Preferências */}
                         <p className="formSectionTitle preferencesTitle">
-                            Preferências:
+                            {t("Preferências:")}
                         </p>
 
                         <div className="preferencesGrid">
 
                             <div className="preferenceField">
-                                <label htmlFor="language">Idioma</label>
+                                <label htmlFor="language">{t("Idioma")}</label>
 
                                 <select id="language" name="language">
                                     <option value=""></option>
-                                    <option value="pt-BR">Português</option>
-                                    <option value="en">Inglês</option>
-                                    <option value="es">Espanhol</option>
+                                    <option value="pt-BR">{t("Português")}</option>
+                                    <option value="en">{t("Inglês")}</option>
+                                    <option value="es">{t("Espanhol")}</option>
                                 </select>
                             </div>
 
                             <div className="preferenceField">
                                 <label htmlFor="category">
-                                    Categoria favorita
+                                    {t("Categoria favorita")}
                                 </label>
 
                                 <select id="category" name="category">
                                     <option value=""></option>
-                                    <option value="dogs">Cachorros</option>
-                                    <option value="cats">Gatos</option>
-                                    <option value="birds">Repteis</option>
-                                    <option value="birds">Aves</option>
-                                    <option value="others">Peixes</option>
+                                    <option value="dogs">{t("Cachorros")}</option>
+                                    <option value="cats">{t("Gatos")}</option>
+                                    <option value="birds">{t("Repteis")}</option>
+                                    <option value="birds">{t("Aves")}</option>
+                                    <option value="others">{t("Peixes")}</option>
                                 </select>
                             </div>
 
@@ -414,7 +414,7 @@ function CadastroUser() {
                                     type="checkbox"
                                     name="activateList"
                                 />
-                                Ativar Minha Lista
+                                {t("Ativar Minha Lista")}
                             </label>
 
                             <label className="checkboxLabel preferenceCheck">
@@ -422,17 +422,17 @@ function CadastroUser() {
                                     type="checkbox"
                                     name="activateBanner"
                                 />
-                                Ativar Meu Banner
+                                {t("Ativar Meu Banner")}
                             </label>
 
                         </div>
 
                         {erro && (
-                            <p className="formErro" role="alert">{erro}</p>
+                            <p className="formErro" role="alert">{t(erro)}</p>
                         )}
 
                         <button type="submit" disabled={enviando}>
-                            {enviando ? "Salvando..." : "Salvar"}
+                            {enviando ? t("Salvando...") : t("Salvar")}
                         </button>
 
                     </form>

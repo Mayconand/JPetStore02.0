@@ -1,3 +1,4 @@
+import { t } from "../services/idioma";
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +25,7 @@ function ModalLaudos({ animalId, nome, onFechar }: Props) {
             .then((lista) => {
                 if (!ativo) return;
                 setLaudos(lista);
-                setAviso(lista.length ? "" : `${nome} ainda não tem laudos.`);
+                setAviso(lista.length ? "" : t("{nome} ainda não tem laudos.", { nome }));
             })
             .catch((e) => ativo && setAviso(mensagemDeErro(e)));
         return () => { ativo = false; };
@@ -36,7 +37,7 @@ function ModalLaudos({ animalId, nome, onFechar }: Props) {
             await abrirLaudo(arquivoUrl);
         } catch (e) {
             if (naoAutenticado(e)) navigate("/login");
-            else alert("Não foi possível abrir o laudo.");
+            else alert(t("Não foi possível abrir o laudo."));
         }
     }
 
@@ -47,13 +48,13 @@ function ModalLaudos({ animalId, nome, onFechar }: Props) {
 
                 <div className="modalHeader">
 
-                    <h2>Laudos - {nome}</h2>
+                    <h2>{t("Laudos -") + " "}{nome}</h2>
 
                     <button
                         type="button"
                         className="btnFecharModal"
                         onClick={onFechar}
-                        aria-label="Fechar laudo"
+                        aria-label={t("Fechar laudo")}
                     >
                         ×
                     </button>
@@ -64,7 +65,7 @@ function ModalLaudos({ animalId, nome, onFechar }: Props) {
 
                     <span>PDF</span>
 
-                    {aviso && <p>{aviso}</p>}
+                    {aviso && <p>{t(aviso)}</p>}
 
                     {laudos.map((laudo) => (
                         <p key={laudo.id}>

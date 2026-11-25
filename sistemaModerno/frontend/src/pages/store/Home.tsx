@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import "./Home.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import imagemhome from "../../assets/imagens/imagemhome.png";
@@ -12,9 +13,9 @@ function Home() {
                 <img src={logo} alt="Logo JPetStore" className="logo"/>
 
                 <nav>
-                    <Link to="/login">Entrar</Link>
+                    <Link to="/login">{t("Entrar")}</Link>
                     <Link to="/cadastroUser" className="btnCadastro">
-                        Cadastre-se
+                        {t("Cadastre-se")}
                     </Link>
                 </nav>
             </header>
@@ -24,23 +25,22 @@ function Home() {
 
                     <div className="presentationText">
                         <h1>
-                            Seu novo <span>melhor amigo</span> está aqui!
+                            {t("Seu novo") + " "}<span>{t("melhor amigo")}</span>{" " + t("está aqui!")}
                         </h1>
 
                         <p>
-                            Encontre seu companheiro ideal e descubra
-                            o amor que só um pet pode oferecer.
+                            {t("Encontre seu companheiro ideal e descubra o amor que só um pet pode oferecer.")}
                         </p>
 
                         <a href="/cadastroUser" className="btnCadastro">
-                            Cadastre-se
+                            {t("Cadastre-se")}
                         </a>
                     </div>
 
                     <div className="presentationImage">
                         <img
                             src={imagemhome}
-                            alt="Imagem de uma mulher com um cachorro"
+                            alt={t("Imagem de uma mulher com um cachorro")}
                             className="imagemhome"
                         />
                     </div>

@@ -8,7 +8,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +32,15 @@ public class PedidoAdminController {
 
     public PedidoAdminController(PedidoAdminService service) {
         this.service = service;
+    }
+
+    public record AlterarStatus(@NotNull StatusPedidoEnum status) { }
+
+    @PutMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void alterarStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                              @Valid @RequestBody AlterarStatus dados) {
+        service.alterarStatus(UsuarioAutenticado.id(jwt), id, dados.status());
     }
 
     /** RF30 — Filtrar pedidos por status, período (datas inclusivas) e cliente. */

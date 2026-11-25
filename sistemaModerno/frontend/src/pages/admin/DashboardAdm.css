@@ -536,3 +536,11 @@
 }
 
 }
+.adm-fluxo { max-width: 70rem; margin: 2rem auto; padding: 1.5rem; }
+.adm-fluxo form { display: grid; gap: 1rem; max-width: 24rem; }
+.adm-fluxo label { display: grid; gap: .4rem; margin-bottom: .75rem; }
+.adm-fluxo input, .adm-fluxo button, .col-status button { padding: .5rem; }
+.adm-fluxo .status-table-wrapper { overflow-x: auto; }
+.adm-fluxo table { border-collapse: collapse; width: 100%; text-align: left; }
+.adm-fluxo th, .adm-fluxo td { padding: .7rem; border-bottom: 1px solid #ddd; }
+.col-status { display: flex; flex-wrap: wrap; gap: .4rem; }

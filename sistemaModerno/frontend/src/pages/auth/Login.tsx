@@ -1,9 +1,10 @@
+import { t } from "../../services/idioma";
 import "./Login.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import imagemLogin from "../../assets/imagens/imagemLogin.png";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/auth";
 import { mensagemDeErro } from "../../services/api";
 
@@ -42,41 +43,40 @@ function Login() {
 
                 <div className="loginForm">
 
-                    <h1>Olá!</h1>
+                    <h1>{t("Olá!")}</h1>
 
                     <p className="loginDescription">
-                        Entre na sua conta e fique mais perto de encontrar
-                        seu novo companheiro de estimação
+                        {t("Entre na sua conta e fique mais perto de encontrar seu novo companheiro de estimação")}
                     </p>
 
                     <form onSubmit={entrar}>
 
-                        <label>Email</label>
+                        <label>{t("Email")}</label>
                         <input type="email" name="email" autoComplete="email" required />
 
-                        <label>Senha</label>
+                        <label>{t("Senha")}</label>
                         <input type="password" name="password" autoComplete="current-password" required />
 
-                        <a href="/" className="forgotPassword">
-                            Esqueceu a senha?
-                        </a>
+                        <Link to="/recuperar-senha" className="forgotPassword">
+                            {t("Esqueceu a senha?")}
+                        </Link>
 
                         {erro && (
-                            <p className="formErro" role="alert">{erro}</p>
+                            <p className="formErro" role="alert">{t(erro)}</p>
                         )}
 
                         <button type="submit" disabled={enviando}>
-                            {enviando ? "Entrando..." : "Entrar"}
+                            {enviando ? t("Entrando...") : t("Entrar")}
                         </button>
 
                         <p className="registerText">
-                            Não possui conta? <a href="/CadastroUser">Cadastre-se</a>
+                            {t("Não possui conta?") + " "}<a href="/CadastroUser">{t("Cadastre-se")}</a>
                         </p>
 
                         <hr />
 
                         <p className="contactText">
-                            Para mais informações entre em contato com
+                            {t("Para mais informações entre em contato com")}
                             <a href="mailto:contato@jpetstore.com">
                                 contato@jpetstore.com
                             </a>
@@ -92,17 +92,16 @@ function Login() {
 
                 <img
                     src={imagemLogin}
-                    alt="Cachorro em um ambiente externo"
+                    alt={t("Cachorro em um ambiente externo")}
                 />
 
                 <div className="loginMessage">
                     <h2>
-                        Uma nova amizade começa com uma patinha.
+                        {t("Uma nova amizade começa com uma patinha.")}
                     </h2>
 
                     <p>
-                        Conheça nossos animais e encontre aquele que vai
-                        transformar sua casa em um lar ainda mais feliz.
+                        {t("Conheça nossos animais e encontre aquele que vai transformar sua casa em um lar ainda mais feliz.")}
                     </p>
                 </div>
 

@@ -1,3 +1,4 @@
+import { t } from "../../services/idioma";
 import { Link } from "react-router-dom";
 import "./AnimalCategories.css";
 
@@ -81,7 +82,7 @@ function AnimalCategories() {
 
                 {/* Animal central */}
                 <div className="centralAnimal">
-                    <img src={papagaio} alt="Papagaio" />
+                    <img src={papagaio} alt={t("Papagaio")} />
                 </div>
 
                 {/* Categorias */}
