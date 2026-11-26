@@ -3,9 +3,9 @@ import "./ListaCategoria.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import gatoAdm from "../../assets/imagens/animais/animais-Adm/gato-Adm.png";
 import { useState } from "react";
+import MenuUsuario from "../../components/client/MenuUsuario";
 import { Link, useNavigate } from "react-router-dom";
 import { useListaAnimais } from "../../hooks/useListaAnimais";
-import { obterSessao } from "../../services/api";
 import { juntarOpcoes } from "../../services/listas";
 
 function ListaGatos() {
@@ -42,11 +42,10 @@ function ListaGatos() {
             </button>
 
             <div className="lista-cat-user-pill">
-              <svg viewBox="0 0 24 24" fill="none">
+              <MenuUsuario admin icone={<svg viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
                 <path d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-              <span><strong>{t("Nome:")}</strong> {obterSessao()?.usuario.nome}</span>
+              </svg>} />
             </div>
           </div>
         </header>

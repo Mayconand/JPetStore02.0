@@ -4,9 +4,10 @@ import "./helpPage.css";
 import logo from "../../assets/imagens/logos/logoJPetStore.png";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import MenuUsuario from "../../components/client/MenuUsuario";
 import { listarAjuda } from "../../services/ajuda";
 import type { TopicoAjuda } from "../../services/ajuda";
-import { mensagemDeErro, obterSessao } from "../../services/api";
+import { mensagemDeErro } from "../../services/api";
 
 const ESPERA_DA_BUSCA_MS = 300;
 
@@ -88,14 +89,14 @@ function HelpPage() {
 
                     <div className="profileUser">
 
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="12" cy="8" r="4" />
-                            <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
-                        </svg>
-
-                        <span>
-                            <strong>{t("Nome:")}</strong> {obterSessao()?.usuario.nome}
-                        </span>
+                        <MenuUsuario
+                            icone={
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="4" />
+                                    <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
+                                </svg>
+                            }
+                        />
 
                     </div>
 

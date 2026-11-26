@@ -214,5 +214,11 @@
 }
 
 .acoesPedido { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin: .75rem 0; }
-.acoesPedido > a, .acoesPedido > button { padding: .5rem .75rem; border: 1px solid currentColor; border-radius: .5rem; }
+/* Mesmo padrão dos botões do pagamento: verde para seguir, cinza para cancelar */
+.acoesPedido > a, .acoesPedido > button { padding: 9px 15px; border: none; border-radius: 4px; font-size: 11px; text-decoration: none; cursor: pointer; transition: 0.2s; }
+.acoesPedido > a { background: #9ac34d; color: white; }
+.acoesPedido > a:hover { background: #83ae38; }
+.acoesPedido > button { background: #eee; color: #555; }
+.acoesPedido > button:hover { background: #ddd; }
+.acoesPedido > button:disabled { opacity: .6; cursor: default; }
 .acoesPedido > p { flex-basis: 100%; }

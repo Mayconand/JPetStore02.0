@@ -1,4 +1,4 @@
-import { t, moedaLocal as moeda, idiomaAtual } from "../../services/idioma";
+import { t, moedaLocal as moeda } from "../../services/idioma";
 
 import "./DetailsPayment.css";
 
@@ -12,7 +12,10 @@ import { mensagemDeErro, naoAutenticado } from "../../services/api";
 import AcoesPedido from "../../components/client/AcoesPedido";
 import SearchBox from "../../components/client/SearchBox";
 import UserBox from "../../components/client/UserBox";
-const rua=(e:DadosEndereco|null)=>e?[e.rua,e.numero,e.complemento].filter(Boolean).join(", "):"Não informado";
+/** Endereço 1: rua e número. Endereço 2: complemento e bairro (como no design). */
+const endereco1=(e:DadosEndereco)=>[e.rua,e.numero].filter(Boolean).join(", ")||"—";
+const endereco2=(e:DadosEndereco|null)=>[e?.complemento,e?.bairro].filter(Boolean).join(", ")||"—";
+const FORMAS:Record<string,string>={CARTAO_CREDITO:"Cartão de crédito",PIX:"Pix",BOLETO:"Boleto"};
 
 function DetailsPayment() {
     const navigate=useNavigate();
@@ -89,13 +92,13 @@ function DetailsPayment() {
 
                     <div className="detailsHeader">
 
-                        <h2>{t("Detalhes do pedido")}</h2><Link to="/Orders">{t("← Meus pedidos")}</Link>
+                        <h2>{t("Detalhes do pedido")}</h2>
 
                         <div className="orderCode">
 
                             <span>{t("Código do pedido")}</span>
 
-                            <strong>#{pedido.id.slice(0,8)}</strong>
+                            <strong>{t("Nº")} {pedido.id.slice(0,8).toUpperCase()}</strong>
 
                         </div>
 
@@ -110,20 +113,42 @@ function DetailsPayment() {
                     </div>
 
 
-                    <AcoesPedido key={pedido.id} pedido={pedido} atualizar={setPedido} />
-
                     <section className="detailsSection">
 
                         <h3>{t("Detalhes do pagamento:")}</h3>
 
-                        <div className="paymentDetails">
-                            {pagamento ? <div className="paymentInfo">
-                                <p>{t("Forma:") + " "}<strong>{pagamento.forma==="CARTAO_CREDITO"?t("Cartão de crédito"):pagamento.forma==="PIX"?"Pix":t("Boleto")}</strong></p>
-                                {pagamento.ultimosDigitos && <p>{t("Cartão:") + " "}<strong>{pagamento.bandeira} •••• {pagamento.ultimosDigitos}</strong></p>}
-                                <p>{t("Data:") + " "}<strong>{new Date(pagamento.dataPagamento).toLocaleString(idiomaAtual())}</strong></p>
-                                <p>{t("Valor:") + " "}<strong>{moeda(pagamento.valor)}</strong></p><p>{t("Pagamento de demonstração.")}</p>
-                            </div>:<p>{t("Nenhum pagamento registrado.")}</p>}
-                        </div>
+                        {pagamento?.ultimosDigitos ? (
+
+                            <div className="paymentDetails">
+
+                                <div className="paymentInfo">
+
+                                    <p>
+                                        {t("Bandeira do cartão:") + " "}<strong>{pagamento.bandeira}</strong>
+                                    </p>
+
+                                    <p>
+                                        {t("Número do cartão:") + " "}<strong>•••• •••• •••• {pagamento.ultimosDigitos}</strong>
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            <div className="paymentDetails">
+                                <div className="paymentInfo">
+                                    <p>
+                                        {pagamento
+                                            ? <>{t("Forma de pagamento:") + " "}<strong>{t(FORMAS[pagamento.forma] ?? pagamento.forma)}</strong></>
+                                            : t("Nenhum pagamento registrado.")}
+                                    </p>
+                                </div>
+                            </div>
+
+                        )}
+
                     </section>
 
 
@@ -147,11 +172,11 @@ function DetailsPayment() {
                             </div>
 
                             <p>
-                                {t("Endereço:") + " "}<strong>{cobranca ? rua(cobranca) : t("Não informado")}</strong>
+                                {t("Endereço 1:") + " "}<strong>{cobranca ? endereco1(cobranca) : t("Não informado")}</strong>
                             </p>
 
                             <p>
-                                {t("Bairro:") + " "}<strong>{cobranca?.bairro || "—"}</strong>
+                                {t("Endereço 2:") + " "}<strong>{endereco2(cobranca)}</strong>
                             </p>
 
                             <div className="addressRow addressLocation">
@@ -199,32 +224,35 @@ function DetailsPayment() {
                             </div>
 
                             <p>
-                                {t("Endereço:") + " "}<strong>{entrega ? rua(entrega) : t("Retirada na loja")}</strong>
+                                {t("Endereço 1:") + " "}<strong>{entrega ? endereco1(entrega) : t("Retirada na loja")}</strong>
                             </p>
 
-                            <p>
-                                {t("Bairro:") + " "}<strong>{entrega?.bairro || "—"}</strong>
-                            </p>
-
-                            <div className="addressRow addressLocation">
+                            {entrega && (<>
 
                                 <p>
-                                    {t("Cidade:") + " "}<strong>{entrega?.cidade || "—"}</strong>
+                                    {t("Endereço 2:") + " "}<strong>{endereco2(entrega)}</strong>
                                 </p>
 
-                                <p>
-                                    {t("Estado:") + " "}<strong>{entrega?.estado || "—"}</strong>
-                                </p>
+                                <div className="addressRow addressLocation">
 
-                                <p>
-                                    CEP: <strong>{entrega?.cep || "—"}</strong>
-                                </p>
+                                    <p>
+                                        {t("Cidade:") + " "}<strong>{entrega?.cidade || "—"}</strong>
+                                    </p>
 
-                                <p>
-                                    {t("País:") + " "}<strong>{entrega?.pais || "—"}</strong>
-                                </p>
+                                    <p>
+                                        {t("Estado:") + " "}<strong>{entrega?.estado || "—"}</strong>
+                                    </p>
 
-                            </div>
+                                    <p>
+                                        CEP: <strong>{entrega?.cep || "—"}</strong>
+                                    </p>
+
+                                    <p>
+                                        {t("País:") + " "}<strong>{entrega?.pais || "—"}</strong>
+                                    </p>
+
+                                </div>
+                            </>)}
 
                         </div>
 
@@ -273,6 +301,8 @@ function DetailsPayment() {
                         </div>
 
                     </section>
+
+                    <AcoesPedido key={pedido.id} pedido={pedido} atualizar={setPedido} />
 
                 </section>
 

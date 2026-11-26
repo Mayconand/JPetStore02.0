@@ -1,51 +1,25 @@
-import { t } from "../../services/idioma";
-import { Link, useNavigate } from "react-router-dom";
-import { obterSessao } from "../../services/api";
-import { logout } from "../../services/auth";
+import MenuUsuario from "./MenuUsuario";
 
 /**
- * Área do usuário no cabeçalho: mostra o nome de quem está logado e o botão
- * de sair (RF10). Sem sessão, mostra o link para entrar.
- * Mantém a classe CSS original (userBox) das páginas do cliente.
+ * Área do usuário no cabeçalho das páginas do cliente (classe CSS original: userBox).
+ * O nome abre o menu com perfil, pedidos e Sair.
  */
 function UserBox() {
-    const navigate = useNavigate();
-    const sessao = obterSessao();
-
-    async function sair(): Promise<void> {
-        await logout();
-        navigate("/login");
-    }
-
     return (
         <div className="userBox">
-
-            <svg viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
-                <path
-                    d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                />
-            </svg>
-
-            {sessao ? (
-                <>
-                    <Link to="/ProfilePage" aria-label={t("Meu perfil")} style={{color:"inherit",textDecoration:"none"}}>
-                        <strong>{t("Nome:")}</strong> {sessao.usuario.nome}
-                    </Link>
-
-                    <Link to="/Orders" className="btnSair">{t("Meus pedidos")}</Link>
-
-                    <button type="button" className="btnSair" onClick={sair}>
-                        {t("Sair")}
-                    </button>
-                </>
-            ) : (
-                <Link to="/login">{t("Entrar")}</Link>
-            )}
-
+            <MenuUsuario
+                icone={
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
+                        <path
+                            d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                }
+            />
         </div>
     );
 }

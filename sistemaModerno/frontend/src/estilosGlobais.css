@@ -1,0 +1,113 @@
+/* Estilos usados por várias telas. Ficavam no index.css, que não é importado
+   (é o modelo do Vite e mudaria o visual de todas as telas). */
+
+/* Mensagens de erro de formulários (login, cadastro) */
+.formErro {
+  color: #b42318;
+  font-size: 14px;
+  white-space: pre-line;
+  margin: 8px 0;
+}
+
+/* Botão "Sair" da área do usuário (RF10) */
+.btnSair {
+  margin-left: 8px;
+  padding: 4px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Paginação da lista de animais (RF07) */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.paginacao button {
+  padding: 6px 14px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.paginacao button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Menu do usuário no cabeçalho do cliente: o nome abre perfil, pedidos e Sair (RF10) */
+.userBox,
+.profileUser,
+.adm-user-box,
+.lista-cat-user-pill {
+  position: relative;
+}
+
+.menuUsuario {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.menuUsuarioBotao {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.menuUsuarioLista {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 100%;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.menuUsuarioLista a,
+.menuUsuarioLista button {
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: #555;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menuUsuarioLista a:hover,
+.menuUsuarioLista button:hover {
+  background: #fbf3ec;
+}
+
+/* "Entrar" sem sessão: mesmo visual do nome na pílula do usuário */
+.menuUsuarioEntrar {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}

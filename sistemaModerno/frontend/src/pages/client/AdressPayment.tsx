@@ -804,7 +804,6 @@ function AdressPayment() {
                     <div className="summaryProducts"><strong>Pets</strong>{itens.map(item=><div className="summaryLine" key={item.animalId}><span>{item.nome}</span><span>{moeda(item.precoUnitario)}</span></div>)}</div>
                     {desconto>0 && <div className="summaryLine"><span>{t("Desconto:")}</span><span>{moeda(desconto)}</span></div>}
                     <div className="summaryTotal"><span>{t("Total:")}</span><strong>{moeda(total)}</strong></div>
-                    <Link to="/Orders">{t("Ver meus pedidos")}</Link>
                 </aside>
 
             </main>

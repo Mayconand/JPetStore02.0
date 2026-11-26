@@ -8,9 +8,10 @@ import repteisAdm from "../../assets/imagens/animais/animais-Adm/repteis-Adm.png
 import passarosAdm from "../../assets/imagens/animais/animais-Adm/passaros-Adm.png";
 import peixesAdm from "../../assets/imagens/animais/animais-Adm/peixes-Adm.png";
 
+import MenuUsuario from "../../components/client/MenuUsuario";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { mensagemDeErro, naoAutenticado, obterSessao } from "../../services/api";
+import { mensagemDeErro, naoAutenticado } from "../../services/api";
 import { alterarStatusPedido, filtrarPedidos } from "../../services/lojaAdmin";
 import type { PedidoAdmin } from "../../services/lojaAdmin";
 import type { StatusPedido } from "../../services/pedidos";
@@ -170,7 +171,7 @@ function DashboardAdm() {
           </button>
 
           <div className="adm-user-box">
-            <svg viewBox="0 0 24 24" fill="none">
+            <MenuUsuario admin icone={<svg viewBox="0 0 24 24" fill="none">
               <circle
                 cx="12"
                 cy="8"
@@ -184,10 +185,7 @@ function DashboardAdm() {
                 strokeWidth="1.8"
                 strokeLinecap="round"
               />
-            </svg>
-            <span>
-              <strong>{t("Nome:")}</strong> {obterSessao()?.usuario.nome}
-            </span>
+            </svg>} />
           </div>
         </div>
       </header>
